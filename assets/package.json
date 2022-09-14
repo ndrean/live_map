@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "leaflet": "^1.8.0",
+    "leaflet-control-geocoder": "^2.4.0",
+    "valtio": "^1.7.0"
+  }
+}

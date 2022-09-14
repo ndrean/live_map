@@ -1,0 +1,12 @@
+<section class="phx-hero">
+  <h1> Welcome <%= @profile.name %>!
+      <img width="32px" src={if Map.has_key?(@profile, :picture), do: @profile.picture, else: nil} >
+  </h1>
+  <p> You are <strong>signed in</strong>
+    with your <strong>Google Account</strong> <br />
+    <strong style="color:teal;"><%= @profile.email %></strong>
+  </p>
+</section>
+<section class="phx-hero">
+  <%= live_render(@conn, LiveMapWeb.MapLive) %>
+</section>
