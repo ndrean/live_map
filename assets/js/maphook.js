@@ -24,19 +24,26 @@ function getLocation(map) {
 }
 
 const place = proxy({ coords: [], distance: 0, current: [] });
+const eventsparams = proxy({ center: [], distance: 100_000 });
 
 export const MapHook = {
   mounted() {
-    const map = L.map("map").setView([45, -1.5], 10);
+    const map = L.map("map").setView([45, -1], 10);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 20,
       attribution: "c OpenStreeMap",
     }).addTo(map);
 
     getLocation(map);
-    subscribe(place, () => this.pushEvent("add_point", { place }));
 
-    const layerGroup = L.layerGroup().addTo(map);
+    subscribe(place, () => {
+      this.pushEvent("add_point", { place });
+    });
+    subscribe(eventsparams, () => {
+      this.pushEvent("postgis", { eventsparams });
+    });
+
+    const layergroup = L.layerGroup().addTo(map);
     const lineLayer = L.layerGroup().addTo(map);
     const geoCoder = L.Control.Geocoder.nominatim();
 
@@ -50,7 +57,7 @@ export const MapHook = {
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
       html = addButton(html);
       const marker = L.marker(center, { draggable: true });
-      marker.addTo(layerGroup).bindPopup(html);
+      marker.addTo(layergroup).bindPopup(html);
       map.flyTo(center, 15);
 
       const location = {
@@ -63,23 +70,21 @@ export const MapHook = {
       if (place.coords.find((c) => c.id === location.id) === undefined)
         place.coords.push(location);
 
-      marker.on("popupopen", () => openMarker(marker, location.id));
+      marker.on("popupopen", () => maybeDelete(marker, location.id));
       marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
     });
 
-    map.on("moveend", function () {
-      console.log(map.getBounds());
-    });
-
-    function openMarker(marker, id) {
+    function maybeDelete(marker, id) {
       document
         .querySelector("button.remove")
         .addEventListener("click", function () {
           place.coords = place.coords.filter((c) => c.id !== id) || [];
-          layerGroup.removeLayer(marker);
-          const index = place.coords.findIndex((c) => c.id === id);
-          if (index <= 1) lineLayer.clearLayers();
-          place.distance = 0;
+          layergroup.removeLayer(marker);
+          const index = place.coords.findIndex((c) => c.id === Number(id));
+          if (index <= 1) {
+            lineLayer.clearLayers();
+            place.distance = 0;
+          }
           if (place.coords.length >= 2) {
             drawLine();
           }
@@ -91,7 +96,7 @@ export const MapHook = {
         let { html, name } = result[0];
         html = addButton(html);
         const marker = L.marker(e.latlng, { draggable: true });
-        marker.addTo(layerGroup).bindPopup(html);
+        marker.addTo(layergroup).bindPopup(html);
 
         const location = {
           id: marker._leaflet_id,
@@ -104,30 +109,12 @@ export const MapHook = {
           place.coords.push(location);
           drawLine();
         }
-        marker.on("popupopen", () => openMarker(marker, location.id));
+        marker.on("popupopen", () => maybeDelete(marker, location.id));
         marker.on("dragend", () =>
           draggedMarker(marker, location.id, lineLayer)
         );
       });
     });
-
-    function drawLine() {
-      const [start, end, ...rest] = place.coords;
-      if (start && end) {
-        const p1 = L.latLng([start.lat, start.lng]);
-        const p2 = L.latLng([end.lat, end.lng]);
-        L.polyline(
-          [
-            [start.lat, start.lng],
-            [end.lat, end.lng],
-          ],
-          {
-            color: "red",
-          }
-        ).addTo(lineLayer);
-        place.distance = (p1.distanceTo(p2) / 1_000).toFixed(2);
-      }
-    }
 
     function discover(marker, newLatLng, index, id) {
       geoCoder.reverse(newLatLng, 12, (result) => {
@@ -151,21 +138,69 @@ export const MapHook = {
 
     function draggedMarker(mark, id, lineLayer) {
       const newLatLng = mark.getLatLng();
-      layerGroup.removeLayer(mark);
-      const marker = L.marker(newLatLng, { draggable: true });
-      marker.addTo(layerGroup);
+      mark.setLatLng(newLatLng);
+      // layergroup.removeLayer(mark);
+      // const marker = L.marker(newLatLng, { draggable: true });
+      // marker.addTo(layergroup);
       const index = place.coords.findIndex((c) => c.id === id);
-      discover(marker, newLatLng, index, id);
+      discover(mark, newLatLng, index, id);
 
-      marker.on("popupopen", () => openMarker(marker, id));
-      marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
+      mark.on("popupopen", () => maybeDelete(mark, id));
+      mark.on("dragend", () => draggedMarker(mark, id, lineLayer));
     }
+
+    function drawLine() {
+      const [start, end, ...rest] = place.coords;
+      if (start && end) {
+        const p1 = L.latLng([start.lat, start.lng]);
+        const p2 = L.latLng([end.lat, end.lng]);
+        L.polyline(
+          [
+            [start.lat, start.lng],
+            [end.lat, end.lng],
+          ],
+          {
+            color: "red",
+          }
+        ).addTo(lineLayer);
+        place.distance = (p1.distanceTo(p2) / 1_000).toFixed(2);
+      }
+    }
+
+    map.on("moveend", function () {
+      eventsparams.center = map.getCenter();
+      const { _northEast: ne, _southWest: sw } = map.getBounds();
+      eventsparams.distance = map
+        .distance(L.latLng(ne), L.latLng(sw))
+        .toFixed(0);
+    });
 
     this.handleEvent("add", ({ coords: [lat, lng] }) => {
       const coords = L.latLng([Number(lat), Number(lng)]);
-      const marker = L.marker(coords);
-      marker.addTo(layerGroup).bindPopup(addButton);
-      marker.on("popupopen", () => openMarker(marker, marker._leaflet_id));
+      console.log(coords);
+      const marker = L.marker(coords, { draggable: true });
+      const id = marker._leaflet_id;
+      marker.addTo(layergroup).bindPopup(addButton);
+      marker.on("popupopen", () => maybeDelete(marker, id));
+      marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
+    });
+
+    this.handleEvent("delete_marker", ({ id }) => {
+      // remove marker found by id from the group of markers
+      layergroup.eachLayer((layer) => {
+        if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);
+      });
+
+      // udpate the state and redraw the line if necessary
+      const index = place.coords.findIndex((c) => c.id === Number(id));
+      place.coords = place.coords.filter((c) => c.id !== Number(id)) || [];
+      if (index <= 1) {
+        lineLayer.clearLayers();
+        place.distance = 0;
+      }
+      if (place.coords.length >= 2) {
+        drawLine();
+      }
     });
   },
 };
