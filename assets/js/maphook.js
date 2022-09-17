@@ -26,6 +26,15 @@ function getLocation(map) {
 const place = proxy({ coords: [], distance: 0, current: [] });
 const eventsparams = proxy({ center: [], distance: 100_000 });
 
+const newEvent = proxy({
+  date: null,
+  start_name: "",
+  end_name: "",
+  start_loc: [],
+  end_loc: [],
+  distance: 0,
+});
+
 export const MapHook = {
   mounted() {
     const map = L.map("map").setView([45, -1], 10);
@@ -36,11 +45,15 @@ export const MapHook = {
 
     getLocation(map);
 
+    // use pushEventTo with phx-target (elements)
     subscribe(place, () => {
-      this.pushEvent("add_point", { place });
+      this.pushEventTo("1", "add_point", { place });
     });
+
+    subscribe(newEvent, () => this.pushEventTo("1", "new_event", { newEvent }));
+
     subscribe(eventsparams, () => {
-      this.pushEvent("postgis", { eventsparams });
+      this.pushEventTo("1", "postgis", { eventsparams });
     });
 
     const layergroup = L.layerGroup().addTo(map);
@@ -65,6 +78,7 @@ export const MapHook = {
         lat: center.lat,
         lng: center.lng,
         name,
+        country,
       };
 
       if (place.coords.find((c) => c.id === location.id) === undefined)
@@ -93,16 +107,24 @@ export const MapHook = {
 
     map.on("click", function (e) {
       geoCoder.reverse(e.latlng, 12, (result) => {
-        let { html, name } = result[0];
+        let {
+          html,
+          name,
+          properties: {
+            address: { country },
+          },
+        } = result[0];
+        console.log(country);
         html = addButton(html);
         const marker = L.marker(e.latlng, { draggable: true });
         marker.addTo(layergroup).bindPopup(html);
-
+        // you need to add to the map before getting the _leaflet_id
         const location = {
           id: marker._leaflet_id,
           lat: e.latlng.lat.toFixed(4),
           lng: e.latlng.lng.toFixed(4),
           name,
+          country,
         };
 
         if (place.coords.find((c) => c.id === location.id) === undefined) {
@@ -118,9 +140,16 @@ export const MapHook = {
 
     function discover(marker, newLatLng, index, id) {
       geoCoder.reverse(newLatLng, 12, (result) => {
-        let { html, name } = result[0];
+        let {
+          html,
+          name,
+          properties: {
+            address: { country },
+          },
+        } = result[0];
         place.coords[index] = {
           name,
+          country,
           id,
           lat: newLatLng.lat.toFixed(4),
           lng: newLatLng.lng.toFixed(4),
@@ -164,6 +193,14 @@ export const MapHook = {
           }
         ).addTo(lineLayer);
         place.distance = (p1.distanceTo(p2) / 1_000).toFixed(2);
+
+        newEvent.date = Date.now();
+        newEvent.start_name = place.coords[0].name;
+        newEvent.end_name = place.coords[1].name;
+        newEvent.start_loc = [place.coords[0].lng, place.coords[0].lat];
+        newEvent.end_loc = [place.coords[1].lng, place.coords[1].lat];
+        newEvent.distance = place.distance;
+        newEvent.country = place.coords[0].country;
       }
     }
 
@@ -177,10 +214,15 @@ export const MapHook = {
 
     this.handleEvent("add", ({ coords: [lat, lng] }) => {
       const coords = L.latLng([Number(lat), Number(lng)]);
-      console.log(coords);
+
+      const index = place.coords.length;
       const marker = L.marker(coords, { draggable: true });
-      const id = marker._leaflet_id;
       marker.addTo(layergroup).bindPopup(addButton);
+
+      // to get the id, you need to add to the layer firstly
+      const id = marker._leaflet_id;
+      console.log(id);
+      discover(marker, coords, index, id);
       marker.on("popupopen", () => maybeDelete(marker, id));
       marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
     });

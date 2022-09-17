@@ -28,3 +28,103 @@ export GITHUB_CLIENT_ID=2a152f5479f2ef7fc0d0
 export GITHUB_CLIENT_SECRET=bb45d66c26b844604b6b03665f80ab8e76a781cf
 
 `source .env`
+
+
+use Ecto.Migration
+def change do
+  execute "create extension postgis", "drop extension postgis"
+  alter table("events") do
+    add
+
+
+
+brew install postgis
+
+# create extension postgis;
+
+Use geography, not geometry, even if performance penalty but there is no projection involved.
+
+=# create table mytable (pk serial primary key, geom geography(Point, 4326) );
+=# create index idx_pt on mytable using gist (geometry);
+=# insert into mytable (name, size, geom) values ('a', 1.0, 'point(1 10)');
+=# select to_jsonb(mytable.\*) from mytable;
+
+<http://blog.cleverelephant.ca/2019/03/geojson.html>
+
+CREATE OR REPLACE FUNCTION rowjsonb_to_geojson(
+rowjsonb JSONB,
+geom_column TEXT DEFAULT 'geom')
+RETURNS TEXT AS
+
+$$
+DECLARE
+ json_props jsonb;
+ json_geom jsonb;
+ json_type jsonb;
+BEGIN
+ IF NOT rowjsonb ? geom_column THEN
+   RAISE EXCEPTION 'geometry column ''%'' is missing', geom_column;
+ END IF
+ json_geom := ST_AsGeoJSON((rowjsonb ->> geom_column)::geometry)::jsonb;
+ json_geom := jsonb_build_object('geometry', json_geom);
+ json_props := jsonb_build_object('properties', rowjsonb - geom_column);
+ json_type := jsonb_build_object('type', 'Feature');
+ return (json_type || json_geom || json_props)::text;
+END;
+$$
+
+LANGUAGE 'plpgsql' IMMUTABLE STRICT;
+
+select \* from table1, table2
+where st_distance(table1.the_geom,table2.the_geom) < 1000
+order by table1.the_geom <-> table2.the_geom
+limit 3
+
+
+\set myvar 5
+select :myvar + 1
+6
+
+
+WITH inputs (center, max_distance, date) as (
+    values (point(45 1), 10000,31/12/2022)
+)
+SELECT a.id, b.id, ST_Distance(
+    a.location, b.location)) distance
+WHERE ST_Distance(a.location, b.location) < max_distance
+FROM trees a, trees b
+WHERE a.id < b.id
+ORDER BY distance
+LIMIT 1
+
+
+__________________
+```js
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates":  [
+          24.829726,
+          59.505779,
+          0
+        ]
+      },
+      "properties": {
+        "address": "Street",
+        "date": "evCharger",
+        "id": 37007,
+        "status": "available",
+        "owner": "toto"
+      }
+    }
+  ]
+}
+
+const options = {
+  pointToLayer: (feature, latLng) => L.marker(latLng, { icon: chargerBlue })
+}
+const layer = L.geoJSON(data, options)
