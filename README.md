@@ -98,33 +98,79 @@ ORDER BY distance
 LIMIT 1
 
 
-__________________
-```js
+```psql
+BEGIN;
+insert into users (name, email, inserted_at, updated_at) values ('toto', 'toto@mail.com', '01/10/2020', '01/10/2020');
+
+select * from users;
+id |     email     | name |     inserted_at     |     updated_at
+----+---------------+------+---------------------+---------------------
+  1 | toto@mail.com | toto | 2020-01-10 00:00:00 | 2020-01-10 00:00:00
+
+
+execute("""
+  alter table events add column coordinates geometry[];
+""")
+
+insert into events (owner, coordinates, inserted_at, updated_at) values (4, array[ST_GeomFromText('point(-1.57 47.2)',4326), ST_GeomFromText('point(-1.61 47.25)',4326)], '01/10/2000','01/10/2000')
+;
+
+
+execute("""
+  select AddGeometryColumn('events', 'coordinates', 4326, 'LINESTRING', 2)
+""")
+
+insert into events (owner, coordinates, inserted_at, updated_at) values (1, ST_GeomFromText('LINESTRING(-1.5 47.2, -1.52 47.25)',4326), '01/10/2020', '01/10/2020');
+
+select owner, ST_AsText(coordinates) as geom from events;
+owner |               geom
+-------+-----------------------------------
+     1 | LINESTRING(-1.5 47.2,-1.52 47.25)
+
+COMMIT;
+```
+
+Load into PostgreSQL using `psql` the file "test/events.sql" where we use a variable input
+
+```
+psql -d live_map_repo events.sql
+ id |     email     | name
+----+---------------+------
+  1 | toto@mail.com |
+  2 | bibi@mail.com |
+(2 rows)
+
+INSERT 0 1
+INSERT 0 1
+ owner |              coords
+-------+-----------------------------------
+     2 | LINESTRING(-1.5 47.2,-1.52 47.25)
+     1 | LINESTRING(-1.5 47.2,-1.52 47.25)
+(2 rows)
+```
+
+
+```json
 {
   "type": "FeatureCollection",
   "features": [
     {
       "type": "Feature",
       "geometry": {
-        "type": "Point",
-        "coordinates":  [
-          24.829726,
-          59.505779,
-          0
+        "type": "LineString",
+        "coordinates": [
+          [-1.5, 47.2],
+          [-1.5, 47.29]
         ]
       },
       "properties": {
-        "address": "Street",
-        "date": "evCharger",
-        "id": 37007,
-        "status": "available",
-        "owner": "toto"
+        "ad1": "debut",
+        "ad2": "fin",
+        "date": "2022-10-02",
+        "owner": "bibi",
+        "status": ""
       }
     }
   ]
 }
-
-const options = {
-  pointToLayer: (feature, latLng) => L.marker(latLng, { icon: chargerBlue })
-}
-const layer = L.geoJSON(data, options)
+```

@@ -15,6 +15,9 @@ config :elixir_auth_google,
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
   google_scope: "profile email"
 
+config :geo_postgis,
+  json_library: Jason
+
 # Configures the endpoint
 config :live_map, LiveMapWeb.Endpoint,
   url: [host: "localhost"],

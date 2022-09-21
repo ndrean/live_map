@@ -7,6 +7,12 @@ defmodule LiveMap.Application do
 
   @impl true
   def start(_type, _args) do
+    # Postgrex.Types.define(
+    #   LiveMap.PostgresTypes,
+    #   [Geo.PostGIS.Extension] ++ Ecto.Adapters.Postgres.extensions(),
+    #   json: Jason
+    # )
+
     children = [
       # Start the Ecto repository
       LiveMap.Repo,

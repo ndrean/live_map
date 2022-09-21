@@ -1,57 +1,58 @@
 defmodule MapComp do
-  # use LiveMapWeb, :live_component
   use LiveMapWeb, :live_component
   # use Phoenix.LiveComponent
 
+  @path "./lib/live_map_web/live/data.json"
+
   @impl true
   def mount(socket) do
-    # socket = assign(socket, current: email, place: nil, eventsparams: nil)
-    IO.inspect(self(), label: "Mount Map ________________")
-    {:ok, socket}
+    IO.puts("MOUNT MAP_____________________________")
+    {:ok, assign(socket, place: nil)}
   end
 
   @impl true
   def update(assigns, socket) do
-    IO.inspect(self(), label: "UPDATE")
-    {:ok, socket}
+    IO.puts("UPDATE MAP_____________________________")
+
+    with {:ok, body} <- File.read(@path),
+         {:ok, data} <- Jason.decode(body) do
+      IO.puts("SEND=================")
+      send(self(), %{data: data})
+      {:ok, assign(socket, assigns)}
+    end
   end
 
   @impl true
   def render(assigns) do
-    IO.puts("Render Map____________________")
+    IO.puts("RENDER MAP_____________________________")
 
     ~H"""
+    <div>
     <div id="map"
+    phx-component={2}
     phx-hook="MapHook"
     phx-update="ignore">
+    phx-target={@myself}
+    </div>
+    <LiveMapWeb.NewEventTable.render  user={@current} place={@place}/>
+
     </div>
     """
-
-    # Phoenix.View.render(LiveMapWeb.MapView, "map.html", assigns)
   end
-
-  # phx-target={@myself}
 
   @impl true
   def handle_event("add_point", %{"place" => place}, socket) do
-    # IO.inspect(place, label: "add_point")
     {:noreply, assign(socket, :place, place)}
   end
 
   @impl true
   def handle_event("postgis", %{"eventsparams" => events_params}, socket) do
-    IO.inspect(events_params, label: "POSTGIS")
+    IO.inspect(events_params, label: "POSTGIS=============================")
     {:noreply, assign(socket, :events_params, events_params)}
   end
 
   def handle_event("new_event", %{"newEvent" => new_event}, socket) do
-    IO.inspect(new_event, label: "new_event_________________________")
+    send(self(), %{new_event: new_event})
     {:noreply, assign(socket, :new_event, new_event)}
-  end
-
-  @impl true
-  def handle_event("delete_marker", %{"id" => id}, socket) do
-    IO.inspect(id, label: "delete")
-    {:noreply, push_event(socket, "delete_marker", %{id: id})}
   end
 end

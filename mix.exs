@@ -5,7 +5,7 @@ defmodule LiveMap.MixProject do
     [
       app: :live_map,
       version: "0.1.0",
-      elixir: "~> 1.12",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       # compilers: [:gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -50,7 +50,10 @@ defmodule LiveMap.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:elixir_auth_google, "~> 1.6.3"},
-      {:elixir_auth_github, "~> 1.6.1"}
+      {:elixir_auth_github, "~> 1.6.1"},
+      # {:poison, "~>4.0"},
+      # {:geo, "~> 3.4"},
+      {:geo_postgis, "~> 3.4"}
     ]
   end
 

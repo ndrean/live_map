@@ -16,7 +16,7 @@ function getLocation(map) {
   navigator.geolocation.getCurrentPosition(locationFound, locationDenied);
   function locationFound({ coords: { latitude: lat, longitude: lng } }) {
     place.current = L.latLng(lat, lng);
-    map.flyTo([lat, lng], 12);
+    map.flyTo([lat, lng], 11);
   }
   function locationDenied() {
     window.alert("location access denied");
@@ -37,11 +37,22 @@ const newEvent = proxy({
 
 export const MapHook = {
   mounted() {
-    const map = L.map("map").setView([45, -1], 10);
+    const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 10);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 20,
       attribution: "c OpenStreeMap",
     }).addTo(map);
+
+    // plugin "Leaflet Draw"
+    // const drawnItems = L.geoJSON().addTo(map);
+
+    // map.addControl(
+    //   new L.Control.Draw({
+    //     edit: {
+    //       featureGroup: drawnItems,
+    //     },
+    //   })
+    // );
 
     getLocation(map);
 
@@ -50,15 +61,51 @@ export const MapHook = {
       this.pushEventTo("1", "add_point", { place });
     });
 
-    subscribe(newEvent, () => this.pushEventTo("1", "new_event", { newEvent }));
+    subscribe(newEvent, () =>
+      this.pushEventTo("#map", "new_event", { newEvent })
+    );
 
     subscribe(eventsparams, () => {
-      this.pushEventTo("1", "postgis", { eventsparams });
+      this.pushEventTo("#map", "postgis", { eventsparams });
     });
 
     const layergroup = L.layerGroup().addTo(map);
+    const datagroup = L.layerGroup().addTo(map);
     const lineLayer = L.layerGroup().addTo(map);
+
     const geoCoder = L.Control.Geocoder.nominatim();
+
+    function info(ad, owner, date) {
+      const evtDate = new Date(date).toDateString();
+      return `
+        <h4>${owner}, the ${evtDate}</h4>
+        <h5>${ad}</h5>
+        `;
+    }
+
+    function onEachFeature(feature, layer) {
+      const { ad1, ad2, owner, date } = feature.properties;
+      const [start, end] = layer.getLatLngs();
+      const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+      L.circleMarker(start, { radius: 10, color: color })
+        .bindPopup(info(ad1, owner, date))
+        .addTo(datagroup);
+      L.circleMarker(end, { radius: 10, color: color })
+        .bindPopup(info(ad2, owner, date))
+        .addTo(datagroup);
+    }
+
+    this.handleEvent("init", ({ data }) => {
+      if (data) {
+        L.geoJSON(data, {
+          color: "black",
+          dashArray: "20, 20",
+          dashOffset: "20",
+          weight: "2",
+          onEachFeature: onEachFeature,
+        }).addTo(map);
+      }
+    });
 
     function addButton(html = "") {
       return `<h5>${html}</h5>
@@ -68,24 +115,24 @@ export const MapHook = {
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
 
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
-      html = addButton(html);
-      const marker = L.marker(center, { draggable: true });
-      marker.addTo(layergroup).bindPopup(html);
+      //   html = addButton(html);
+      //   const marker = L.marker(center, { draggable: true });
+      //   marker.addTo(layergroup).bindPopup(html);
       map.flyTo(center, 15);
 
-      const location = {
-        id: marker._leaflet_id,
-        lat: center.lat,
-        lng: center.lng,
-        name,
-        country,
-      };
+      //   const location = {
+      //     id: marker._leaflet_id,
+      //     lat: center.lat,
+      //     lng: center.lng,
+      //     name,
+      //     country,
+      //   };
 
-      if (place.coords.find((c) => c.id === location.id) === undefined)
-        place.coords.push(location);
+      //   if (place.coords.find((c) => c.id === location.id) === undefined)
+      //     place.coords.push(location);
 
-      marker.on("popupopen", () => maybeDelete(marker, location.id));
-      marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
+      //   marker.on("popupopen", () => maybeDelete(marker, location.id));
+      //   marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
     });
 
     function maybeDelete(marker, id) {
@@ -114,7 +161,6 @@ export const MapHook = {
             address: { country },
           },
         } = result[0];
-        console.log(country);
         html = addButton(html);
         const marker = L.marker(e.latlng, { draggable: true });
         marker.addTo(layergroup).bindPopup(html);
