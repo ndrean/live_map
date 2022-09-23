@@ -15,7 +15,7 @@ defmodule LiveMap.Event do
 
   def changeset(%Event{} = event, attrs) do
     event
-    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id])
+    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id, :distance])
     |> validate_required([:coordinates])
     |> foreign_key_constraint(:user_id)
   end
@@ -23,7 +23,7 @@ defmodule LiveMap.Event do
   def new(params) do
     %Event{}
     |> changeset(params)
-    |> Repo.insert(on_conflict: :nothing)
+    |> Repo.insert()
   end
 
   def list() do

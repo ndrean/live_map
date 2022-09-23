@@ -79,14 +79,14 @@ defmodule LiveMap.Repo do
       'features', json_agg(ST_AsGeoJSON(t.*)::json)
       )
       FROM (
-      SELECT users.email, events.ad1, events.ad2, events.date, events.coordinates,
+      SELECT users.email, events.ad1, events.ad2, events.date, events.coordinates, events.distance,
       coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
       FROM events
       INNER JOIN users on events.user_id = users.id
       WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
       AND date < $4
       )
-      AS t(email, ad1, ad2, date, coordinates);
+      AS t(email, ad1, ad2, date, coordinates, distance);
       "
     ]
 

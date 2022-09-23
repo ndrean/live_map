@@ -22,16 +22,16 @@ defmodule LiveMap.EventParticipants do
   def new(params) do
     %EventParticipants{}
     |> changeset(params)
-    |> Repo.insert(on_conflict: :nothing)
+    |> Repo.insert()
   end
 
   def list do
     Repo.all(EventParticipants)
   end
 
-  def update(params) do
-    %EventParticipants{}
-    |> changeset(params)
-    |> Ecto.Query.update_all()
-  end
+  # def update(params) do
+  #   %EventParticipants{}
+  #   |> changeset(params)
+  #   |> Ecto.Query.update_all()
+  # end
 end

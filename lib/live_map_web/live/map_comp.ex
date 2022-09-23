@@ -13,18 +13,17 @@ defmodule MapComp do
   @impl true
   def update(assigns, socket) do
     IO.puts("UPDATE MAP_____________________________")
+
     # IO.inspect(assigns.events_params, label: "UPDATE_________________")
 
-    # if assigns.events_params,
-    #   do: IO.inspect(assigns.events_params, label: "UPDATE_________________")
+    # with {:ok, body} <- File.read(@path),
+    #      {:ok, data} <- Jason.decode(body) do
+    #   IO.puts("SEND=================")
 
-    with {:ok, body} <- File.read(@path),
-         {:ok, data} <- Jason.decode(body) do
-      IO.puts("SEND=================")
-
-      send(self(), %{data: data})
-      {:ok, assign(socket, assigns)}
-    end
+    #   send(self(), %{data: data})
+    # {:ok, assign(socket, assigns)}
+    # end
+    {:ok, assign(socket, assigns)}
   end
 
   @impl true
@@ -57,6 +56,7 @@ defmodule MapComp do
     {:noreply, push_event(socket, "update_map", %{data: results})}
   end
 
+  @impl true
   def handle_event("new_event", %{"newEvent" => new_event}, socket) do
     send(self(), %{new_event: new_event})
     {:noreply, assign(socket, :new_event, new_event)}

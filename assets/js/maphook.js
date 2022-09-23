@@ -53,16 +53,10 @@ export const MapHook = {
       attribution: "c OpenStreeMap",
     }).addTo(map);
 
-    // plugin "Leaflet Draw"
-    // const drawnItems = L.geoJSON().addTo(map);
-
-    // map.addControl(
-    //   new L.Control.Draw({
-    //     edit: {
-    //       featureGroup: drawnItems,
-    //     },
-    //   })
-    // );
+    const layergroup = L.layerGroup().addTo(map);
+    const datagroup = L.layerGroup().addTo(map);
+    const lineLayer = L.layerGroup().addTo(map);
+    const geoCoder = L.Control.Geocoder.nominatim();
 
     getLocation(map);
 
@@ -75,47 +69,14 @@ export const MapHook = {
       this.pushEventTo("#map", "new_event", { newEvent })
     );
 
-    // const throttled = (delay, fn) => {
-    //   let lastCall = 0;
-    //   return function (...args) {
-    //     const now = new Date().getTime();
-    //     if (now - lastCall < delay) {
-    //       return;
-    //     }
-    //     console.log(now);
-    //     lastCall = now;
-    //     return fn(...args);
-    //   };
-    // };
-
     subscribe(movingmap, () => {
       this.pushEventTo("#map", "postgis", { movingmap });
     });
 
-    const layergroup = L.layerGroup().addTo(map);
-    const datagroup = L.layerGroup().addTo(map);
-    const lineLayer = L.layerGroup().addTo(map);
-
-    const geoCoder = L.Control.Geocoder.nominatim();
-
-    // const throttle = (fn, milliseconds) => {
-    //   let inThrottle;
-    //   return function () {
-    //     const args = arguments;
-    //     const context = this;
-    //     if (!inThrottle) {
-    //       fn.apply(context, args);
-    //       inThrottle = true;
-    //       setTimeout(() => (inThrottle = false), milliseconds);
-    //     }
-    //   };
-    // };
-    // throttled listener to the backend sending features to populate the map
-
+    // listener to update existing events at location
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
-      console.log("handelData");
       if (data) {
         L.geoJSON(data, {
           color: "black",
@@ -128,24 +89,25 @@ export const MapHook = {
     }
 
     function onEachFeature(feature, layer) {
-      const { ad1, ad2, owner, date } = feature.properties;
+      const { ad1, ad2, email, date, distance } = feature.properties;
       const [start, end] = layer.getLatLngs();
       const color = setRandColor();
-      setCircleMarker(start, ad1, owner, date, color);
-      setCircleMarker(end, ad2, owner, date, color);
+      setCircleMarker(start, ad1, email, date, distance, color);
+      setCircleMarker(end, ad2, email, date, distance, color);
     }
 
-    function setCircleMarker(pos, ad, owner, date, color) {
+    function setCircleMarker(pos, ad, owner, date, distance, color) {
       return L.circleMarker(pos, { radius: 10, color: color })
-        .bindPopup(info(ad, owner, date))
+        .bindPopup(info(ad, owner, date, distance))
         .addTo(datagroup);
     }
 
-    function info(ad, owner, date) {
+    function info(ad, owner, date, distance) {
       const evtDate = new Date(date).toDateString();
       return `
             <h4>${owner}, the ${evtDate}</h4>
             <h5>${ad}</h5>
+            <h5>${distance}</h5>
             `;
     }
 
@@ -298,9 +260,9 @@ export const MapHook = {
       }
     }
 
+    // listener that sends centre and radius of displayed map for the backend to retrieve events
     map.on("moveend", updateMapBounds);
 
-    // callback that sends coordinates and radius to the backend to populate the map
     function updateMapBounds() {
       movingmap.center = map.getCenter();
       const { _northEast: ne, _southWest: sw } = map.getBounds();
@@ -313,7 +275,6 @@ export const MapHook = {
       const index = place.coords.length;
       const marker = L.marker(coords, { draggable: true });
       marker.addTo(layergroup).bindPopup(addButton);
-
       // to get the id, you need to add to the layer firstly
       const id = marker._leaflet_id;
       console.log(id);
@@ -322,12 +283,20 @@ export const MapHook = {
       marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
     });
 
+    // clear the saved event
+    this.handleEvent("clear_event", () => {
+      layergroup.clearLayers();
+      lineLayer.clearLayers();
+      place.coords = [];
+      place.distance = 0;
+      place.current = [];
+    });
+
     // Delete listener triggered from an action button in the table
     this.handleEvent("delete_marker", ({ id }) => {
       layergroup.eachLayer((layer) => {
         if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);
       });
-
       // udpate the state and redraw the line if necessary
       const index = place.coords.findIndex((c) => c.id === Number(id));
       place.coords = place.coords.filter((c) => c.id !== Number(id)) || [];
