@@ -9,4 +9,7 @@ defmodule LiveMap.Utils do
       when is_list(startpoint) and is_list(endpoint) do
     %LiveMap.GeoJSON{geometry: %{coordinates: [startpoint, endpoint]}}
   end
+
+  # def toGeoJson(%LiveMap.Event{} = event) do
+  # end
 end

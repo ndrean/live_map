@@ -10,5 +10,6 @@ defmodule LiveMap.Repo.Migrations.EventParticipants do
     end
 
     create unique_index(:event_participants, [:event_id, :user_id])
+    # for queries  "WHERE ep.even_id= .. AND ep.user_id=..
   end
 end

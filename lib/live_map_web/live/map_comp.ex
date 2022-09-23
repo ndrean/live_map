@@ -1,6 +1,6 @@
 defmodule MapComp do
-  use LiveMapWeb, :live_component
-  # use Phoenix.LiveComponent
+  # use LiveMapWeb, :live_component
+  use Phoenix.LiveComponent
 
   @path "./lib/live_map_web/live/data.json"
 
@@ -13,10 +13,15 @@ defmodule MapComp do
   @impl true
   def update(assigns, socket) do
     IO.puts("UPDATE MAP_____________________________")
+    # IO.inspect(assigns.events_params, label: "UPDATE_________________")
+
+    # if assigns.events_params,
+    #   do: IO.inspect(assigns.events_params, label: "UPDATE_________________")
 
     with {:ok, body} <- File.read(@path),
          {:ok, data} <- Jason.decode(body) do
       IO.puts("SEND=================")
+
       send(self(), %{data: data})
       {:ok, assign(socket, assigns)}
     end
@@ -28,14 +33,13 @@ defmodule MapComp do
 
     ~H"""
     <div>
-    <div id="map"
-    phx-component={2}
-    phx-hook="MapHook"
-    phx-update="ignore">
-    phx-target={@myself}
-    </div>
-    <LiveMapWeb.NewEventTable.render  user={@current} place={@place}/>
-
+      <div id="map"
+        phx-component={2}
+        phx-hook="MapHook"
+        phx-update="ignore">
+        phx-target={@myself}
+      </div>
+      <LiveMapWeb.NewEventTable.display  user={@current} place={@place}/>
     </div>
     """
   end
@@ -46,9 +50,11 @@ defmodule MapComp do
   end
 
   @impl true
-  def handle_event("postgis", %{"eventsparams" => events_params}, socket) do
-    IO.inspect(events_params, label: "POSTGIS=============================")
-    {:noreply, assign(socket, :events_params, events_params)}
+  def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
+    IO.puts("POSTGIS=============================")
+    %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
+    results = List.flatten(LiveMap.Repo.features_in_map(lng, lat, String.to_float(distance)))
+    {:noreply, push_event(socket, "update_map", %{data: results})}
   end
 
   def handle_event("new_event", %{"newEvent" => new_event}, socket) do

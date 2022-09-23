@@ -5,6 +5,7 @@ defmodule LiveMapWeb.Presence do
   See the [`Phoenix.Presence`](https://hexdocs.pm/phoenix/Phoenix.Presence.html)
   docs for more details.
   """
-  use Phoenix.Presence, otp_app: :live_map,
-                        pubsub_server: LiveMap.PubSub
+  use Phoenix.Presence,
+    otp_app: :live_map,
+    pubsub_server: LiveMap.PubSub
 end

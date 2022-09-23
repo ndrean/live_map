@@ -20,7 +20,7 @@ defmodule LiveMap.MixProject do
   def application do
     [
       mod: {LiveMap.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ecto]
     ]
   end
 
@@ -36,10 +36,11 @@ defmodule LiveMap.MixProject do
       {:phoenix, "~> 1.6.11"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
+      {:ecto, "~> 3.8"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.17.5"},
+      {:phoenix_live_view, "~> 0.18"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.6"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
@@ -47,13 +48,14 @@ defmodule LiveMap.MixProject do
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
-      {:jason, "~> 1.2"},
+      {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
       {:elixir_auth_google, "~> 1.6.3"},
       {:elixir_auth_github, "~> 1.6.1"},
       # {:poison, "~>4.0"},
       # {:geo, "~> 3.4"},
-      {:geo_postgis, "~> 3.4"}
+      {:geo_postgis, "~> 3.4"},
+      {:ecto_erd, "~> 0.5.0", only: :dev}
     ]
   end
 

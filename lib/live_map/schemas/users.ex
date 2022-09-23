@@ -18,12 +18,17 @@ defmodule LiveMap.User do
     |> unique_constraint(:email)
   end
 
-  def create(params) do
-    %User{}
-    |> changeset(params)
+  def new(email) do
+    {:ok, user} =
+      User.changeset(%User{}, %{email: email})
+      |> Repo.insert(on_conflict: :nothing)
+
+    user
   end
 
-  def all do
+  def list do
     Repo.all(User)
   end
 end
+
+# {:replace, [:email]}, returning: true, conflict_target: :email)

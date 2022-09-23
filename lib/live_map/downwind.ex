@@ -1,104 +1,104 @@
-defmodule LiveMap.Downwind do
-  @moduledoc """
-  The Downwind context.
-  """
+# defmodule LiveMap.Downwind do
+#   @moduledoc """
+#   The Downwind context.
+#   """
 
-  import Ecto.Query, warn: false
-  alias LiveMap.Repo
+#   import Ecto.Query, warn: false
+#   alias LiveMap.Repo
 
-  alias LiveMap.Downwind.Place
+#   alias LiveMap.Downwind.Place
 
-  @doc """
-  Returns the list of places.
+#   @doc """
+#   Returns the list of places.
 
-  ## Examples
+#   ## Examples
 
-      iex> list_places()
-      [%Place{}, ...]
+#       iex> list_places()
+#       [%Place{}, ...]
 
-  """
-  def list_places do
-    Repo.all(Place)
-  end
+#   """
+#   def list_places do
+#     Repo.all(Place)
+#   end
 
-  @doc """
-  Gets a single place.
+#   @doc """
+#   Gets a single place.
 
-  Raises `Ecto.NoResultsError` if the Place does not exist.
+#   Raises `Ecto.NoResultsError` if the Place does not exist.
 
-  ## Examples
+#   ## Examples
 
-      iex> get_place!(123)
-      %Place{}
+#       iex> get_place!(123)
+#       %Place{}
 
-      iex> get_place!(456)
-      ** (Ecto.NoResultsError)
+#       iex> get_place!(456)
+#       ** (Ecto.NoResultsError)
 
-  """
-  def get_place!(id), do: Repo.get!(Place, id)
+#   """
+#   def get_place!(id), do: Repo.get!(Place, id)
 
-  @doc """
-  Creates a place.
+#   @doc """
+#   Creates a place.
 
-  ## Examples
+#   ## Examples
 
-      iex> create_place(%{field: value})
-      {:ok, %Place{}}
+#       iex> create_place(%{field: value})
+#       {:ok, %Place{}}
 
-      iex> create_place(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+#       iex> create_place(%{field: bad_value})
+#       {:error, %Ecto.Changeset{}}
 
-  """
-  def create_place(attrs \\ %{}) do
-    %Place{}
-    |> Place.changeset(attrs)
-    |> Repo.insert()
-  end
+#   """
+#   def create_place(attrs \\ %{}) do
+#     %Place{}
+#     |> Place.changeset(attrs)
+#     |> Repo.insert()
+#   end
 
-  @doc """
-  Updates a place.
+#   @doc """
+#   Updates a place.
 
-  ## Examples
+#   ## Examples
 
-      iex> update_place(place, %{field: new_value})
-      {:ok, %Place{}}
+#       iex> update_place(place, %{field: new_value})
+#       {:ok, %Place{}}
 
-      iex> update_place(place, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+#       iex> update_place(place, %{field: bad_value})
+#       {:error, %Ecto.Changeset{}}
 
-  """
-  def update_place(%Place{} = place, attrs) do
-    place
-    |> Place.changeset(attrs)
-    |> Repo.update()
-  end
+#   """
+#   def update_place(%Place{} = place, attrs) do
+#     place
+#     |> Place.changeset(attrs)
+#     |> Repo.update()
+#   end
 
-  @doc """
-  Deletes a place.
+#   @doc """
+#   Deletes a place.
 
-  ## Examples
+#   ## Examples
 
-      iex> delete_place(place)
-      {:ok, %Place{}}
+#       iex> delete_place(place)
+#       {:ok, %Place{}}
 
-      iex> delete_place(place)
-      {:error, %Ecto.Changeset{}}
+#       iex> delete_place(place)
+#       {:error, %Ecto.Changeset{}}
 
-  """
-  def delete_place(%Place{} = place) do
-    Repo.delete(place)
-  end
+#   """
+#   def delete_place(%Place{} = place) do
+#     Repo.delete(place)
+#   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking place changes.
+#   @doc """
+#   Returns an `%Ecto.Changeset{}` for tracking place changes.
 
-  ## Examples
+#   ## Examples
 
-      iex> change_place(place)
-      %Ecto.Changeset{data: %Place{}}
+#       iex> change_place(place)
+#       %Ecto.Changeset{data: %Place{}}
 
-  """
-  def change_place(%Place{} = place, attrs \\ %{}) do
-    Place.changeset(place, attrs)
-  end
-end
+#   """
+#   def change_place(%Place{} = place, attrs \\ %{}) do
+#     Place.changeset(place, attrs)
+#   end
+# end

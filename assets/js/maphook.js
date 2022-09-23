@@ -23,8 +23,18 @@ function getLocation(map) {
   }
 }
 
+function addButton(html = "") {
+  return `<h5>${html}</h5>
+  <button type="button" class="remove">Remove</button>`;
+}
+
+function setRandColor() {
+  return "#" + Math.floor(Math.random() * 16777215).toString(16);
+}
+
+// local proxied data stores where we subscribe to
 const place = proxy({ coords: [], distance: 0, current: [] });
-const eventsparams = proxy({ center: [], distance: 100_000 });
+const movingmap = proxy({ center: [], distance: 100_000 });
 
 const newEvent = proxy({
   date: null,
@@ -65,8 +75,21 @@ export const MapHook = {
       this.pushEventTo("#map", "new_event", { newEvent })
     );
 
-    subscribe(eventsparams, () => {
-      this.pushEventTo("#map", "postgis", { eventsparams });
+    // const throttled = (delay, fn) => {
+    //   let lastCall = 0;
+    //   return function (...args) {
+    //     const now = new Date().getTime();
+    //     if (now - lastCall < delay) {
+    //       return;
+    //     }
+    //     console.log(now);
+    //     lastCall = now;
+    //     return fn(...args);
+    //   };
+    // };
+
+    subscribe(movingmap, () => {
+      this.pushEventTo("#map", "postgis", { movingmap });
     });
 
     const layergroup = L.layerGroup().addTo(map);
@@ -75,27 +98,24 @@ export const MapHook = {
 
     const geoCoder = L.Control.Geocoder.nominatim();
 
-    function info(ad, owner, date) {
-      const evtDate = new Date(date).toDateString();
-      return `
-        <h4>${owner}, the ${evtDate}</h4>
-        <h5>${ad}</h5>
-        `;
-    }
+    // const throttle = (fn, milliseconds) => {
+    //   let inThrottle;
+    //   return function () {
+    //     const args = arguments;
+    //     const context = this;
+    //     if (!inThrottle) {
+    //       fn.apply(context, args);
+    //       inThrottle = true;
+    //       setTimeout(() => (inThrottle = false), milliseconds);
+    //     }
+    //   };
+    // };
+    // throttled listener to the backend sending features to populate the map
 
-    function onEachFeature(feature, layer) {
-      const { ad1, ad2, owner, date } = feature.properties;
-      const [start, end] = layer.getLatLngs();
-      const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
-      L.circleMarker(start, { radius: 10, color: color })
-        .bindPopup(info(ad1, owner, date))
-        .addTo(datagroup);
-      L.circleMarker(end, { radius: 10, color: color })
-        .bindPopup(info(ad2, owner, date))
-        .addTo(datagroup);
-    }
+    this.handleEvent("update_map", ({ data }) => handleData(data));
 
-    this.handleEvent("init", ({ data }) => {
+    function handleData(data) {
+      console.log("handelData");
       if (data) {
         L.geoJSON(data, {
           color: "black",
@@ -105,20 +125,40 @@ export const MapHook = {
           onEachFeature: onEachFeature,
         }).addTo(map);
       }
-    });
-
-    function addButton(html = "") {
-      return `<h5>${html}</h5>
-      <button type="button" class="remove">Remove</button>`;
     }
 
+    function onEachFeature(feature, layer) {
+      const { ad1, ad2, owner, date } = feature.properties;
+      const [start, end] = layer.getLatLngs();
+      const color = setRandColor();
+      setCircleMarker(start, ad1, owner, date, color);
+      setCircleMarker(end, ad2, owner, date, color);
+    }
+
+    function setCircleMarker(pos, ad, owner, date, color) {
+      return L.circleMarker(pos, { radius: 10, color: color })
+        .bindPopup(info(ad, owner, date))
+        .addTo(datagroup);
+    }
+
+    function info(ad, owner, date) {
+      const evtDate = new Date(date).toDateString();
+      return `
+            <h4>${owner}, the ${evtDate}</h4>
+            <h5>${ad}</h5>
+            `;
+    }
+
+    // this.handleEvent("init", ({ data }) => handleData(data));
+
+    // provides a form to find a place by its name and fly-to
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
 
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
       //   html = addButton(html);
       //   const marker = L.marker(center, { draggable: true });
       //   marker.addTo(layergroup).bindPopup(html);
-      map.flyTo(center, 15);
+      map.flyTo(center, 10);
 
       //   const location = {
       //     id: marker._leaflet_id,
@@ -127,14 +167,13 @@ export const MapHook = {
       //     name,
       //     country,
       //   };
-
       //   if (place.coords.find((c) => c.id === location.id) === undefined)
       //     place.coords.push(location);
-
       //   marker.on("popupopen", () => maybeDelete(marker, location.id));
       //   marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
     });
 
+    // Delete: callback to "popupopen": you get a delete button defined above inside
     function maybeDelete(marker, id) {
       document
         .querySelector("button.remove")
@@ -152,8 +191,12 @@ export const MapHook = {
         });
     }
 
-    map.on("click", function (e) {
+    // Create listener: returns a marker with an address
+    map.on("click", create);
+    function create(e) {
+      // fetch the address from the endpoint "nominatim"
       geoCoder.reverse(e.latlng, 12, (result) => {
+        if (!result[0]) return;
         let {
           html,
           name,
@@ -161,7 +204,10 @@ export const MapHook = {
             address: { country },
           },
         } = result[0];
-        html = addButton(html);
+        if (html) html = addButton(html);
+
+        console.log(result[0]);
+
         const marker = L.marker(e.latlng, { draggable: true });
         marker.addTo(layergroup).bindPopup(html);
         // you need to add to the map before getting the _leaflet_id
@@ -182,8 +228,9 @@ export const MapHook = {
           draggedMarker(marker, location.id, lineLayer)
         );
       });
-    });
+    }
 
+    // async fetch to get the address if any
     function discover(marker, newLatLng, index, id) {
       geoCoder.reverse(newLatLng, 12, (result) => {
         let {
@@ -201,6 +248,7 @@ export const MapHook = {
           lng: newLatLng.lng.toFixed(4),
         };
 
+        // since we are in an async function, this has to be done here
         if (index <= 1) {
           lineLayer.clearLayers();
           drawLine();
@@ -211,12 +259,10 @@ export const MapHook = {
       });
     }
 
+    // Update callback to "dragend": fetches new address and redraws if needed
     function draggedMarker(mark, id, lineLayer) {
       const newLatLng = mark.getLatLng();
       mark.setLatLng(newLatLng);
-      // layergroup.removeLayer(mark);
-      // const marker = L.marker(newLatLng, { draggable: true });
-      // marker.addTo(layergroup);
       const index = place.coords.findIndex((c) => c.id === id);
       discover(mark, newLatLng, index, id);
 
@@ -224,22 +270,24 @@ export const MapHook = {
       mark.on("dragend", () => draggedMarker(mark, id, lineLayer));
     }
 
+    // we run "drawLine" when the two first markers (= the event) are changed
     function drawLine() {
       const [start, end, ...rest] = place.coords;
+      // if there are two markers, do...
       if (start && end) {
-        const p1 = L.latLng([start.lat, start.lng]);
-        const p2 = L.latLng([end.lat, end.lng]);
+        // draw the line in red
         L.polyline(
           [
             [start.lat, start.lng],
             [end.lat, end.lng],
           ],
-          {
-            color: "red",
-          }
+          { color: "red" }
         ).addTo(lineLayer);
+        // calculate the line length
+        const p1 = L.latLng([start.lat, start.lng]);
+        const p2 = L.latLng([end.lat, end.lng]);
         place.distance = (p1.distanceTo(p2) / 1_000).toFixed(2);
-
+        // mutate the "newEvent" proxied object
         newEvent.date = Date.now();
         newEvent.start_name = place.coords[0].name;
         newEvent.end_name = place.coords[1].name;
@@ -250,13 +298,14 @@ export const MapHook = {
       }
     }
 
-    map.on("moveend", function () {
-      eventsparams.center = map.getCenter();
+    map.on("moveend", updateMapBounds);
+
+    // callback that sends coordinates and radius to the backend to populate the map
+    function updateMapBounds() {
+      movingmap.center = map.getCenter();
       const { _northEast: ne, _southWest: sw } = map.getBounds();
-      eventsparams.distance = map
-        .distance(L.latLng(ne), L.latLng(sw))
-        .toFixed(0);
-    });
+      movingmap.distance = map.distance(L.latLng(ne), L.latLng(sw)).toFixed(1);
+    }
 
     this.handleEvent("add", ({ coords: [lat, lng] }) => {
       const coords = L.latLng([Number(lat), Number(lng)]);
@@ -273,8 +322,8 @@ export const MapHook = {
       marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
     });
 
+    // Delete listener triggered from an action button in the table
     this.handleEvent("delete_marker", ({ id }) => {
-      // remove marker found by id from the group of markers
       layergroup.eachLayer((layer) => {
         if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);
       });

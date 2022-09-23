@@ -9,19 +9,24 @@ defmodule LiveMap.Event do
     field :ad2, :string, default: nil
     field :date, :date, default: Date.utc_today()
     field :coordinates, Geo.PostGIS.Geometry
-    belongs_to :owner, User
-    has_many :event_participants, EventParticipants
+    belongs_to :user, User
+    has_many :event_participants, EventParticipants, on_delete: :delete_all
   end
 
   def changeset(%Event{} = event, attrs) do
     event
-    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :owner_id])
-    |> validate_required([:coordinates, :owner_id])
+    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id])
+    |> validate_required([:coordinates])
+    |> foreign_key_constraint(:user_id)
   end
 
-  def create(params) do
+  def new(params) do
     %Event{}
     |> changeset(params)
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: :nothing)
+  end
+
+  def list() do
+    Repo.all(Event)
   end
 end

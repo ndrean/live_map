@@ -1,19 +1,19 @@
 defmodule LiveMapWeb.NewEventTable do
-  use Phoenix.LiveComponent
+  use Phoenix.Component
 
-  def render(%{place: place} = assigns) when is_nil(place) do
+  def display(%{place: place} = assigns) when is_nil(place) do
     ~H"""
       <div></div>
     """
   end
 
-  def render(%{place: %{"coords" => []}} = assigns) do
+  def display(%{place: %{"coords" => []}} = assigns) do
     ~H"""
       <div></div>
     """
   end
 
-  def render(%{place: %{"coords" => coords}} = assigns) when length(coords) > 0 do
+  def display(%{place: %{"coords" => coords}} = assigns) when length(coords) > 0 do
     ~H"""
     <div>
       <table>
@@ -28,21 +28,20 @@ defmodule LiveMapWeb.NewEventTable do
       <tbody>
       <tr>
       <%= for coord <- coords do %>
-        <Row.display row={coord} id={"r-#{coord["id"]}"}/>
+        <.row row={coord} id={"r-#{coord["id"]}"}/>
       <% end %>
       </tr>
       </tbody>
       </table>
-      <p>distance: <%=   assigns.place["distance"] %></p>
+      <p class="save-row">
+        <span><strong>distance: <%=   assigns.place["distance"] %></strong></span>
+       <button phx-click="save_event" disabled={length(coords)<2} type="button">Update  </button>
+      </p>
     </div>
     """
   end
-end
 
-defmodule Row do
-  use Phoenix.Component
-
-  def display(assigns) do
+  def row(assigns) do
     IO.puts("row")
 
     ~H"""

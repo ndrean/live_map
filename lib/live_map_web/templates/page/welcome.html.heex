@@ -7,4 +7,4 @@
     <strong style="color:teal;"><%= @profile.email %></strong>
   </p>
 </section>
-  <%= live_render(@conn, LiveMapWeb.MapLive, session: %{"name" => @profile.name, "email" => @profile.email}) %>
+<%= live_render(@conn, LiveMapWeb.MapLive, session: %{"name" => @profile.name, "email" => @profile.email}) %>

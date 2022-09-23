@@ -21,7 +21,12 @@ defmodule LiveMap.DownwindTest do
     end
 
     test "create_place/1 with valid data creates a place" do
-      valid_attrs = %{address: "some address", country: "some country", latitude: 120.5, longitude: 120.5}
+      valid_attrs = %{
+        address: "some address",
+        country: "some country",
+        latitude: 120.5,
+        longitude: 120.5
+      }
 
       assert {:ok, %Place{} = place} = Downwind.create_place(valid_attrs)
       assert place.address == "some address"
@@ -36,7 +41,13 @@ defmodule LiveMap.DownwindTest do
 
     test "update_place/2 with valid data updates the place" do
       place = place_fixture()
-      update_attrs = %{address: "some updated address", country: "some updated country", latitude: 456.7, longitude: 456.7}
+
+      update_attrs = %{
+        address: "some updated address",
+        country: "some updated country",
+        latitude: 456.7,
+        longitude: 456.7
+      }
 
       assert {:ok, %Place{} = place} = Downwind.update_place(place, update_attrs)
       assert place.address == "some updated address"
