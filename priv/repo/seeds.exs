@@ -4,7 +4,6 @@
 #
 
 alias LiveMap.{User, Repo, Event, EventParticipants}
-# import Geo.PostGIS
 User.new("toto@mail.com")
 User.new("bibi@mail.com")
 User.new("mama@mail.com")

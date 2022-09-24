@@ -6,14 +6,17 @@ defmodule LiveMap.User do
 
   schema "users" do
     field :email, :string
-    field :name, :string
+    # field :name, :string
     has_many(:events, Event)
     has_many(:event_participants, EventParticipants)
+    timestamps()
   end
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :email])
+    |> Ecto.Changeset.cast(attrs, [:email])
+    |> cast_assoc(:events)
+    |> cast_assoc(:event_participants)
     |> validate_required([:email])
     |> unique_constraint(:email)
   end
@@ -21,7 +24,7 @@ defmodule LiveMap.User do
   def new(email) do
     {:ok, user} =
       User.changeset(%User{}, %{email: email})
-      |> Repo.insert(on_conflict: :nothing)
+      |> Repo.insert(on_conflict: [set: [email: email]], conflict_target: :email)
 
     user
   end

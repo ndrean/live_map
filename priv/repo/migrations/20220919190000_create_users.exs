@@ -6,9 +6,9 @@ defmodule LiveMap.Repo.Migrations.CreateUsers do
     create table(:users) do
       # add :id, :uuid, primary_key: true
       add :email, :string, null: false
-      add :name, :string
+      # add :name, :string
 
-      # timestamps()
+      timestamps()
     end
 
     create unique_index(:users, [:email])

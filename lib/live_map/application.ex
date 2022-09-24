@@ -14,6 +14,7 @@ defmodule LiveMap.Application do
     # )
 
     children = [
+      {Task.Supervisor, name: LiveMap.TSup},
       # Start the Ecto repository
       LiveMap.Repo,
       # Start the Telemetry supervisor

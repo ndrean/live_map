@@ -65,10 +65,12 @@ export const MapHook = {
       this.pushEventTo("1", "add_point", { place });
     });
 
+    // new Event (2 markers)
     subscribe(newEvent, () =>
       this.pushEventTo("#map", "new_event", { newEvent })
     );
 
+    // moveend mutates "movingmap"
     subscribe(movingmap, () => {
       this.pushEventTo("#map", "postgis", { movingmap });
     });
@@ -292,7 +294,7 @@ export const MapHook = {
       place.current = [];
     });
 
-    // Delete listener triggered from an action button in the table
+    // Delete listener triggered from pushEvent
     this.handleEvent("delete_marker", ({ id }) => {
       layergroup.eachLayer((layer) => {
         if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);

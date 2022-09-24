@@ -7,9 +7,10 @@ defmodule LiveMap.Repo.Migrations.EventParticipants do
       add :event_id, references(:events)
       add :status, :event_status, null: false
       add :ptoken, :string
+      timestamps()
     end
 
-    create unique_index(:event_participants, [:event_id, :user_id])
+    create unique_index(:event_participants, [:event_id, :user_id], name: :evt_usr)
     # for queries  "WHERE ep.even_id= .. AND ep.user_id=..
   end
 end
