@@ -1,18 +1,19 @@
 defmodule LiveMapWeb.MapLive do
-  use Phoenix.LiveView
-  alias LiveMap.{Repo, User, Event}
-  # alias LiveMap.{GeoUtils, GeoJSON}
-  # , layout: {LiveMapWeb.LayoutView, "live.html"}
+  use Phoenix.LiveView, layout: {LiveMapWeb.LayoutView, "live.html"}
+  alias LiveMap.Event
 
   @impl true
-  def mount(_, %{"email" => email} = _session, socket) do
-    LiveMapWeb.Endpoint.subscribe("event")
-    socket = assign(socket, current: email)
-    {:ok, socket}
+  def mount(_, %{"email" => email, "user_id" => user_id} = _session, socket) do
+    if connected?(socket), do: LiveMapWeb.Endpoint.subscribe("event")
+
+    {:ok, assign(socket, current: email, user_id: user_id)}
   end
 
   @impl true
+  @spec render(any) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
+    IO.puts("Render LV ------------------")
+
     ~H"""
     <div>
     <.live_component module={MapComp} id="map"  current={@current}/>
@@ -26,27 +27,33 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, push_event(socket, "delete_marker", %{id: id})}
   end
 
-  #  phx-click from "new event table"
-  def handle_event("save_event", %{"place" => place}, socket) do
-    # %{"coords" => places, "distance" => distance}},
-    # [
-    # %{"lat" => lat1, "lng" => lng1, "name" => ad1},
-    # %{"lat" => lat2, "lng" => lng2, "name" => ad2}
-    # ] = places
+  # phx-submit from form in new event table
+  def handle_info({:newintown, %{"place" => place, "date" => date}}, socket) do
+    IO.puts("SAVE EVENT ----------------------")
 
-    date = Date.utc_today()
-    owner_id = Repo.get_by(User, email: socket.assigns.current).id
+    owner_id = socket.assigns.user_id
 
-    geojson = Event.save_geojson(place, owner_id, date)
-    LiveMapWeb.Endpoint.broadcast!("event", "emmit_event", %{geojson: geojson})
+    Task.Supervisor.async_nolink(LiveMap.TSup, fn ->
+      Event.save_geojson(place, owner_id, date)
+    end)
+    |> Task.await()
+    |> then(fn geojson ->
+      LiveMapWeb.Endpoint.broadcast!("event", "new publication", %{geojson: geojson})
+    end)
 
-    # NOT WORKING !!!!!
-    socket |> put_flash(:info, "Your new event has been saved")
-    {:noreply, push_event(socket, "clear_event", %{})}
+    {:noreply, put_flash(socket, :info, "Event saved")}
   end
 
-  # def handle_info(%{data: data}, socket) do
-  #   IO.puts("info_____________________________")
-  #   {:noreply, push_event(socket, "init", %{data: data})}
-  # end
+  # handler of the subscription to the topic
+  @impl true
+  def handle_info(
+        %Phoenix.Socket.Broadcast{
+          topic: "event",
+          event: "new publication",
+          payload: %{geojson: geojson}
+        },
+        socket
+      ) do
+    {:noreply, push_event(socket, "new pub", %{geojson: geojson})}
+  end
 end

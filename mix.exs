@@ -20,7 +20,7 @@ defmodule LiveMap.MixProject do
   def application do
     [
       mod: {LiveMap.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ecto]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -47,7 +47,7 @@ defmodule LiveMap.MixProject do
       {:swoosh, "~> 1.3"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.18"},
+      # {:gettext, "~> 0.18"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
       {:elixir_auth_google, "~> 1.6.3"},
@@ -55,7 +55,9 @@ defmodule LiveMap.MixProject do
       # {:poison, "~>4.0"},
       # {:geo, "~> 3.4"},
       {:geo_postgis, "~> 3.4"},
-      {:ecto_erd, "~> 0.5.0", only: :dev}
+      {:ecto_erd, "~> 0.5.0", only: :dev},
+      {:timex, "~> 3.7"},
+      {:tailwind, "~> 0.1", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -71,7 +73,9 @@ defmodule LiveMap.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.deploy": ["esbuild default --minify", "phx.digest"]
+      # "assets.deploy": ["esbuild default --minify", "phx.digest"]
+
+      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
   end
 end

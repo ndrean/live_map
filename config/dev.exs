@@ -28,7 +28,8 @@ config :live_map, LiveMapWeb.Endpoint,
   secret_key_base: "3G8BA6g7zP+YYYOPzL4wwi+CcJYWHA+9B8kcy3iNXDlJvP12ZYWRngyyyQ5Te15M",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 # ## SSL Support

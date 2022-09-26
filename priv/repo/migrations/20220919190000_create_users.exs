@@ -4,7 +4,7 @@ defmodule LiveMap.Repo.Migrations.CreateUsers do
   def change do
     # create table(:users, primary_key: false) do
     create table(:users) do
-      # add :id, :uuid, primary_key: true
+      # add :id, :binary, primary_key: true
       add :email, :string, null: false
       # add :name, :string
 

@@ -23,7 +23,8 @@ defmodule LiveMap.Application do
       {Phoenix.PubSub, name: LiveMap.PubSub},
       # Start the Endpoint (http/https)
       LiveMapWeb.Endpoint,
-      LiveMapWeb.Presence
+      LiveMapWeb.Presence,
+      {Registry, [keys: :unique, name: Registry.SessionRegistry]}
       # Start a worker by calling: LiveMap.Worker.start_link(arg)
       # {LiveMap.Worker, arg}
     ]

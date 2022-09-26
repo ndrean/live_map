@@ -3,9 +3,8 @@ defmodule LiveMap.Repo do
     otp_app: :live_map,
     adapter: Ecto.Adapters.Postgres
 
-  # import Geo.PostGIS
   import Ecto.Query
-  alias LiveMap.{Repo, Event, EventParticipants, User}
+  alias LiveMap.{Repo, Event, User}
   require Logger
 
   def min_distance(lng, lat) do
@@ -34,7 +33,7 @@ defmodule LiveMap.Repo do
 
   def events_in_map(lng, lat, distance, date \\ default_date()) do
     query = [
-      "SELECT events.id, user_id, users.email, ad1,ad2,  date, coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+      "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
       FROM events
       INNER JOIN users ON user_id = users.id
       WHERE date < $4::date
@@ -55,7 +54,7 @@ defmodule LiveMap.Repo do
   # :timer.tc(fn -> LiveMap.Repo.within(...). Is "events_in_map" faster with the index??
   def events_within(lng, lat, distance, date \\ default_date()) do
     query = [
-      "SELECT events.id, user_id, users.email, ad1,ad2,  date, coordinates
+      "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates
       FROM events
       INNER JOIN users ON user_id = users.id
       WHERE ST_DWithin(ST_MakePoint($1,$2),coordinates, $3)
@@ -79,14 +78,14 @@ defmodule LiveMap.Repo do
       'features', json_agg(ST_AsGeoJSON(t.*)::json)
       )
       FROM (
-      SELECT users.email, events.ad1, events.ad2, events.date, events.coordinates, events.distance,
+      SELECT users.email, events.ad1, events.ad2, events.date, events.color, events.coordinates, events.distance,
       coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
       FROM events
       INNER JOIN users on events.user_id = users.id
       WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
       AND date < $4
       )
-      AS t(email, ad1, ad2, date, coordinates, distance);
+      AS t(email, ad1, ad2, date, color, coordinates, distance);
       "
     ]
 

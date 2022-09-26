@@ -10,7 +10,8 @@ defmodule LiveMap.Repo.Migrations.CreateEvents do
       add :ad1, :text
       add :ad2, :text
       add :date, :date
-      timestamps()
+      # 000
+      add :color, :string, default: timestamps()
     end
 
     create index(:events, [:user_id])

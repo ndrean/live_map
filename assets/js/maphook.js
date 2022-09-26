@@ -1,4 +1,4 @@
-import L, { marker } from "leaflet";
+import L from "leaflet";
 import { geocoder } from "leaflet-control-geocoder";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -15,7 +15,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 function getLocation(map) {
   navigator.geolocation.getCurrentPosition(locationFound, locationDenied);
   function locationFound({ coords: { latitude: lat, longitude: lng } }) {
-    place.current = L.latLng(lat, lng);
+    // place.current = L.latLng(lat, lng);
     map.flyTo([lat, lng], 11);
   }
   function locationDenied() {
@@ -24,8 +24,12 @@ function getLocation(map) {
 }
 
 function addButton(html = "") {
-  return `<h5>${html}</h5>
-  <button type="button" class="remove">Remove</button>`;
+  return `
+  <h5>${html}</h5>
+  <button type="button"
+  class="remove inline-block px-6 py-2.5 bg-red-600 text-white font-medium text-xs leading-tight uppercase rounded-full shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out"
+  ">Remove</button>
+  `;
 }
 
 function setRandColor() {
@@ -33,17 +37,13 @@ function setRandColor() {
 }
 
 // local proxied data stores where we subscribe to
-const place = proxy({ coords: [], distance: 0, current: [] });
-const movingmap = proxy({ center: [], distance: 100_000 });
-
-const newEvent = proxy({
-  date: null,
-  start_name: "",
-  end_name: "",
-  start_loc: [],
-  end_loc: [],
+const place = proxy({
+  coords: [],
   distance: 0,
+  // current: [],
+  color: setRandColor(),
 });
+const movingmap = proxy({ center: [], distance: 100_000 });
 
 export const MapHook = {
   mounted() {
@@ -61,24 +61,33 @@ export const MapHook = {
     getLocation(map);
 
     // use pushEventTo with phx-target (elements)
-    subscribe(place, () => {
-      this.pushEventTo("1", "add_point", { place });
-    });
-
-    // new Event (2 markers)
-    subscribe(newEvent, () =>
-      this.pushEventTo("#map", "new_event", { newEvent })
-    );
+    subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
 
     // moveend mutates "movingmap"
-    subscribe(movingmap, () => {
-      this.pushEventTo("#map", "postgis", { movingmap });
+    subscribe(movingmap, () =>
+      this.pushEventTo("#map", "postgis", { movingmap })
+    );
+
+    this.handleEvent("new pub", ({ geojson }) => {
+      clearEvent();
+      handleData(geojson);
     });
+
+    // clear the saved event
+    function clearEvent() {
+      console.log("clear");
+      layergroup.clearLayers();
+      lineLayer.clearLayers();
+      place.coords = [];
+      place.distance = 0;
+      // place.current = [];
+    }
 
     // listener to update existing events at location
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
+      console.log("handleData-----------");
       if (data) {
         L.geoJSON(data, {
           color: "black",
@@ -91,9 +100,9 @@ export const MapHook = {
     }
 
     function onEachFeature(feature, layer) {
-      const { ad1, ad2, email, date, distance } = feature.properties;
+      console.log("each feature ********");
+      const { ad1, ad2, email, date, distance, color } = feature.properties;
       const [start, end] = layer.getLatLngs();
-      const color = setRandColor();
       setCircleMarker(start, ad1, email, date, distance, color);
       setCircleMarker(end, ad2, email, date, distance, color);
     }
@@ -113,28 +122,25 @@ export const MapHook = {
             `;
     }
 
-    // this.handleEvent("init", ({ data }) => handleData(data));
-
     // provides a form to find a place by its name and fly-to
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
-
+    //
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
-      //   html = addButton(html);
-      //   const marker = L.marker(center, { draggable: true });
-      //   marker.addTo(layergroup).bindPopup(html);
       map.flyTo(center, 10);
+      html = addButton(html);
+      const marker = L.marker(center, { draggable: true });
+      marker.addTo(layergroup).bindPopup(html);
 
-      //   const location = {
-      //     id: marker._leaflet_id,
-      //     lat: center.lat,
-      //     lng: center.lng,
-      //     name,
-      //     country,
-      //   };
-      //   if (place.coords.find((c) => c.id === location.id) === undefined)
-      //     place.coords.push(location);
-      //   marker.on("popupopen", () => maybeDelete(marker, location.id));
-      //   marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
+      const location = {
+        id: marker._leaflet_id,
+        lat: center.lat,
+        lng: center.lng,
+        name,
+      };
+      if (place.coords.find((c) => c.id === location.id) === undefined)
+        place.coords.push(location);
+      marker.on("popupopen", () => maybeDelete(marker, location.id));
+      marker.on("dragend", () => draggedMarker(marker, location.id, lineLayer));
     });
 
     // Delete: callback to "popupopen": you get a delete button defined above inside
@@ -142,6 +148,7 @@ export const MapHook = {
       document
         .querySelector("button.remove")
         .addEventListener("click", function () {
+          console.log("clicked");
           place.coords = place.coords.filter((c) => c.id !== id) || [];
           layergroup.removeLayer(marker);
           const index = place.coords.findIndex((c) => c.id === Number(id));
@@ -161,16 +168,8 @@ export const MapHook = {
       // fetch the address from the endpoint "nominatim"
       geoCoder.reverse(e.latlng, 12, (result) => {
         if (!result[0]) return;
-        let {
-          html,
-          name,
-          properties: {
-            address: { country },
-          },
-        } = result[0];
+        let { html, name } = result[0];
         if (html) html = addButton(html);
-
-        console.log(result[0]);
 
         const marker = L.marker(e.latlng, { draggable: true });
         marker.addTo(layergroup).bindPopup(html);
@@ -180,7 +179,6 @@ export const MapHook = {
           lat: e.latlng.lat.toFixed(4),
           lng: e.latlng.lng.toFixed(4),
           name,
-          country,
         };
 
         if (place.coords.find((c) => c.id === location.id) === undefined) {
@@ -197,21 +195,13 @@ export const MapHook = {
     // async fetch to get the address if any
     function discover(marker, newLatLng, index, id) {
       geoCoder.reverse(newLatLng, 12, (result) => {
-        let {
-          html,
-          name,
-          properties: {
-            address: { country },
-          },
-        } = result[0];
+        let { html, name } = result[0];
         place.coords[index] = {
-          name,
-          country,
-          id,
           lat: newLatLng.lat.toFixed(4),
           lng: newLatLng.lng.toFixed(4),
+          name,
+          id,
         };
-
         // since we are in an async function, this has to be done here
         if (index <= 1) {
           lineLayer.clearLayers();
@@ -250,15 +240,8 @@ export const MapHook = {
         // calculate the line length
         const p1 = L.latLng([start.lat, start.lng]);
         const p2 = L.latLng([end.lat, end.lng]);
-        place.distance = (p1.distanceTo(p2) / 1_000).toFixed(2);
-        // mutate the "newEvent" proxied object
-        newEvent.date = Date.now();
-        newEvent.start_name = place.coords[0].name;
-        newEvent.end_name = place.coords[1].name;
-        newEvent.start_loc = [place.coords[0].lng, place.coords[0].lat];
-        newEvent.end_loc = [place.coords[1].lng, place.coords[1].lat];
-        newEvent.distance = place.distance;
-        newEvent.country = place.coords[0].country;
+        place.distance = (p1.distanceTo(p2) / 1_000).toFixed(1);
+        place.color = setRandColor();
       }
     }
 
@@ -279,19 +262,9 @@ export const MapHook = {
       marker.addTo(layergroup).bindPopup(addButton);
       // to get the id, you need to add to the layer firstly
       const id = marker._leaflet_id;
-      console.log(id);
       discover(marker, coords, index, id);
       marker.on("popupopen", () => maybeDelete(marker, id));
       marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
-    });
-
-    // clear the saved event
-    this.handleEvent("clear_event", () => {
-      layergroup.clearLayers();
-      lineLayer.clearLayers();
-      place.coords = [];
-      place.distance = 0;
-      place.current = [];
     });
 
     // Delete listener triggered from pushEvent

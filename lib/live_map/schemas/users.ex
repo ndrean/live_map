@@ -22,16 +22,16 @@ defmodule LiveMap.User do
   end
 
   def new(email) do
-    {:ok, user} =
-      User.changeset(%User{}, %{email: email})
-      |> Repo.insert(on_conflict: [set: [email: email]], conflict_target: :email)
-
-    user
+    User.changeset(%User{}, %{email: email})
+    |> Repo.insert!(
+      # returning: [:id], # or true
+      on_conflict: [set: [updated_at: DateTime.utc_now()]],
+      # {:replace_all_except, [:id, :email, :inserted_at]},
+      conflict_target: :email
+    )
   end
 
   def list do
     Repo.all(User)
   end
 end
-
-# {:replace, [:email]}, returning: true, conflict_target: :email)

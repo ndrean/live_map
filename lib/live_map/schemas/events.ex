@@ -1,7 +1,7 @@
 defmodule LiveMap.Event do
   use Ecto.Schema
   import Ecto.Changeset
-  alias LiveMap.{Repo, User, EventParticipants, Event}
+  alias LiveMap.{Repo, User, EventParticipants, Event, GeoJSON}
 
   schema "events" do
     field :distance, :float, default: nil
@@ -9,6 +9,7 @@ defmodule LiveMap.Event do
     field :ad2, :string, default: nil
     field :date, :date, default: Date.utc_today()
     field :coordinates, Geo.PostGIS.Geometry
+    field :color, :string
     timestamps()
     belongs_to :user, User
     has_many :event_participants, EventParticipants, on_delete: :delete_all
@@ -16,7 +17,7 @@ defmodule LiveMap.Event do
 
   def changeset(%Event{} = event, attrs) do
     event
-    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id, :distance])
+    |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id, :distance, :color])
     |> validate_required([:coordinates, :user_id, :date])
     |> foreign_key_constraint(:user_id)
   end
@@ -37,7 +38,8 @@ defmodule LiveMap.Event do
         %{"lat" => lat1, "lng" => lng1, "name" => ad1},
         %{"lat" => lat2, "lng" => lng2, "name" => ad2}
       ],
-      "distance" => distance
+      "distance" => distance,
+      "color" => color
     } = place
 
     conv = fn s -> String.to_float(s) end
@@ -51,18 +53,20 @@ defmodule LiveMap.Event do
       distance: conv.(distance),
       ad1: ad1,
       ad2: ad2,
-      date: date
+      date: date,
+      color: color
     })
 
-    %LiveMap.GeoJSON{}
-    |> LiveMap.GeoUtils.new_from(
+    %GeoJSON{}
+    |> GeoJSON.new_from(
       [conv.(lng2), conv.(lat2)],
       [conv.(lng1), conv.(lat1)],
       ad1,
       ad2,
       date,
       owner_id,
-      conv.(distance)
+      conv.(distance),
+      color
     )
   end
 end

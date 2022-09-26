@@ -8,12 +8,19 @@ defmodule LiveMapWeb.GoogleAuthController do
 
     case profile do
       %{email: email} ->
-        User.new(email)
-    end
+        user = User.new(email)
+        user_token = Phoenix.Token.sign(LiveMapWeb.Endpoint, "user token", user.id)
 
-    conn
-    |> put_session(:user, profile.email)
-    |> put_view(LiveMapWeb.PageView)
-    |> render(:welcome, profile: profile)
+        conn
+        |> assign(:user_id, user.id)
+        |> assign(:user_token, user_token)
+        |> put_session(:user, profile.email)
+        |> put_session(:user_id, user.id)
+        |> put_view(LiveMapWeb.PageView)
+        |> render(:welcome, profile: profile)
+
+      _ ->
+        render(conn, "index.html")
+    end
   end
 end

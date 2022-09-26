@@ -10,15 +10,18 @@ defmodule LiveMapWeb.GithubAuthController do
 
     case profile do
       %{email: email} ->
-        User.new(email)
-    end
+        user = User.new(email)
+        user_token = Phoenix.Token.sign(LiveMapWeb.Endpoint, "user token", user.id)
 
-    conn
-    # if I use "put_view", no need to create "view/guthub_auth_view.ex" + "templates/github_Auth.html.heex"
-    # |> put_view(LiveMapWeb.PageView)
-    # |> put_session(:profile, profile)
-    |> put_session(:user, profile.email)
-    |> put_view(LiveMapWeb.PageView)
-    |> render(:welcome, profile: profile)
+        conn
+        |> assign(:user_token, user_token)
+        |> put_session(:user, profile.email)
+        |> put_session(:user_id, user.id)
+        |> put_view(LiveMapWeb.PageView)
+        |> render(:welcome, profile: profile)
+
+      _ ->
+        render(conn, "index.html")
+    end
   end
 end

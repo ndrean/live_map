@@ -1,4 +1,5 @@
 defmodule LiveMap.GeoJSON do
+  @derive {Jason.Encoder, except: []}
   defstruct type: "Feature",
             geometry: %{type: "LineString", coordinates: []},
             properties: %{
@@ -7,25 +8,25 @@ defmodule LiveMap.GeoJSON do
               date: Date.utc_today(),
               user: nil,
               distance: 0,
-              status: nil
+              color: nil
             }
-end
 
-defmodule LiveMap.GeoUtils do
+  # end
+
+  # defmodule LiveMap.Utils do
   defp set_coords(%LiveMap.GeoJSON{} = geojson, startpoint, endpoint) do
     put_in(geojson.geometry.coordinates, [startpoint, endpoint])
   end
 
-  defp set_props(%LiveMap.GeoJSON{} = geojson, ad1, ad2, date, user, distance) do
+  defp set_props(%LiveMap.GeoJSON{} = geojson, ad1, ad2, date, user, distance, color) do
     put_in(geojson.properties, %{
       ad1: ad1,
       ad2: ad2,
       date: date,
       distance: distance,
-      user: user
+      user: user,
+      color: color
     })
-
-    # |> dbg()
   end
 
   def new_from(
@@ -36,10 +37,11 @@ defmodule LiveMap.GeoUtils do
         ad2,
         date,
         user,
-        distance
+        distance,
+        color
       ) do
     geojson
     |> set_coords(startpoint, endpoint)
-    |> set_props(ad1, ad2, date, user, distance)
+    |> set_props(ad1, ad2, date, user, distance, color)
   end
 end

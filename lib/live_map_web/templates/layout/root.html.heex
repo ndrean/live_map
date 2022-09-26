@@ -14,19 +14,13 @@
   <body>
     <header>
       <section class="container">
-        <nav>
-          <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-            <% end %>
-          </ul>
-        </nav>
-        <a href="https://phoenixframework.org/" class="phx-logo">
-          <img src={Routes.static_path(@conn, "/images/phoenix.png")} alt="Phoenix Framework Logo"/>
-        </a>
+        <h1 class="text-7xl text-white font-bold text-center w-full bg-slate-800 rounded-xl shadow-lg py-3 mt-3 ml-3">
+          The Downwinder
+        </h1>
       </section>
     </header>
+    
+
     <%= @inner_content %>
   </body>
 </html>
