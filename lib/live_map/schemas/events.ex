@@ -64,9 +64,11 @@ defmodule LiveMap.Event do
       ad1,
       ad2,
       date,
-      owner_id,
+      User.email(owner_id),
       conv.(distance),
       color
     )
+
+    # |> tap(fn g -> IO.inspect(g, label: "new_from") end)
   end
 end

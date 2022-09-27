@@ -6,13 +6,6 @@ defmodule MapComp do
   @impl true
   def mount(socket) do
     IO.puts("MOUNT MAP_____________________________")
-
-    # socket =
-    #   socket
-    #   |> assign(:place, nil)
-    #   |> assign(:event_date, nil)
-    #   |> assign(:changeset, LiveMap.EventDate)
-
     {:ok, assign(socket, place: nil, date: nil)}
   end
 
@@ -45,11 +38,6 @@ defmodule MapComp do
     {:noreply, assign(socket, :place, place)}
   end
 
-  # def handle_info({:newintown, %{"place" => place, "date" => date}}, socket) do
-  #   IO.inspect(socket.assigns, label: "uuuuuuuuuuuuu----------------")
-  #   {:noreply, socket}
-  # end
-
   #  the "moveend" mutates proxy(movingmap) and subscribe triggers pushEvent
   @impl true
   def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
@@ -73,12 +61,4 @@ defmodule MapComp do
 
     {:noreply, push_event(socket, "update_map", %{data: results})}
   end
-
-  # new marker -> update local socket for table
-  # @impl true
-  # def handle_event("new_event", %{"newEvent" => new_event}, socket) do
-  #   IO.puts("new marker-----------------")
-  #   send(self(), %{new_event: new_event})
-  #   {:noreply, assign(socket, :new_event, new_event)}
-  # end
 end

@@ -34,4 +34,8 @@ defmodule LiveMap.User do
   def list do
     Repo.all(User)
   end
+
+  def email(id) do
+    Repo.get_by(User, id: id).email
+  end
 end

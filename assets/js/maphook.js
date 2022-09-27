@@ -15,7 +15,6 @@ L.Marker.prototype.options.icon = DefaultIcon;
 function getLocation(map) {
   navigator.geolocation.getCurrentPosition(locationFound, locationDenied);
   function locationFound({ coords: { latitude: lat, longitude: lng } }) {
-    // place.current = L.latLng(lat, lng);
     map.flyTo([lat, lng], 11);
   }
   function locationDenied() {
@@ -40,7 +39,6 @@ function setRandColor() {
 const place = proxy({
   coords: [],
   distance: 0,
-  // current: [],
   color: setRandColor(),
 });
 const movingmap = proxy({ center: [], distance: 100_000 });
@@ -75,19 +73,16 @@ export const MapHook = {
 
     // clear the saved event
     function clearEvent() {
-      console.log("clear");
       layergroup.clearLayers();
       lineLayer.clearLayers();
       place.coords = [];
       place.distance = 0;
-      // place.current = [];
     }
 
     // listener to update existing events at location
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
-      console.log("handleData-----------");
       if (data) {
         L.geoJSON(data, {
           color: "black",
@@ -148,7 +143,6 @@ export const MapHook = {
       document
         .querySelector("button.remove")
         .addEventListener("click", function () {
-          console.log("clicked");
           place.coords = place.coords.filter((c) => c.id !== id) || [];
           layergroup.removeLayer(marker);
           const index = place.coords.findIndex((c) => c.id === Number(id));

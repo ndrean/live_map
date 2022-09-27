@@ -1,11 +1,10 @@
 defmodule LiveMap.EventParticipants do
   use Ecto.Schema
-  import Ecto.{Changeset, Query}
+  import Ecto.Changeset
   alias LiveMap.{Repo, EventParticipants}
 
   schema "event_participants" do
     belongs_to :user, LiveMap.User
-    # belongs_to :owner, LiveMap.User
     belongs_to :event, LiveMap.Event
     field :ptoken, :string, default: nil
     field :status, Ecto.Enum, values: [:owner, :pending, :confirmed]
@@ -30,10 +29,4 @@ defmodule LiveMap.EventParticipants do
   def list do
     Repo.all(EventParticipants)
   end
-
-  # def update(params) do
-  #   %EventParticipants{}
-  #   |> changeset(params)
-  #   |> Ecto.Query.update_all()
-  # end
 end

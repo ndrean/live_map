@@ -41,7 +41,6 @@ defmodule LiveMap.Repo do
       ST_Distance(ST_MakePoint($1,$2),coordinates)  < $3;"
     ]
 
-    # case Ecto.Adapters.SQL.query!(Repo, query, [lng, lat, date, distance]) do
     case Repo.query(query, [lng, lat, distance, date], log: true) do
       {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
         Enum.map(rows, fn row -> Repo.load(Event, {columns, row}) end)
@@ -71,6 +70,7 @@ defmodule LiveMap.Repo do
     end
   end
 
+  # query used to fetch all events in GeoJSON format
   def features_in_map(lng, lat, distance, date \\ default_date()) do
     query = [
       "SELECT json_build_object(
@@ -91,6 +91,7 @@ defmodule LiveMap.Repo do
 
     case Repo.query(query, [lng, lat, distance, date]) do
       {:ok, %Postgrex.Result{rows: rows}} ->
+        IO.inspect(rows, label: "rows_______")
         rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
@@ -180,27 +181,5 @@ defmodule LiveMap.Repo do
       select: %{token: ep.ptoken, status: ep.status, user: ^user_email, owner: owner.email}
     )
     |> Repo.one()
-  end
-
-  def raw(lng, lat, date, distance) do
-    point = "#{lng} #{lat}"
-    makepoint = "#{lng},#{lat}"
-
-    Ecto.Adapters.SQL.query!(
-      LiveMap.Repo,
-      "SELECT events.id, user_id, users.email, ad1, ad2, date, coordinates  <-> ST_MakePoint(" <>
-        makepoint <>
-        ")
-      AS sphere_graphy
-      FROM events
-      INNER JOIN users ON user_id = users.id
-      WHERE date < '" <>
-        date <>
-        "' AND
-      ST_Distance('SRID=4326;POINT(" <>
-        point <> ")'::geography,coordinates)  < " <> Integer.to_string(distance) <> ";
-      ",
-      []
-    )
   end
 end

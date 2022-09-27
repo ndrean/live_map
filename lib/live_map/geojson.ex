@@ -6,7 +6,7 @@ defmodule LiveMap.GeoJSON do
               ad1: "",
               ad2: "",
               date: Date.utc_today(),
-              user: nil,
+              email: nil,
               distance: 0,
               color: nil
             }
@@ -24,7 +24,7 @@ defmodule LiveMap.GeoJSON do
       ad2: ad2,
       date: date,
       distance: distance,
-      user: user,
+      email: user,
       color: color
     })
   end

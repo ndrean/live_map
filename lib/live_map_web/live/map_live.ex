@@ -16,7 +16,7 @@ defmodule LiveMapWeb.MapLive do
 
     ~H"""
     <div>
-    <.live_component module={MapComp} id="map"  current={@current}/>
+      <.live_component module={MapComp} id="map"  current={@current}/>
     </div>
     """
   end
@@ -44,7 +44,7 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, put_flash(socket, :info, "Event saved")}
   end
 
-  # handler of the subscription to the topic
+  # handling the subscription to the topic
   @impl true
   def handle_info(
         %Phoenix.Socket.Broadcast{
