@@ -1,12 +1,10 @@
 defmodule LiveMap.User do
   use Ecto.Schema
   import Ecto.Changeset
-  # import Ecto.Query
   alias LiveMap.{Repo, User, Event, EventParticipants}
 
   schema "users" do
     field :email, :string
-    # field :name, :string
     has_many(:events, Event)
     has_many(:event_participants, EventParticipants)
     timestamps()
@@ -31,11 +29,15 @@ defmodule LiveMap.User do
     )
   end
 
+  def email(id) do
+    Repo.get_by(User, id: id).email
+  end
+
   def list do
     Repo.all(User)
   end
 
-  def email(id) do
-    Repo.get_by(User, id: id).email
+  def count do
+    Repo.aggregate(User, :count, :id)
   end
 end

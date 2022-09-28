@@ -45,6 +45,7 @@ defmodule LiveMap.MixProject do
       {:phoenix_live_dashboard, "~> 0.6"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
+      {:phoenix_swoosh, "~> 1.0"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       # {:gettext, "~> 0.18"},
@@ -57,7 +58,8 @@ defmodule LiveMap.MixProject do
       {:geo_postgis, "~> 3.4"},
       {:ecto_erd, "~> 0.5.0", only: :dev},
       {:timex, "~> 3.7"},
-      {:tailwind, "~> 0.1", runtime: Mix.env() == :dev}
+      {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
+      {:faker, "~> 0.17", only: [:dev, :test]}
     ]
   end
 

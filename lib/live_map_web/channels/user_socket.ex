@@ -25,17 +25,13 @@ defmodule LiveMapWeb.UserSocket do
   """
   @impl true
   def connect(%{"token" => token} = _params, socket, _connect_info) do
-    case verify(token) do
-      {:ok, user_id} ->
-        {:ok, assign(socket, curr_id: user_id)}
-
+    case LiveMap.Token.user_check(token) do
       {:error, reason} ->
         Logger.error("#{reason}: invalid token")
-    end
-  end
 
-  defp verify(token) do
-    Phoenix.Token.verify(LiveMapWeb.Endpoint, "user token", token, max_age: 86_400)
+      {:ok, user_id} ->
+        {:ok, assign(socket, curr_id: user_id)}
+    end
   end
 
   @doc """

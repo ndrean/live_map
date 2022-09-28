@@ -1,6 +1,6 @@
 defmodule LiveMap.Event do
   use Ecto.Schema
-  import Ecto.Changeset
+  import Ecto.{Changeset, Query}
   alias LiveMap.{Repo, User, EventParticipants, Event, GeoJSON}
 
   schema "events" do
@@ -18,18 +18,41 @@ defmodule LiveMap.Event do
   def changeset(%Event{} = event, attrs) do
     event
     |> cast(attrs, [:ad1, :ad2, :coordinates, :date, :user_id, :distance, :color])
+    |> cast_assoc(:event_participants)
     |> validate_required([:coordinates, :user_id, :date])
     |> foreign_key_constraint(:user_id)
   end
 
   def new(params) do
-    %__MODULE__{}
-    |> changeset(params)
-    |> Repo.insert()
+    # to be refactored with Ecto.Multi
+    {:ok, event} =
+      %__MODULE__{}
+      |> changeset(params)
+      |> Repo.insert()
+
+    EventParticipants.new(%{
+      event_id: event.id,
+      user_id: params.user_id,
+      status: :owner
+    })
+  end
+
+  def owner(id) do
+    from(e in "events",
+      join: u in "users",
+      on: u.id == e.user_id,
+      where: e.id == ^id,
+      select: [u.email]
+    )
+    |> Repo.one()
   end
 
   def list() do
     Repo.all(Event)
+  end
+
+  def count do
+    Repo.aggregate(Event, :count, :id)
   end
 
   def save_geojson(place, owner_id, date) do
@@ -68,7 +91,5 @@ defmodule LiveMap.Event do
       conv.(distance),
       color
     )
-
-    # |> tap(fn g -> IO.inspect(g, label: "new_from") end)
   end
 end

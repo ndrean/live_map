@@ -11,7 +11,7 @@ defmodule LiveMapWeb.GithubAuthController do
     case profile do
       %{email: email} ->
         user = User.new(email)
-        user_token = Phoenix.Token.sign(LiveMapWeb.Endpoint, "user token", user.id)
+        user_token = LiveMap.Token.user_generate(user.id)
 
         conn
         |> assign(:user_token, user_token)

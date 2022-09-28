@@ -21,6 +21,8 @@ defmodule LiveMapWeb.Router do
     get "/", PageController, :index
     get "/auth/google/callback", GoogleAuthController, :index
     get "/auth/github/callback", GithubAuthController, :index
+
+    get "/mail/:token", TokenController, :confirm_link, params: "token"
   end
 
   # Other scopes may use custom stacks.
