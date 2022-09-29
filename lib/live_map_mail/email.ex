@@ -1,5 +1,5 @@
-defmodule LiveMapWeb.Email do
-  use Phoenix.Swoosh, view: LiveMapWeb.EmailView
+defmodule LiveMapMail.Email do
+  use Phoenix.Swoosh, view: LiveMapMail.EmailView
 
   @support "support@LiveMap.com"
 

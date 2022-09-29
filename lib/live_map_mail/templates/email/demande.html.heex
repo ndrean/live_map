@@ -1,0 +1,11 @@
+<html>
+  <head>
+    <title><%= @email.subject %></title>
+  </head>
+  <body>
+    <p>Hello!</p>
+    <p>Use the link below to accept the demand from <strong><%= @user_email %> </strong> to join your event.</p>
+    <p>Use the link below before <strong>one week</strong></p>
+    <p><%= link "Click to accept the invitation", to: Routes.mail_path(LiveMapWeb.Endpoint, :confirm_link,  @token) %></p>
+  </body>
+</html>

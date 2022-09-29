@@ -24,7 +24,8 @@ defmodule LiveMap.Application do
       # Start the Endpoint (http/https)
       LiveMapWeb.Endpoint,
       LiveMapWeb.Presence,
-      {Registry, [keys: :unique, name: Registry.SessionRegistry]}
+      {Registry, [keys: :unique, name: Registry.SessionRegistry]},
+      {Task.Supervisor, name: LiveMap.AsyncMailSup}
       # Start a worker by calling: LiveMap.Worker.start_link(arg)
       # {LiveMap.Worker, arg}
     ]

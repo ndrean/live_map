@@ -1,6 +1,10 @@
 defmodule LiveMapWeb.MailController do
   use LiveMapWeb, :controller
   require Logger
+  alias LiveMapMail.Email
+  alias LiveMapMail.Mailer
+  alias LiveMap.EventParticipants
+  alias LiveMap.Token
 
   @doc """
   This function is triggered from the front-end when a user clicks on the button "request to participate" to an event.
@@ -22,12 +26,12 @@ defmodule LiveMapWeb.MailController do
   ```
   """
   def create(params = %{event_id: event_id, user_id: user_id}) do
-    with token <- LiveMap.EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
+    with token <- EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
       params = Map.put(params, :mtoken, token)
 
-      Task.start(fn ->
-        LiveMapWeb.Email.build_demand(params)
-        |> LiveMap.Mailer.deliver()
+      Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
+        Email.build_demand(params)
+        |> Mailer.deliver()
       end)
     else
       {:error, %{errors: _msg}} ->
@@ -44,7 +48,7 @@ defmodule LiveMapWeb.MailController do
   end
 
   defp check_token(conn, mtoken) do
-    with {:ok, string} <- LiveMap.Token.mail_check(mtoken) do
+    with {:ok, string} <- Token.mail_check(mtoken) do
       {:ok, string}
     else
       {:error, :invalid} ->
@@ -83,7 +87,7 @@ defmodule LiveMapWeb.MailController do
       %{"event_id" => event_id, "user_id" => user_id} = URI.decode_query(string)
       event_id = String.to_integer(event_id)
       user_id = String.to_integer(user_id)
-      row = LiveMap.EventParticipants.lookup(event_id, user_id)
+      row = EventParticipants.lookup(event_id, user_id)
       owner_mtoken = fetch_token(conn, row)
 
       case owner_mtoken do
@@ -92,15 +96,14 @@ defmodule LiveMapWeb.MailController do
           |> halt()
 
         ^owner_mtoken ->
-          Task.start(fn ->
-            {:ok, _} =
-              LiveMap.EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
+          Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
+            {:ok, _} = EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
 
-            LiveMapWeb.Email.confirm_participation(%{
+            Email.confirm_participation(%{
               event_id: event_id,
               user_id: user_id
             })
-            |> LiveMap.Mailer.deliver()
+            |> Mailer.deliver()
           end)
 
           json(conn, "confirmed")

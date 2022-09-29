@@ -8,7 +8,10 @@ defmodule LiveMapWeb.DatePicker do
   end
 
   def update(assigns, socket) do
-    IO.inspect(self(), label: "date")
+    socket =
+      socket
+      |> assign(:length, length(assigns.place["coords"]))
+
     # socket =
     #   socket
     #   |> assign(:changeset, DatePicker.changeset(%{}))
@@ -26,7 +29,7 @@ defmodule LiveMapWeb.DatePicker do
             >
           </div>
         </div>
-        <input type="submit" name="save_event" disabled={length(@place["coords"])<2}
+        <input type="submit" name="save_event" disabled={@length<2}
           class="inline-block px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         >
       </form>
