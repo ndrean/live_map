@@ -6,7 +6,6 @@ defmodule LiveMap.Repo.Migrations.CreateEvents do
       add :user_id, references(:users)
       # add :user_id, references(:users, type: :uuid, null: false)
       add :distance, :float
-      # add :coordinates, :geography[]
       add :ad1, :text
       add :ad2, :text
       add :date, :date

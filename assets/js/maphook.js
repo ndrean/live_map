@@ -12,6 +12,7 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// call the geolocation API and redirect the map to te found location
 function getLocation(map) {
   navigator.geolocation.getCurrentPosition(locationFound, locationDenied);
   function locationFound({ coords: { latitude: lat, longitude: lng } }) {
@@ -35,13 +36,15 @@ function setRandColor() {
   return "#" + Math.floor(Math.random() * 16777215).toString(16);
 }
 
-// local proxied data stores where we subscribe to
+// proxied store of the event with markers data
 const place = proxy({
-  coords: [],
-  distance: 0,
+  coords: [], // list of {leaflet_id, lat,lng, name} of markers where name is the address
+  distance: 0, // distance between 2 markers
   color: setRandColor(),
 });
-const movingmap = proxy({ center: [], distance: 100_000 });
+
+// proxied centre and radius of the map
+const movingmap = proxy({ center: [], distance: 10_000 });
 
 export const MapHook = {
   mounted() {
@@ -71,7 +74,7 @@ export const MapHook = {
       handleData(geojson);
     });
 
-    // clear the saved event
+    // reset the newly saved event
     function clearEvent() {
       layergroup.clearLayers();
       lineLayer.clearLayers();

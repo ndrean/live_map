@@ -8,6 +8,7 @@ defmodule LiveMapWeb.DatePicker do
   end
 
   def update(assigns, socket) do
+    IO.inspect(self(), label: "date")
     # socket =
     #   socket
     #   |> assign(:changeset, DatePicker.changeset(%{}))

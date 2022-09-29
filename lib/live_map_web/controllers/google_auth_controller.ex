@@ -12,12 +12,10 @@ defmodule LiveMapWeb.GoogleAuthController do
         user_token = LiveMap.Token.user_generate(user.id)
 
         conn
-        |> assign(:user_id, user.id)
-        |> assign(:user_token, user_token)
-        |> put_session(:user, profile.email)
-        |> put_session(:user_id, user.id)
-        |> put_view(LiveMapWeb.PageView)
-        |> render(:welcome, profile: profile)
+        |> put_session(:user_token, user_token)
+        |> put_session(:profile, profile)
+        |> redirect(to: "/welcome")
+        |> halt()
 
       _ ->
         render(conn, "index.html")

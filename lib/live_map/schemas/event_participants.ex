@@ -70,22 +70,29 @@ defmodule LiveMap.EventParticipants do
   end
 
   @doc """
+  Returns the record for [event_id, user_id]
+  """
+  def lookup(event_id, user_id) do
+    Repo.get_by(EventParticipants, %{event_id: event_id, user_id: user_id})
+  end
+
+  @doc """
   Get all the records for this event with email and status
   ```
-  iex>LiveMap.EventParticipants.with_evt_id(1)
+  iex>LiveMap.EventParticipants.email_with_evt_id(1)
   [
-  {1, "nevendrean@yahoo.fr", "owner"},
-  {2, "toto", "confirmed"},
-  {3, "bibi", "confirmed"}
+    %{ep_status: "confirmed", user_email: "toto", user_id: 1},
+    %{ep_status: "confirmed", user_email: "bibi", user_id: 2},
+    %{ep_status: "owner", user_email: "nevendrean@yahoo.fr", user_id: 3}
   ]
   ```
   """
-  def with_evt_id(event_id) do
+  def email_with_evt_id(event_id) do
     from(ep in "event_participants",
       join: u in "users",
       on: u.id == ep.user_id,
       where: ep.event_id == ^event_id,
-      select: {ep.user_id, u.email, ep.status}
+      select: %{user_id: ep.user_id, user_email: u.email, ep_status: ep.status}
     )
     |> Repo.all()
   end
@@ -110,24 +117,6 @@ defmodule LiveMap.EventParticipants do
     )
     |> Repo.all()
   end
-
-  @doc """
-  Given a event_id and an ower, get all the List of users.email and status by event_participant_id
-  """
-
-  # def list_participants_by_evt_id_owner_email(evt_id, owner_email) do
-  #   from(ep in "event_participants",
-  #     join: e in "events",
-  #     on: ep.event_id == e.id,
-  #     join: u in "users",
-  #     on: u.id == e.user_id,
-  #     join: up in "users",
-  #     on: up.id == ep.user_id,
-  #     where: u.email == ^owner_email and ep.event_id == ^evt_id,
-  #     select: %{status: ep.status, participant: up.email}
-  #   )
-  #   |> Repo.all()
-  # end
 
   @doc """
   List of events to which "user.email" participates with his status
@@ -181,9 +170,9 @@ defmodule LiveMap.EventParticipants do
   end
 
   @doc """
-  Get the owner of an [event, user]
+  Get the owner email and user email given [event_id, user_id]
   """
-  def owner_user_token_by_evt_id_user_id(event_id, user_id) do
+  def owner_user_by_evt_id_user_id(event_id, user_id) do
     from(ep in "event_participants",
       join: e in "events",
       on: e.id == ep.event_id,
@@ -192,7 +181,7 @@ defmodule LiveMap.EventParticipants do
       join: u in "users",
       on: u.id == ep.user_id,
       where: ep.user_id == ^user_id and ep.event_id == ^event_id,
-      select: %{owner: owner.email, user: u.email, status: ep.status, token: ep.mtoken}
+      select: %{owner: owner.email, user: u.email, date: e.date}
     )
     |> Repo.one()
   end

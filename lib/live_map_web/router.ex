@@ -18,11 +18,13 @@ defmodule LiveMapWeb.Router do
     pipe_through :browser
 
     live("/map", MapLive)
+    get "/welcome", WelcomeController, :index
+    # forward "/welcome", Plugs.WelcomePageRedirector, :index
     get "/", PageController, :index
     get "/auth/google/callback", GoogleAuthController, :index
     get "/auth/github/callback", GithubAuthController, :index
 
-    get "/mail/:token", TokenController, :confirm_link, params: "token"
+    get "/mail/:token", MailController, :confirm_link, params: "token"
   end
 
   # Other scopes may use custom stacks.
