@@ -1,4 +1,8 @@
 defmodule LiveMapMail.Email do
+  @moduledoc """
+  Mail sender module
+  """
+
   use Phoenix.Swoosh, view: LiveMapMail.EmailView
 
   @support "support@LiveMap.com"

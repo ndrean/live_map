@@ -67,29 +67,33 @@ defmodule LiveMap.Event do
 
     conv = fn s -> String.to_float(s) end
 
-    Event.new(%{
-      user_id: owner_id,
-      coordinates: %Geo.LineString{
-        coordinates: [{conv.(lng2), conv.(lat2)}, {conv.(lng1), conv.(lat1)}],
-        srid: 4326
-      },
-      distance: conv.(distance),
-      ad1: ad1,
-      ad2: ad2,
-      date: date,
-      color: color
-    })
+    case Event.new(%{
+           user_id: owner_id,
+           coordinates: %Geo.LineString{
+             coordinates: [{conv.(lng2), conv.(lat2)}, {conv.(lng1), conv.(lat1)}],
+             srid: 4326
+           },
+           distance: conv.(distance),
+           ad1: ad1,
+           ad2: ad2,
+           date: date,
+           color: color
+         }) do
+      {:ok, _} ->
+        %GeoJSON{}
+        |> GeoJSON.new_from(
+          [conv.(lng2), conv.(lat2)],
+          [conv.(lng1), conv.(lat1)],
+          ad1,
+          ad2,
+          date,
+          User.email(owner_id),
+          conv.(distance),
+          color
+        )
 
-    %GeoJSON{}
-    |> GeoJSON.new_from(
-      [conv.(lng2), conv.(lat2)],
-      [conv.(lng1), conv.(lat1)],
-      ad1,
-      ad2,
-      date,
-      User.email(owner_id),
-      conv.(distance),
-      color
-    )
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

@@ -54,7 +54,7 @@ defmodule LiveMap.MixProject do
       {:elixir_auth_google, "~> 1.6.3"},
       {:elixir_auth_github, "~> 1.6.1"},
       # {:poison, "~>4.0"},
-      # {:geo, "~> 3.4"},
+      {:geo, "~> 3.4"},
       {:geo_postgis, "~> 3.4"},
       # {:oban, "~> 2.13.3"},
       {:ecto_erd, "~> 0.5.0", only: :dev},
@@ -82,3 +82,5 @@ defmodule LiveMap.MixProject do
     ]
   end
 end
+
+nil

@@ -1,21 +1,28 @@
 defmodule LiveMapWeb.NewEventTable do
   use Phoenix.Component
+  require Logger
 
   def display(%{place: place} = assigns) when is_nil(place) do
+    Logger.debug("Render place nil")
+
     ~H"""
       <div></div>
     """
   end
 
   def display(%{place: %{"coords" => []}} = assigns) do
+    Logger.debug("Render [] _______")
+
     ~H"""
       <div></div>
     """
   end
 
   def display(%{place: %{"coords" => coords}} = assigns) when length(coords) > 0 do
+    Logger.debug("Render coords _______")
     # ok event_date, place in assigns
     ~H"""
+    <div>
     <div class="flex flex-col">
     <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
     <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
@@ -43,19 +50,21 @@ defmodule LiveMapWeb.NewEventTable do
       </div>
       </div>
       </div>
-      <div class="flex items-center justify-center">
-        <div class="datepicker relative form-floating mb-3 xl:w-96">
+
+    </div>
+    <div class="flex items-center justify-center">
+      <div class="datepicker relative form-floating mb-3 xl:w-96">
         <span><strong>distance: <%=  assigns.place["distance"] %> km</strong></span>
         <.live_component module={LiveMapWeb.DatePicker} id="date_form" date={@date} place={@place}/>
 
-        </div>
       </div>
+    </div>
     </div>
     """
   end
 
   def row(assigns) do
-    IO.puts("row")
+    Logger.debug("row")
 
     ~H"""
     <tr id={"tr-#{@row["id"]}"} >

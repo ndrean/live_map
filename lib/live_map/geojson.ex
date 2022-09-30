@@ -1,4 +1,8 @@
 defmodule LiveMap.GeoJSON do
+  @moduledoc """
+  Struct to parse table "events" into GeoJSON format
+  """
+
   @derive {Jason.Encoder, except: []}
   defstruct type: "Feature",
             geometry: %{type: "LineString", coordinates: []},

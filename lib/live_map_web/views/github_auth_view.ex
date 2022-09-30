@@ -1,4 +1,4 @@
 defmodule LiveMapWeb.GithubAuthView do
   use LiveMapWeb, :view
-  import Phoenix.Component
+  # import Phoenix.Component
 end

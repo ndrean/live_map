@@ -1,23 +1,39 @@
 defmodule MapComp do
-  # use LiveMapWeb, :live_component
-  use Phoenix.LiveComponent
+  use LiveMapWeb, :live_component
   require Logger
 
   @impl true
   def mount(socket) do
-    IO.puts("MOUNT MAP_____________________________")
+    Logger.debug("MOUNT MAP_____________________________")
     {:ok, assign(socket, place: nil, date: nil)}
   end
 
   @impl true
   def update(assigns, socket) do
-    IO.puts("UPDATE___________________")
+    Logger.debug("UPDATE___________")
     {:ok, assign(socket, assigns)}
   end
 
   @impl true
+  def render(%{place: %{"coords" => coords}} = assigns) when not is_nil(coords) do
+    Logger.debug("RENDER MAP_____________________________")
+    assigns = assign(assigns, :coords, coords)
+
+    ~H"""
+    <div>
+      <div id="map"
+        phx-component={2}
+        phx-hook="MapHook"
+        phx-update="ignore">
+        phx-target={@myself}
+      </div>
+      <LiveMapWeb.NewEventTable.display  user={@current} place={@place} date={@date} coords={@coords}/>
+    </div>
+    """
+  end
+
   def render(assigns) do
-    IO.puts("RENDER MAP_____________________________")
+    Logger.debug("RENDER MAP INIT_____________________________")
 
     ~H"""
     <div>
@@ -42,7 +58,7 @@ defmodule MapComp do
   @impl true
   def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
     task =
-      Task.Supervisor.async(LiveMap.TSup, fn ->
+      Task.Supervisor.async(LiveMap.EventSup, fn ->
         %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
 
         LiveMap.Repo.features_in_map(lng, lat, String.to_float(distance))
