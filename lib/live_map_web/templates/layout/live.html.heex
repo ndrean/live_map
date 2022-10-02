@@ -1,13 +1,17 @@
 <main class="container mx-auto max-w-full">
-   <p class="alert:empty alert-info flex" role="alert"
+  <%= if msg  =  live_flash(@flash, :info) do %>
+   <p class="alert alert-info flex" role="alert"
     phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %>
+    phx-value-key="info"><%= msg %>
   </p>
+  <% end %>
 
-  <p class="alert:empty alert-danger" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %>
-  </p>
+<%= if msg  =  live_flash(@flash, :error) do %>
+    <p class="alert alert-danger" role="alert"
+      phx-click="lv:clear-flash"
+      phx-value-key="error"><%= msg %>
+    </p>
+  <% end %>
 
   <%= @inner_content %>
 </main>

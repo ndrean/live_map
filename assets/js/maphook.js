@@ -3,6 +3,7 @@ import { geocoder } from "leaflet-control-geocoder";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import icon from "leaflet/dist/images/marker-icon.png";
 import { proxy, subscribe } from "valtio";
+import { randomColor } from "randomcolor";
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
@@ -11,6 +12,13 @@ const DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+const lineStyle = {
+  color: "black",
+  dashArray: "20, 20",
+  dashOffset: "20",
+  weight: "2",
+};
 
 // call the geolocation API and redirect the map to te found location
 function getLocation(map) {
@@ -40,7 +48,7 @@ function setRandColor() {
 const place = proxy({
   coords: [], // list of {leaflet_id, lat,lng, name} of markers where name is the address
   distance: 0, // distance between 2 markers
-  color: setRandColor(),
+  color: randomColor(),
 });
 
 // proxied centre and radius of the map
@@ -50,7 +58,7 @@ export const MapHook = {
   mounted() {
     const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 10);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 20,
+      maxZoom: 19,
       attribution: "c OpenStreeMap",
     }).addTo(map);
 
@@ -90,12 +98,9 @@ export const MapHook = {
     function handleData(data) {
       if (data)
         L.geoJSON(data, {
-          color: "black",
-          dashArray: "20, 20",
-          dashOffset: "20",
-          weight: "2",
+          style: lineStyle,
           onEachFeature: onEachFeature,
-        }).addTo(map);
+        }).addTo(datagroup);
     }
 
     function onEachFeature(feature, layer) {
@@ -107,7 +112,7 @@ export const MapHook = {
     }
 
     function setCircleMarker(pos, ad, owner, date, distance, color) {
-      return L.circleMarker(pos, { radius: 10, color: color })
+      L.circleMarker(pos, { radius: 10, color: color })
         .bindPopup(info(ad, owner, date, distance))
         .addTo(datagroup);
     }
@@ -116,8 +121,8 @@ export const MapHook = {
       const evtDate = new Date(date).toDateString();
       return `
             <h4>${owner}, the ${evtDate}</h4>
-            <h5>${ad}</h5>
-            <h5>${distance}</h5>
+            <h6>${ad}</h6>
+            <h1>${distance} km</h1>
             `;
     }
 
@@ -193,7 +198,7 @@ export const MapHook = {
         const p1 = L.latLng([start.lat, start.lng]);
         const p2 = L.latLng([end.lat, end.lng]);
         place.distance = (p1.distanceTo(p2) / 1_000).toFixed(1);
-        place.color = setRandColor();
+        place.color = randomColor();
       }
     }
 
@@ -208,7 +213,7 @@ export const MapHook = {
 
         const marker = L.marker(e.latlng, { draggable: true });
         marker.addTo(layergroup).bindPopup(html);
-        // you need to add to the map before getting the _leaflet_id
+        // you need to add the marker to the map to get the _leaflet_id
         const location = {
           id: marker._leaflet_id,
           lat: e.latlng.lat.toFixed(4),

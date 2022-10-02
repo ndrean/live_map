@@ -2,6 +2,7 @@
   "dependencies": {
     "leaflet": "^1.9.1",
     "leaflet-control-geocoder": "^2.4.0",
+    "randomcolor": "^0.6.2",
     "valtio": "^1.7.0"
   }
 }

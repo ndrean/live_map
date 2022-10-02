@@ -1,5 +1,7 @@
 defmodule MapComp do
   use LiveMapWeb, :live_component
+  alias LiveMap.Repo
+  alias LiveMapWeb.NewEventTable
   require Logger
 
   @impl true
@@ -17,7 +19,6 @@ defmodule MapComp do
   @impl true
   def render(%{place: %{"coords" => coords}} = assigns) when not is_nil(coords) do
     Logger.debug("RENDER MAP_____________________________")
-    assigns = assign(assigns, :coords, coords)
 
     ~H"""
     <div>
@@ -27,7 +28,7 @@ defmodule MapComp do
         phx-update="ignore">
         phx-target={@myself}
       </div>
-      <LiveMapWeb.NewEventTable.display  user={@current} place={@place} date={@date} coords={@coords}/>
+      <NewEventTable.display  user_id={@user_id} user={@current} place={@place} date={@date}/>
     </div>
     """
   end
@@ -43,7 +44,7 @@ defmodule MapComp do
         phx-update="ignore">
         phx-target={@myself}
       </div>
-      <LiveMapWeb.NewEventTable.display  user={@current} place={@place} date={@date}/>
+      <NewEventTable.display  user={@current} place={@place} date={@date}/>
     </div>
     """
   end
@@ -57,23 +58,23 @@ defmodule MapComp do
   #  the "moveend" mutates proxy(movingmap) and subscribe triggers pushEvent
   @impl true
   def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
-    task =
+    results =
       Task.Supervisor.async(LiveMap.EventSup, fn ->
         %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
 
-        LiveMap.Repo.features_in_map(lng, lat, String.to_float(distance))
+        Repo.features_in_map(lng, lat, String.to_float(distance))
         |> List.flatten()
       end)
+      |> then(fn task ->
+        case Task.await(task) do
+          nil ->
+            Logger.warn("Could not retrieve events")
+            nil
 
-    results =
-      case Task.await(task) do
-        nil ->
-          Logger.warn("Could not retrieve events")
-          nil
-
-        results ->
-          results
-      end
+          result ->
+            result
+        end
+      end)
 
     {:noreply, push_event(socket, "update_map", %{data: results})}
   end

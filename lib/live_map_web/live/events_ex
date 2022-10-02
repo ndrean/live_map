@@ -1,0 +1,40 @@
+defmodule LiveMapWeb.Events do
+  use LiveMapWeb, :live_component
+  alias LiveMap.Event
+
+  def mount(_p, _s, socket), do: {:ok, socket}
+
+  @doc """
+  LiveView will call "handle_call" with updated params whenever we change sorting/filtering
+  """
+  def handle_params(_p, _url, socket), do: {:noreply, assign_events(socket)}
+
+  defp assign_events(socket) do
+    assign(socket, : events, Event.list())
+  end
+
+  def render(assigns) do
+    ~H"""
+    <table><tbody>
+      <%= for event <- @events do %>
+        <tr>
+          <td>
+            <button> Delete </button>
+          </td>
+          <td>
+            Owner
+          </td>
+          <td>
+            Date
+          </td>
+          <td>
+            <button> Send demand </button>
+          </td>
+
+        </tr>
+      <% end %>
+      end
+    </tbody></table>
+    """
+  end
+end

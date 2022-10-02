@@ -13,6 +13,7 @@ defmodule LiveMapWeb.GoogleAuthController do
 
         conn
         |> put_session(:user_token, user_token)
+        |> put_session(:user_id, user.id)
         |> put_session(:profile, profile)
         |> redirect(to: "/welcome")
         |> halt()

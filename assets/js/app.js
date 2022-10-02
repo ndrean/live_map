@@ -1,7 +1,7 @@
 // We import the CSS which is extracted to its own file by esbuild. Remove this line if you add a your own CSS build pipeline (e.g postcss).
 // import "../css/app.css";
 
-import "./user_socket.js";
+// import "./user_socket.js";
 
 // The simplest option is to put them in assets/vendor and import them using relative paths:
 //     import "../vendor/some-package.js"

@@ -30,16 +30,22 @@ defmodule LiveMap.Repo do
     end
   end
 
-  def default_date, do: Date.utc_today() |> Date.add(30)
+  def default_date(d), do: Date.utc_today() |> Date.add(d)
 
   @doc """
   Fetch all the events centered at [lng,lat] with radius "distance" and time period, defaults to "today + 1 month".
   Return a GeoJSON features object.
   We passed a `%Geo.LineString{[x,y],[z,t]}` as the geometry, so it returns a "LINESTRING".
-  ```
+  ```s
   iex> [GeoSJON features] = LiveMap.Repo.features_in_map(lng, lat, distance)
   """
-  def features_in_map(lng, lat, distance, date \\ default_date()) do
+  def features_in_map(
+        lng,
+        lat,
+        distance,
+        date_start \\ default_date(0),
+        date_end \\ default_date(30)
+      ) do
     query = [
       "SELECT json_build_object(
       'type', 'FeatureCollection',
@@ -51,13 +57,13 @@ defmodule LiveMap.Repo do
       FROM events
       INNER JOIN users on events.user_id = users.id
       WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
-      AND date < $4
+      AND events.date >= $4::date AND events.date < $5::date
       )
       AS t(email, ad1, ad2, date, color, coordinates, distance);
       "
     ]
 
-    case Repo.query(query, [lng, lat, distance, date]) do
+    case Repo.query(query, [lng, lat, distance, date_start, date_end]) do
       {:ok, %Postgrex.Result{rows: rows}} ->
         rows
 
@@ -66,7 +72,7 @@ defmodule LiveMap.Repo do
     end
   end
 
-  def events_in_map(lng, lat, distance, date \\ default_date()) do
+  def events_in_map(lng, lat, distance, date \\ default_date(30)) do
     query = [
       "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
       FROM events
@@ -91,7 +97,7 @@ defmodule LiveMap.Repo do
   iex> :timer.tc(fn -> LiveMap.Repo.within(...).
   ```
   """
-  def events_within(lng, lat, distance, date \\ default_date()) do
+  def events_within(lng, lat, distance, date \\ default_date(30)) do
     query = [
       "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates
       FROM events

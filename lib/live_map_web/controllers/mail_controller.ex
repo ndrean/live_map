@@ -99,10 +99,7 @@ defmodule LiveMapWeb.MailController do
           Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
             {:ok, _} = EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
 
-            Email.confirm_participation(%{
-              event_id: event_id,
-              user_id: user_id
-            })
+            Email.confirm_participation(%{event_id: event_id, user_id: user_id})
             |> Mailer.deliver()
           end)
 
