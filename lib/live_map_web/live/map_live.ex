@@ -12,6 +12,8 @@ defmodule LiveMapWeb.MapLive do
       {:ok, _} = Presence.track(self(), "presence", socket.id, %{user_id: user_id})
     end
 
+    :ets.insert(:limit_user, {user_id, Time.utc_now()})
+
     {:ok,
      assign(socket,
        current: email,

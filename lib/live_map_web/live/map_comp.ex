@@ -58,23 +58,39 @@ defmodule MapComp do
   #  the "moveend" mutates proxy(movingmap) and subscribe triggers pushEvent
   @impl true
   def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
+    user_id = socket.assigns.user_id
+
+    [{user_id, now}] = :ets.lookup(:limit_user, user_id)
+    time_limit = Time.add(now, 1, :second)
+
     results =
-      Task.Supervisor.async(LiveMap.EventSup, fn ->
-        %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
+      case Time.compare(Time.utc_now(), time_limit) do
+        :gt ->
+          IO.puts("cic")
 
-        Repo.features_in_map(lng, lat, String.to_float(distance))
-        |> List.flatten()
-      end)
-      |> then(fn task ->
-        case Task.await(task) do
-          nil ->
-            Logger.warn("Could not retrieve events")
-            nil
+          Task.Supervisor.async(LiveMap.EventSup, fn ->
+            %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
 
-          result ->
-            result
-        end
-      end)
+            Repo.features_in_map(lng, lat, String.to_float(distance))
+            |> List.flatten()
+          end)
+          |> then(fn task ->
+            # rate limiter for user
+            :ets.insert(:limit_user, {user_id, Time.utc_now()})
+
+            case Task.await(task) do
+              nil ->
+                Logger.warn("Could not retrieve events")
+                nil
+
+              result ->
+                result
+            end
+          end)
+
+        _ ->
+          nil
+      end
 
     {:noreply, push_event(socket, "update_map", %{data: results})}
   end
