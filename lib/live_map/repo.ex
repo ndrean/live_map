@@ -48,18 +48,17 @@ defmodule LiveMap.Repo do
       ) do
     query = [
       "SELECT json_build_object(
-      'type', 'FeatureCollection',
-      'features', json_agg(ST_AsGeoJSON(t.*)::json)
+        'type', 'FeatureCollection',
+        'features', json_agg(ST_AsGeoJSON(t.*)::json)
       )
       FROM (
-      SELECT users.email, events.ad1, events.ad2, events.date, events.color, events.coordinates, events.distance,
-      coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
-      FROM events
-      INNER JOIN users on events.user_id = users.id
-      WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
-      AND events.date >= $4::date AND events.date < $5::date
-      )
-      AS t(email, ad1, ad2, date, color, coordinates, distance);
+        SELECT events.id, users.email, events.ad1, events.ad2, events.date, events.color, events.coordinates, events.distance,
+        coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
+        FROM events
+        INNER JOIN users on events.user_id = users.id
+        WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
+        AND events.date >= $4::date AND events.date < $5::date
+      ) AS t(id, email, ad1, ad2, date, color, coordinates, distance);
       "
     ]
 
@@ -72,19 +71,83 @@ defmodule LiveMap.Repo do
     end
   end
 
-  def events_in_map(lng, lat, distance, date \\ default_date(30)) do
+  def select_in_map(%{
+        lng: lng,
+        lat: lat,
+        distance: distance,
+        start_date: start_date,
+        end_date: end_date
+      }) do
     query = [
-      "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
-      FROM events
-      INNER JOIN users ON user_id = users.id
-      WHERE date < $4::date
-      AND
-      ST_Distance(ST_MakePoint($1,$2),coordinates)  < $3;"
+      "SELECT events.id, events.user_id, users.email, events.ad1, events.ad2,  events.date, events.color, events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+        FROM events
+        INNER JOIN users ON events.user_id = users.id
+        INNER JOIN event_participants AS ep on events.id = ep.event_id
+        WHERE events.date >= $4::date AND events.date <= $5::date
+        AND
+        ST_Distance(ST_MakePoint($1,$2),events.coordinates)  < $3;
+      "
     ]
 
-    case Repo.query(query, [lng, lat, distance, date], log: true) do
+    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
       {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
-        Enum.map(rows, fn row -> Repo.load(Event, {columns, row}) end)
+        Enum.map(rows, fn row ->
+          Repo.load(Event, {columns, row})
+          |> Repo.preload(:event_participants)
+        end)
+
+      {:error, %Postgrex.Error{postgres: %{message: message}}} ->
+        Logger.debug(message)
+    end
+  end
+
+  @doc """
+  Version using ST_DWithin, less performant. Is "events_in_map" faster with the index??
+  ```
+  iex> :timer.tc(fn -> LiveMap.Repo.within(...).
+  ```
+  """
+  def selectbis_in_map(%{
+        lng: lng,
+        lat: lat,
+        distance: distance,
+        start_date: start_date,
+        end_date: end_date
+      }) do
+    query = [
+      "WITH geo_events AS (
+        SELECT events.id,  events.date, ep.user_id, u.email, ep.status, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+        FROM events
+        JOIN event_participants ep ON ep.event_id = events.id
+        JOIN users u ON u.id = ep.user_id
+        WHERE date >= $4::date AND date <= $5::date
+        AND
+        ST_Distance(ST_MakePoint($1,$2),events.coordinates)  < $3
+      ),
+      status_agg AS (
+        SELECT id, status, ARRAY_AGG(email) emails
+        FROM geo_events
+        GROUP BY id, status
+      ),
+      date_agg AS (
+        SELECT id, date, email
+        FROM geo_events
+      ),
+      unsorted AS (
+      SELECT s.id, jsonb_object_agg(status, emails) status_email, jsonb_object_agg('date', date) date_date
+      FROM status_agg s
+      JOIN date_agg d ON d.id = s.id
+      GROUP BY s.id
+      )
+      SELECT id, status_email, date_date
+      FROM unsorted
+      ORDER BY date_date
+      ;"
+    ]
+
+    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
+      {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
+        rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)
@@ -100,11 +163,11 @@ defmodule LiveMap.Repo do
   def events_within(lng, lat, distance, date \\ default_date(30)) do
     query = [
       "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates
-      FROM events
-      INNER JOIN users ON user_id = users.id
-      WHERE ST_DWithin(ST_MakePoint($1,$2),coordinates, $3)
-      AND date < $4::date;
-      "
+    FROM events
+    INNER JOIN users ON user_id = users.id
+    WHERE ST_DWithin(ST_MakePoint($1,$2),coordinates, $3)
+    AND date < $4::date;
+    "
     ]
 
     case Repo.query(query, [lng, lat, distance, date], log: true) do
@@ -115,14 +178,4 @@ defmodule LiveMap.Repo do
         Logger.debug(message)
     end
   end
-
-  # def get_status(event_id) do
-  #   Repo.query(
-  #     "SELECT users.email, status, ep.user_id  FROM event_participants AS ep
-  #     INNER JOIN users on users.id = ep.user_id
-  #     WHERE ep.event_id = $1;
-  #     ",
-  #     [event_id]
-  #   )
-  # end
 end

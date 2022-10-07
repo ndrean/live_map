@@ -1,4 +1,4 @@
-defmodule MapComp do
+defmodule LiveMapWeb.MapComp do
   use LiveMapWeb, :live_component
   alias LiveMap.Repo
   alias LiveMapWeb.NewEventTable
@@ -6,20 +6,16 @@ defmodule MapComp do
 
   @impl true
   def mount(socket) do
-    Logger.debug("MOUNT MAP_____________________________")
     {:ok, assign(socket, place: nil, date: nil)}
   end
 
   @impl true
   def update(assigns, socket) do
-    Logger.debug("UPDATE___________")
     {:ok, assign(socket, assigns)}
   end
 
   @impl true
   def render(%{place: %{"coords" => coords}} = assigns) when not is_nil(coords) do
-    Logger.debug("RENDER MAP_____________________________")
-
     ~H"""
     <div>
       <div id="map"
@@ -33,9 +29,8 @@ defmodule MapComp do
     """
   end
 
+  # render map init
   def render(assigns) do
-    Logger.debug("RENDER MAP INIT_____________________________")
-
     ~H"""
     <div>
       <div id="map"
@@ -49,7 +44,7 @@ defmodule MapComp do
     """
   end
 
-  # append the socket with a new market
+  # append the socket with a new marker
   @impl true
   def handle_event("add_point", %{"place" => place}, socket) do
     {:noreply, assign(socket, :place, place)}
@@ -63,11 +58,12 @@ defmodule MapComp do
     [{user_id, now}] = :ets.lookup(:limit_user, user_id)
     time_limit = Time.add(now, 1, :second)
 
+    # send map coords once detected for the query table
+    send(self(), {:map_coords, moving_map})
+
     results =
       case Time.compare(Time.utc_now(), time_limit) do
         :gt ->
-          IO.puts("cic")
-
           Task.Supervisor.async(LiveMap.EventSup, fn ->
             %{"distance" => distance, "center" => %{"lat" => lat, "lng" => lng}} = moving_map
 

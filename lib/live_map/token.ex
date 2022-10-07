@@ -28,7 +28,8 @@ defmodule LiveMap.Token do
            LiveMapWeb.Endpoint,
            "mail token",
            token,
-           max_age: 86400
+           # 2 months!
+           max_age: 5_000_000
          ) do
       {:ok, data} -> {:ok, data}
       {:error, reason} -> {:error, reason}

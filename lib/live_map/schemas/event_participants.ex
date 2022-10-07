@@ -69,6 +69,13 @@ defmodule LiveMap.EventParticipants do
     Repo.aggregate(EventParticipants, :count, :id)
   end
 
+  def fetch(event_id) do
+    from(ep in EventParticipants,
+      where: ep.event_id == ^event_id
+    )
+    |> Repo.all()
+  end
+
   @doc """
   Returns the record for [event_id, user_id]
   """
@@ -113,7 +120,7 @@ defmodule LiveMap.EventParticipants do
       join: u in "users",
       on: u.id == ep.user_id,
       where: ep.event_id == ^evt_id,
-      select: %{status: ep.status, user: u.email}
+      select: %{status: ep.status, user: u.email, id: ep.event_id}
     )
     |> Repo.all()
   end

@@ -1,6 +1,7 @@
 defmodule LiveMap.User do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
   alias LiveMap.{Repo, User, Event, EventParticipants}
 
   schema "users" do
@@ -33,11 +34,24 @@ defmodule LiveMap.User do
     Repo.get_by(User, id: id).email
   end
 
+  def from(email) do
+    Repo.get_by(User, email: email).id
+  end
+
   def list do
     Repo.all(User)
   end
 
   def count do
     Repo.aggregate(User, :count, :id)
+  end
+
+  def search(string) do
+    like = "%#{string}%"
+
+    from(u in User,
+      where: ilike(u.email, ^like)
+    )
+    |> Repo.all()
   end
 end

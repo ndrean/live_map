@@ -1,8 +1,8 @@
 defmodule LiveMapWeb.DatePicker do
-  # use Phoenix.LiveComponent
   use LiveMapWeb, :live_component
-  alias LiveMap.{DatePicker, Event, GeoJSON}
-  alias LiveMapWeb.Endpoint
+  alias LiveMap.{Event, GeoJSON}
+  alias LiveMapWeb.{Endpoint}
+  alias LiveMap.DatePicker
   require Logger
 
   def mount(socket) do
@@ -11,15 +11,13 @@ defmodule LiveMapWeb.DatePicker do
 
   def update(assigns, socket) do
     len = assigns.place["coords"] |> length()
-
     socket = assign(socket, :len, len)
-
     {:ok, assign(socket, assigns)}
   end
 
   def render(%{len: len} = assigns) when len > 1 do
     ~H"""
-    <div>
+    <div id="date_form">
       <.form :let={f} for={@changeset} id="form" phx-submit="up_date" phx-target={@myself}
         class="flex flex-row w-full justify-around space-x-2 px-6"
       >
@@ -46,7 +44,6 @@ defmodule LiveMapWeb.DatePicker do
 
   def handle_event("up_date", %{"date_picker" => %{"event_date" => date}} = _params, socket) do
     changeset = DatePicker.changeset(%DatePicker{}, %{"event_date" => date})
-    IO.inspect(socket.assigns, label: "date")
 
     case changeset.valid? do
       true ->

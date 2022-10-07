@@ -55,6 +55,11 @@ defmodule LiveMap.Event do
     Repo.aggregate(Event, :count, :id)
   end
 
+  def delete_event(id) do
+    Repo.get_by(Event, id: id)
+    |> Repo.delete()
+  end
+
   def save_geojson(place, owner_id, date) do
     %{
       "coords" => [
@@ -79,9 +84,10 @@ defmodule LiveMap.Event do
            date: date,
            color: color
          }) do
-      {:ok, _} ->
-        %GeoJSON{}
-        |> GeoJSON.new_from(
+      {:ok, %{event_id: event_id}} ->
+        GeoJSON.new_from(
+          %GeoJSON{},
+          event_id,
           [conv.(lng2), conv.(lat2)],
           [conv.(lng1), conv.(lat1)],
           ad1,

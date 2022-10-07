@@ -15,9 +15,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const lineStyle = {
   color: "black",
-  dashArray: "20, 20",
-  dashOffset: "20",
-  weight: "2",
+  dashArray: "10, 10",
+  dashOffset: 50,
+  weight: 1,
 };
 
 // call the geolocation API and redirect the map to te found location
@@ -65,8 +65,11 @@ export const MapHook = {
     const layergroup = L.layerGroup().addTo(map);
     const datagroup = L.layerGroup().addTo(map);
     const lineLayer = L.layerGroup().addTo(map);
-    const geoCoder = L.Control.Geocoder.nominatim();
+    const showLayer = L.layerGroup().addTo(map);
 
+    // limited to one request per second
+    const geoCoder = L.Control.Geocoder.nominatim();
+    let mymarkers = null;
     // run the geolcation API.
     // Alternatively, the "coder" is provided circa L232
     getLocation(map);
@@ -92,10 +95,27 @@ export const MapHook = {
       place.distance = 0;
     }
 
+    // find (by the db id) and highlight the path
+    this.handleEvent("toggle_up", ({ id }) => {
+      console.log({ id });
+      L.geoJSON(mymarkers, {
+        filter: function (feature, layer) {
+          if (feature.properties.id === Number(id)) {
+            return { color: "#ff0000", weight: 8 };
+          }
+        },
+      }).addTo(showLayer);
+    });
+
+    //  remove the highlight layer
+    this.handleEvent("toggle_down", () => showLayer.clearLayers());
+
     // listener to update existing events at location
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
+      // save geojson to be able to find (by the db id) and highlight a specific event
+      mymarkers = data;
       if (data)
         L.geoJSON(data, {
           style: lineStyle,
@@ -104,7 +124,6 @@ export const MapHook = {
     }
 
     function onEachFeature(feature, layer) {
-      console.log("each feature ********");
       const { ad1, ad2, email, date, distance, color } = feature.properties;
       const [start, end] = layer.getLatLngs();
       setCircleMarker(start, ad1, email, date, distance, color);
@@ -170,8 +189,11 @@ export const MapHook = {
       const newLatLng = mark.getLatLng();
       mark.setLatLng(newLatLng);
       const index = place.coords.findIndex((c) => c.id === id);
-      discover(mark, newLatLng, index, id);
+      // limitation of 1 request per second for Nominatim
 
+      setTimeout(() => {
+        discover(mark, newLatLng, index, id);
+      }, 1000);
       mark.on("popupopen", () => maybeDelete(mark, id));
       mark.on("dragend", () => draggedMarker(mark, id, lineLayer));
     }
@@ -258,16 +280,16 @@ export const MapHook = {
       ).toFixed(1);
     });
 
-    this.handleEvent("add", ({ coords: [lat, lng] }) => {
-      const coords = L.latLng([Number(lat), Number(lng)]);
-      const index = place.coords.length;
-      const marker = L.marker(coords, { draggable: true });
-      marker.addTo(layergroup).bindPopup(addButton);
-      // to get the id, you need to add to the layer firstly
-      const id = marker._leaflet_id;
-      discover(marker, coords, index, id);
-      updateDeleteMarker(marker, id);
-    });
+    // this.handleEvent("add", ({ coords: [lat, lng] }) => {
+    //   const coords = L.latLng([Number(lat), Number(lng)]);
+    //   const index = place.coords.length;
+    //   const marker = L.marker(coords, { draggable: true });
+    //   marker.addTo(layergroup).bindPopup(addButton);
+    //   // to get the id, you need to add to the layer firstly
+    //   const id = marker._leaflet_id;
+    //   discover(marker, coords, index, id);
+    //   updateDeleteMarker(marker, id);
+    // });
 
     // Delete listener triggered from pushEvent
     this.handleEvent("delete_marker", ({ id }) => {

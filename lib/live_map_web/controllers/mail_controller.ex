@@ -13,7 +13,7 @@ defmodule LiveMapWeb.MailController do
   This creates a new "event_participants" record, set a new token and the status to "pending"
   and sends a mail to the owner of the event.
   ```
-  iex> LiveMapWeb.MailController.create(%{event_id: 1, user_id: 2})
+  iex> LiveMapWeb.MailController.create_demand(%{event_id: 1, user_id: 2})
   {:ok, #PID<0.861.0>}
   # navigate to http://localhost:4000/dev/mailbox, check the mail and click the link
   # you should get "confirmed"
@@ -25,7 +25,7 @@ defmodule LiveMapWeb.MailController do
   %{ep_status: "confirmed", user_email: "bibi", user_id: 2}
   ```
   """
-  def create(params = %{event_id: event_id, user_id: user_id}) do
+  def create_demand(params = %{event_id: event_id, user_id: user_id}) do
     with token <- EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
       params = Map.put(params, :mtoken, token)
 
@@ -51,8 +51,8 @@ defmodule LiveMapWeb.MailController do
     with {:ok, string} <- Token.mail_check(mtoken) do
       {:ok, string}
     else
-      {:error, :invalid} ->
-        json(conn, "token invalid")
+      {:error, message} ->
+        json(conn, "error: #{inspect(message)}")
     end
   end
 

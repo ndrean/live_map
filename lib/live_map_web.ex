@@ -98,6 +98,7 @@ defmodule LiveMapWeb do
       import LiveMapWeb.ErrorHelpers
       import LiveMapWeb.Gettext
       alias LiveMapWeb.Router.Helpers, as: Routes
+      import LiveMapWeb.InputHelpers
     end
   end
 

@@ -3,17 +3,18 @@ defmodule LiveMapWeb.NewEventTable do
   alias LiveMapWeb.DatePicker
   require Logger
 
-  def display(%{place: place} = assigns) when is_nil(place) do
-    Logger.debug("Render place nil")
+  attr :place, :map
+  attr :user, :string
+  attr :date, :any
+  attr :user_id, :integer
 
+  def display(%{place: place} = assigns) when is_nil(place) do
     ~H"""
       <div></div>
     """
   end
 
   def display(%{place: %{"coords" => []}} = assigns) do
-    Logger.debug("Render [] _______")
-
     ~H"""
     <div></div>
     """
@@ -22,7 +23,6 @@ defmodule LiveMapWeb.NewEventTable do
   def display(%{place: %{"coords" => coords, "distance" => distance}} = assigns)
       when length(coords) > 0 do
     assigns = assign(assigns, coords: coords, distance: distance)
-    Logger.debug("Render coords _______")
 
     ~H"""
     <div>
@@ -63,7 +63,6 @@ defmodule LiveMapWeb.NewEventTable do
 
   def row(%{row: %{"id" => id, "name" => name}} = assigns) do
     assigns = assign(assigns, name: name, id: id)
-    Logger.debug("row")
 
     ~H"""
     <tr id={"tr-#{@id}"} >
@@ -83,12 +82,3 @@ defmodule LiveMapWeb.NewEventTable do
     """
   end
 end
-
-# <th colspan="2" class="text-sm text-white font-medium  px-6 py-2 text-left">
-# Coordinates lat/lng</th>
-
-# <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-#   <%= @row["lat"] %>
-# </td>
-# <td><%= @row["lng"] %>
-# </td>

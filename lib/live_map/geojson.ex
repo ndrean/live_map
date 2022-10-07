@@ -7,6 +7,7 @@ defmodule LiveMap.GeoJSON do
   defstruct type: "Feature",
             geometry: %{type: "LineString", coordinates: []},
             properties: %{
+              id: nil,
               ad1: "",
               ad2: "",
               date: Date.utc_today(),
@@ -22,8 +23,9 @@ defmodule LiveMap.GeoJSON do
     put_in(geojson.geometry.coordinates, [startpoint, endpoint])
   end
 
-  defp set_props(%LiveMap.GeoJSON{} = geojson, ad1, ad2, date, user, distance, color) do
+  defp set_props(%LiveMap.GeoJSON{} = geojson, id, ad1, ad2, date, user, distance, color) do
     put_in(geojson.properties, %{
+      id: id,
       ad1: ad1,
       ad2: ad2,
       date: date,
@@ -35,6 +37,7 @@ defmodule LiveMap.GeoJSON do
 
   def new_from(
         geojson = %LiveMap.GeoJSON{},
+        id,
         startpoint,
         endpoint,
         ad1,
@@ -46,6 +49,6 @@ defmodule LiveMap.GeoJSON do
       ) do
     geojson
     |> set_coords(startpoint, endpoint)
-    |> set_props(ad1, ad2, date, user, distance, color)
+    |> set_props(id, ad1, ad2, date, user, distance, color)
   end
 end
