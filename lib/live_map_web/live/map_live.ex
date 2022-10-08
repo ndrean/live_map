@@ -24,6 +24,7 @@ defmodule LiveMapWeb.MapLive do
        presence: Presence.list("presence") |> map_size,
        coords: %{},
        selected: nil
+       #  checked_list: []
      )}
   end
 
@@ -52,18 +53,57 @@ defmodule LiveMapWeb.MapLive do
   end
 
   def handle_event("send_demand", %{"event-id" => event_id, "user-id" => user_id}, socket) do
-    MailController.create_demand(%{event_id: String.to_integer(event_id), user_id: user_id})
+    e_id = String.to_integer(event_id)
+    # remove the highlight if the user forgot since the checkbox defaults to false on update
+    send(self(), {:down_check_all})
+
+    Task.Supervisor.async_nolink(LiveMap.EventSup, fn ->
+      %{event_id: String.to_integer(event_id), user_id: user_id}
+      |> MailController.create_demand()
+
+      user_email = socket.assigns.current
+      selected = socket.assigns.selected
+
+      selected
+      |> Enum.map(fn [id, status, date] ->
+        if id == e_id,
+          do: [id, %{status | "pending" => [user_email | status["pending"]]}, date],
+          else: [id, status, date]
+      end)
+    end)
+    |> then(fn task ->
+      selected = Task.await(task)
+
+      send_update(SelectedEvents, id: "selected", selected: selected)
+    end)
+
     {:noreply, socket}
   end
 
   # highlight the event in Leaflet.js when checkbox is ticked in table events
   def handle_event("checkbox", %{"id" => id, "value" => "on"}, socket) do
-    {:noreply, push_event(socket, "toggle_up", %{id: id})}
+    # socket =
+    #   socket
+    #   |> update(:checked_list, fn list -> [id | list] end)
+
+    {:noreply, push_event(socket, "toggle_up", %{id: String.to_integer(id)})}
   end
 
   # remove the highlight when checkbox toggled off in table events
   def handle_event("checkbox", %{"id" => id}, socket) do
-    {:noreply, push_event(socket, "toggle_down", %{id: id})}
+    # socket =
+    #   socket
+    #   |> update(:checked_list, fn list ->
+    #     Enum.filter(list, fn i -> i != id end)
+    #   end)
+
+    {:noreply, push_event(socket, "toggle_down", %{id: String.to_integer(id)})}
+  end
+
+  @impl true
+  #  remove all highlights since checkboxes defaults to false on refresh(no more sync)
+  def handle_info({:down_check_all}, socket) do
+    {:noreply, push_event(socket, "toggle_all_down", %{})}
   end
 
   # handling the subscription to the topic sent by "date_picker"

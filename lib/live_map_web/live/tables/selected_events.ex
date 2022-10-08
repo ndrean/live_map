@@ -5,15 +5,15 @@ defmodule LiveMapWeb.SelectedEvents do
 
   def mount(_p, s, socket) do
     IO.inspect(s, label: "mout selected")
-    {:ok, socket}
+    {:ok, assign(socket, checked: false)}
   end
 
-  @impl true
-  def update(assigns, socket) do
-    #   socket = assign_events(socket)
-    socket = socket |> assign(:checked, false)
-    {:ok, assign(socket, assigns)}
-  end
+  # @impl true
+  # def update(assigns, socket) do
+  #   #   socket = assign_events(socket)
+  #   # socket = socket |> assign(:checked, false)
+  #   {:ok, assign(socket, assigns)}
+  # end
 
   @doc """
   LiveView will call "handle_call" with updated params whenever we change sorting/filtering
@@ -85,24 +85,22 @@ defmodule LiveMapWeb.SelectedEvents do
               <input type="checkbox" phx-click="checkbox" phx-value-id={id}  id={"check-#{id}"}/>
             </td>
             <td>
-              <%= if (@user in pending or @user in confirmed) do %>
+              <%= if (@user in pending or @user in confirmed or owner == @user) do %>
                 <button
-                  class="inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
+                  class="opacity-50 inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
                   phx-click="send_demand"
+                  disabled
                   phx-value-event-id={id}
                   phx-value-user-id={@user_id}
-
-                  > Send demand <%= owner == @user %>
+                  > Send demand
                 </button>
               <% else %>
                 <button
-                    class=" opacity-50 inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
+                    class="inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
                     phx-click="send_demand"
-                    disabled
                     phx-value-event-id={id}
                     phx-value-user-id={@user_id}
-
-                    > Send demand <%= owner == @user %>
+                    > Send demand
                   </button>
               <% end %>
             </td>

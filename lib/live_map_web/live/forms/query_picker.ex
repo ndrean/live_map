@@ -80,16 +80,16 @@ defmodule LiveMapWeb.QueryPicker do
 
   def handle_event("send", %{"query_picker" => form}, socket) do
     changeset = QueryPicker.changeset(form)
-    IO.inspect(changeset, label: "changest")
+
+    # reset all hilghlighted events since checkbox defaults to false on refresh (no more in sync)
+    send(self(), {:down_check_all})
 
     case changeset.valid? do
       false ->
-        IO.puts("false")
         changeset |> Map.put(:action, :insert)
         {:noreply, assign(socket, changeset: changeset)}
 
       true ->
-        IO.puts("true")
         process_params(form, socket.assigns.coords)
     end
 

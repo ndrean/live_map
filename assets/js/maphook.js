@@ -109,7 +109,7 @@ export const MapHook = {
       }).addTo(showLayer);
     });
 
-    //  remove the highlight layer
+    //  remove the highlighted layer by id
     this.handleEvent("toggle_down", ({ id }) => {
       showLayer.clearLayers();
       toggled = toggled.filter((t) => t.properties.id !== Number(id));
@@ -118,6 +118,11 @@ export const MapHook = {
           return { color: "#ff0000", weight: 8 };
         },
       }).addTo(showLayer);
+    });
+
+    this.handleEvent("toggle_all_down", () => {
+      showLayer.clearLayers();
+      toggled = [];
     });
 
     // listener to update existing events at location
