@@ -79,42 +79,6 @@ defmodule LiveMap.Repo do
         end_date: end_date
       }) do
     query = [
-      "SELECT events.id, events.user_id, users.email, events.ad1, events.ad2,  events.date, events.color, events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
-        FROM events
-        INNER JOIN users ON events.user_id = users.id
-        INNER JOIN event_participants AS ep on events.id = ep.event_id
-        WHERE events.date >= $4::date AND events.date <= $5::date
-        AND
-        ST_Distance(ST_MakePoint($1,$2),events.coordinates)  < $3;
-      "
-    ]
-
-    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
-      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
-        Enum.map(rows, fn row ->
-          Repo.load(Event, {columns, row})
-          |> Repo.preload(:event_participants)
-        end)
-
-      {:error, %Postgrex.Error{postgres: %{message: message}}} ->
-        Logger.debug(message)
-    end
-  end
-
-  @doc """
-  Version using ST_DWithin, less performant. Is "events_in_map" faster with the index??
-  ```
-  iex> :timer.tc(fn -> LiveMap.Repo.within(...).
-  ```
-  """
-  def selectbis_in_map(%{
-        lng: lng,
-        lat: lat,
-        distance: distance,
-        start_date: start_date,
-        end_date: end_date
-      }) do
-    query = [
       "WITH geo_events AS (
         SELECT events.id,  events.date, ep.user_id, u.email, ep.status, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
         FROM events
@@ -148,6 +112,36 @@ defmodule LiveMap.Repo do
     case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
       {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
         rows
+
+      {:error, %Postgrex.Error{postgres: %{message: message}}} ->
+        Logger.debug(message)
+    end
+  end
+
+  def selectbis_in_map(%{
+        lng: lng,
+        lat: lat,
+        distance: distance,
+        start_date: start_date,
+        end_date: end_date
+      }) do
+    query = [
+      "SELECT events.id, events.user_id, users.email, events.ad1, events.ad2,  events.date, events.color, events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+    FROM events
+    INNER JOIN users ON events.user_id = users.id
+    INNER JOIN event_participants AS ep on events.id = ep.event_id
+    WHERE events.date >= $4::date AND events.date <= $5::date
+    AND
+    ST_Distance(ST_MakePoint($1,$2),events.coordinates)  < $3;
+  "
+    ]
+
+    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
+      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
+        Enum.map(rows, fn row ->
+          Repo.load(Event, {columns, row})
+          |> Repo.preload(:event_participants)
+        end)
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)

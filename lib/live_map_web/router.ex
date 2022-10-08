@@ -21,6 +21,7 @@ defmodule LiveMapWeb.Router do
     get "/welcome", WelcomeController, :index
     # forward "/welcome", Plugs.WelcomePageRedirector, :index
     get "/", PageController, :index
+
     get "/auth/google/callback", GoogleAuthController, :index
     get "/auth/github/callback", GithubAuthController, :index
 

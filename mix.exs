@@ -60,7 +60,8 @@ defmodule LiveMap.MixProject do
       {:ecto_erd, "~> 0.5.0", only: :dev},
       {:timex, "~> 3.7"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
-      {:faker, "~> 0.17", only: [:dev, :test]}
+      {:faker, "~> 0.17", only: [:dev, :test]},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]
   end
 

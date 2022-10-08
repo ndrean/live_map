@@ -95,12 +95,14 @@ export const MapHook = {
       place.distance = 0;
     }
 
+    let toggled = [];
+
     // find (by the db id) and highlight the path
     this.handleEvent("toggle_up", ({ id }) => {
-      console.log({ id });
       L.geoJSON(mymarkers, {
         filter: function (feature, layer) {
           if (feature.properties.id === Number(id)) {
+            toggled.push(feature);
             return { color: "#ff0000", weight: 8 };
           }
         },
@@ -108,14 +110,23 @@ export const MapHook = {
     });
 
     //  remove the highlight layer
-    this.handleEvent("toggle_down", () => showLayer.clearLayers());
+    this.handleEvent("toggle_down", ({ id }) => {
+      showLayer.clearLayers();
+      toggled = toggled.filter((t) => t.properties.id !== Number(id));
+      L.geoJSON(toggled, {
+        filter: function (feature, layer) {
+          return { color: "#ff0000", weight: 8 };
+        },
+      }).addTo(showLayer);
+    });
 
     // listener to update existing events at location
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
-      // save geojson to be able to find (by the db id) and highlight a specific event
+      // save geojson to be able to highlight a specific event
       mymarkers = data;
+      // process to create line and markers on each feature
       if (data)
         L.geoJSON(data, {
           style: lineStyle,

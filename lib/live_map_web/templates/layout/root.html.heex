@@ -9,12 +9,13 @@
     <meta name="csrf-token" content={csrf_token_value()}>
     <%= live_title_tag assigns[:page_title] || "LiveMap", suffix: " · Phoenix Framework" %>
     <link  phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
+    <%!-- <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script> --%>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body>
     <header>
       <section class="container">
-        <p class="text-5xl text-white font-bold text-center w-full bg-slate-400 rounded-xl shadow-lg py-3 mt-3 ml-3">
+        <p class="text-5xl text-white font-bold text-center w-full bg-slate-400 rounded-l shadow-lg py-3 mt-3">
           <img src={Routes.static_path(@conn, "/images/kitesurf.svg")} class="inline-block" />
           The Downwinder
         </p>

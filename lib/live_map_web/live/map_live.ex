@@ -51,19 +51,19 @@ defmodule LiveMapWeb.MapLive do
     # end
   end
 
-  def handle_event("send_demand", %{"id" => event_id, "user-id" => user_id}, socket) do
+  def handle_event("send_demand", %{"event-id" => event_id, "user-id" => user_id}, socket) do
     MailController.create_demand(%{event_id: String.to_integer(event_id), user_id: user_id})
     {:noreply, socket}
   end
 
-  # highlight the event in Leaflet.js
+  # highlight the event in Leaflet.js when checkbox is ticked in table events
   def handle_event("checkbox", %{"id" => id, "value" => "on"}, socket) do
     {:noreply, push_event(socket, "toggle_up", %{id: id})}
   end
 
-  # remove the highlight
-  def handle_event("checkbox", _, socket) do
-    {:noreply, push_event(socket, "toggle_down", %{})}
+  # remove the highlight when checkbox toggled off in table events
+  def handle_event("checkbox", %{"id" => id}, socket) do
+    {:noreply, push_event(socket, "toggle_down", %{id: id})}
   end
 
   # handling the subscription to the topic sent by "date_picker"
