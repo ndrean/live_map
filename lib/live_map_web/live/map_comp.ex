@@ -44,7 +44,7 @@ defmodule LiveMapWeb.MapComp do
     """
   end
 
-  # append the socket with a new marker
+  # append the socket with a new marker to add a new record in the table
   @impl true
   def handle_event("add_point", %{"place" => place}, socket) do
     {:noreply, assign(socket, :place, place)}
@@ -58,7 +58,7 @@ defmodule LiveMapWeb.MapComp do
     [{user_id, now}] = :ets.lookup(:limit_user, user_id)
     time_limit = Time.add(now, 1, :second)
 
-    # send map coords once detected for the query table
+    # send new map coords once detected for the query table
     send(self(), {:map_coords, moving_map})
 
     results =

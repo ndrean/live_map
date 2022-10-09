@@ -15,6 +15,7 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import { MapHook } from "./maphook";
+import { clearboxes } from "./checkboxHook";
 
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -22,7 +23,7 @@ const csrfToken = document
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { MapHook },
+  hooks: { MapHook, clearboxes },
 });
 
 // Show progress bar on live navigation and form submits
@@ -38,3 +39,11 @@ liveSocket.enableDebug();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+window.addEventListener("phx:clear_boxes", () => {
+  const table = document.getElementById("selected");
+  if (table) {
+    const cbs = table.querySelectorAll('input[type="checkbox"]');
+    cbs.forEach((cb) => (cb.checked = false));
+  }
+});

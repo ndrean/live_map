@@ -10,8 +10,9 @@ defmodule LiveMapWeb.SelectedEvents do
 
   # @impl true
   # def update(assigns, socket) do
-  #   #   socket = assign_events(socket)
-  #   # socket = socket |> assign(:checked, false)
+  #   #   #   socket = assign_events(socket)
+  #   IO.puts("update")
+  #   socket = socket |> assign(:checked, false)
   #   {:ok, assign(socket, assigns)}
   # end
 
@@ -35,6 +36,7 @@ defmodule LiveMapWeb.SelectedEvents do
   end
 
   def render(assigns) do
+    # assigns = assign(assigns, checked: false)
     IO.inspect(assigns, label: "assigns")
 
     ~H"""
@@ -82,7 +84,12 @@ defmodule LiveMapWeb.SelectedEvents do
               <%= date %>
             </td>
             <td>
-              <input type="checkbox" phx-click="checkbox" phx-value-id={id}  id={"check-#{id}"}/>
+              <input type="checkbox"
+                phx-click="checkbox"
+                phx-target={@myself}
+                phx-value-id={id}
+                id={"check-#{id}"}
+                />
             </td>
             <td>
               <%= if (@user in pending or @user in confirmed or owner == @user) do %>
@@ -122,5 +129,16 @@ defmodule LiveMapWeb.SelectedEvents do
     </table>
     </div>
     """
+  end
+
+  @impl true
+  # highlight the event in Leaflet.js when checkbox is ticked in table events
+  def handle_event("checkbox", %{"id" => id, "value" => "on"}, socket) do
+    {:noreply, push_event(socket, "toggle_up", %{id: String.to_integer(id)})}
+  end
+
+  # remove the highlight in Leaflet when checkbox toggled off in table events
+  def handle_event("checkbox", %{"id" => id}, socket) do
+    {:noreply, push_event(socket, "toggle_down", %{id: String.to_integer(id)})}
   end
 end

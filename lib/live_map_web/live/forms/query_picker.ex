@@ -1,6 +1,7 @@
 defmodule LiveMapWeb.QueryPicker do
   use LiveMapWeb, :live_component
   use Phoenix.HTML
+  # alias Phoenix.LiveView.JS
   # import Ecto.Query
   alias LiveMap.QueryPicker
   alias LiveMap.Repo
@@ -24,6 +25,7 @@ defmodule LiveMapWeb.QueryPicker do
   # render query table with map coords
   def render(%{coords: %{"distance" => distance}} = assigns) do
     assigns = assign(assigns, distance: parse(distance))
+    assigns = assign(assigns, :d, to_km(assigns.distance))
 
     # phx-change="search"
     ~H"""
@@ -31,9 +33,12 @@ defmodule LiveMapWeb.QueryPicker do
     <.form :let={f}  for={@changeset}
       phx-submit="send"
       phx-target={@myself}
-      id="query_picker">
+      id="query_picker"
+      >
 
-      <%= number_input(f, :distance, id: "distance", value: @distance) %><span>km</span>
+      <span><%= @d %> km</span>
+      <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
+      <br/>
 
       <%= text_input(f, :user, phx_change: "search", phx_target: @myself, phx_debounce: "500", list: "datalist", placeholder: "enter an email") %>
       <%= error_tag(f, :user) %>
@@ -46,7 +51,7 @@ defmodule LiveMapWeb.QueryPicker do
       <%= select(f, :status, @status) %>
       <%= error_tag(f, :status) %>
 
-      <%= date_input(f, :start_date, id: "start_date", ) %>
+      <%= date_input(f, :start_date, id: "start_date" ) %>
       <%= error_tag(f, :start_date) %>
       <%= date_input(f, :end_date, id: "end_date") %>
       <%= error_tag(f, :end_date) %>
@@ -93,7 +98,8 @@ defmodule LiveMapWeb.QueryPicker do
         process_params(form, socket.assigns.coords)
     end
 
-    {:noreply, socket}
+    # we uncheck all checkboxes with Javacsript listener since not everything is updated
+    {:noreply, push_event(socket, "clear_boxes", %{})}
   end
 
   defp process_params(form, coords) do
@@ -149,5 +155,10 @@ defmodule LiveMapWeb.QueryPicker do
     end)
   end
 
-  defp parse(distance), do: distance |> String.to_float() |> round
+  defp parse(d), do: d |> String.to_float() |> round()
+
+  defp to_km(d) do
+    div1000 = fn x -> x / 1000 end
+    d |> div1000.() |> round
+  end
 end

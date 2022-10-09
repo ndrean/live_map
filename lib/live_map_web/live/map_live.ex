@@ -24,7 +24,6 @@ defmodule LiveMapWeb.MapLive do
        presence: Presence.list("presence") |> map_size,
        coords: %{},
        selected: nil
-       #  checked_list: []
      )}
   end
 
@@ -52,9 +51,12 @@ defmodule LiveMapWeb.MapLive do
     # end
   end
 
+  # we send an email from the user to the owner for an event,
+  # and update the view to block resending
+  # and remove any highlighted event
   def handle_event("send_demand", %{"event-id" => event_id, "user-id" => user_id}, socket) do
     e_id = String.to_integer(event_id)
-    # remove the highlight if the user forgot since the checkbox defaults to false on update
+    # remove the highlight if the user forgot since the checkbox return to default false on update
     send(self(), {:down_check_all})
 
     Task.Supervisor.async_nolink(LiveMap.EventSup, fn ->
@@ -62,13 +64,17 @@ defmodule LiveMapWeb.MapLive do
       |> MailController.create_demand()
 
       user_email = socket.assigns.current
-      selected = socket.assigns.selected
 
-      selected
-      |> Enum.map(fn [id, status, date] ->
+      # update the table record in SelectEvents
+      socket.assigns.selected
+      |> Enum.map(fn [id, users, date] ->
         if id == e_id,
-          do: [id, %{status | "pending" => [user_email | status["pending"]]}, date],
-          else: [id, status, date]
+          do: [
+            id,
+            %{users | "pending" => [user_email | users["pending"]]},
+            date
+          ],
+          else: [id, users, date]
       end)
     end)
     |> then(fn task ->
@@ -80,28 +86,8 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, socket}
   end
 
-  # highlight the event in Leaflet.js when checkbox is ticked in table events
-  def handle_event("checkbox", %{"id" => id, "value" => "on"}, socket) do
-    # socket =
-    #   socket
-    #   |> update(:checked_list, fn list -> [id | list] end)
-
-    {:noreply, push_event(socket, "toggle_up", %{id: String.to_integer(id)})}
-  end
-
-  # remove the highlight when checkbox toggled off in table events
-  def handle_event("checkbox", %{"id" => id}, socket) do
-    # socket =
-    #   socket
-    #   |> update(:checked_list, fn list ->
-    #     Enum.filter(list, fn i -> i != id end)
-    #   end)
-
-    {:noreply, push_event(socket, "toggle_down", %{id: String.to_integer(id)})}
-  end
-
   @impl true
-  #  remove all highlights since checkboxes defaults to false on refresh(no more sync)
+  #  remove all highlights in Leaflet since checkboxes defaults to false on refresh (no more sync)
   def handle_info({:down_check_all}, socket) do
     {:noreply, push_event(socket, "toggle_all_down", %{})}
   end
@@ -124,6 +110,7 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, assign(socket, :coords, map_coords)}
   end
 
+  # we build the records for the table
   def handle_info({:selected_events, payload}, socket) do
     payload =
       payload
@@ -132,6 +119,7 @@ defmodule LiveMapWeb.MapLive do
         [id, users, date]
       end)
 
+    send_update(SelectedEvents, id: "selected", selected: payload)
     {:noreply, assign(socket, :selected, payload)}
   end
 

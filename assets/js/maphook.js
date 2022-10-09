@@ -99,6 +99,7 @@ export const MapHook = {
 
     // find (by the db id) and highlight the path
     this.handleEvent("toggle_up", ({ id }) => {
+      console.log({ id }, "up");
       L.geoJSON(mymarkers, {
         filter: function (feature, layer) {
           if (feature.properties.id === Number(id)) {
@@ -111,6 +112,7 @@ export const MapHook = {
 
     //  remove the highlighted layer by id
     this.handleEvent("toggle_down", ({ id }) => {
+      console.log({ id }, "dwn");
       showLayer.clearLayers();
       toggled = toggled.filter((t) => t.properties.id !== Number(id));
       L.geoJSON(toggled, {

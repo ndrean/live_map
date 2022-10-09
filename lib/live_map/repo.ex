@@ -147,29 +147,4 @@ defmodule LiveMap.Repo do
         Logger.debug(message)
     end
   end
-
-  @doc """
-  Version using ST_DWithin, less performant. Is "events_in_map" faster with the index??
-  ```
-  iex> :timer.tc(fn -> LiveMap.Repo.within(...).
-  ```
-  """
-  def events_within(lng, lat, distance, date \\ default_date(30)) do
-    query = [
-      "SELECT events.id, user_id, users.email, ad1,ad2,  date, color, coordinates
-    FROM events
-    INNER JOIN users ON user_id = users.id
-    WHERE ST_DWithin(ST_MakePoint($1,$2),coordinates, $3)
-    AND date < $4::date;
-    "
-    ]
-
-    case Repo.query(query, [lng, lat, distance, date], log: true) do
-      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
-        Enum.map(rows, fn row -> Repo.load(Event, {columns, row}) end)
-
-      {:error, %Postgrex.Error{postgres: %{message: message}}} ->
-        Logger.debug(message)
-    end
-  end
 end
