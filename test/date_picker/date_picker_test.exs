@@ -1,4 +1,4 @@
-defmodule DatePicker.DatePickerTest do
+defmodule NewEvent.NewEventTest do
   use LiveMapWeb.ConnCase
 
   import Phoenix.LiveViewTest

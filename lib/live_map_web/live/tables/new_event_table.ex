@@ -1,6 +1,6 @@
 defmodule LiveMapWeb.NewEventTable do
   use Phoenix.Component
-  alias LiveMapWeb.DatePicker
+  alias LiveMapWeb.NewEvent
   require Logger
 
   attr :place, :map
@@ -26,37 +26,40 @@ defmodule LiveMapWeb.NewEventTable do
 
     ~H"""
     <div>
-    <div class="flex flex-col">
-    <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
-    <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
-    <div class="overflow-x-auto">
-    <table class="min-w-full text-center">
-    <caption>You are editing a new event; select two points, set the date and save.</caption>
-      <thead class="border-b bg-gray-800">
-        <tr>
-          <th class="text-sm font-medium text-white  px-6 py-2 text-left">
-          Found address</th>
-          <th class="text-sm font-medium text-white  px-6 py-2 text-left">
-          Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="border-b">
-        <%= for coord <- @coords do %>
-        <.row row={coord} id={"r-#{coord["id"]}"}/>
-        <% end %>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-    </div>
-    </div>
-    </div>
-    <div class="flex flex-row items-center justify-between">
-      <.live_component module={DatePicker}
-      id="date_form" user={@user} date={@date} place={@place} user_id={@user_id}/>
-      <span><strong>distance: <%=  @distance %> km</strong></span>
-    </div>
+      <div class="flex flex-col">
+          <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+              <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <caption class="text-sm text-left">You are editing a new event; select two points, set the date and save.</caption>
+        <thead class="border-b bg-gray-800">
+          <tr>
+            <th class="text-sm font-medium text-center text-white  px-6 py-2 text-left">
+              Action
+            </th>
+            <th class="text-sm font-medium text-left text-white  px-6 py-2 text-left">
+              Found address
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <%= for coord <- @coords do %>
+              <.row row={coord} id={"r-#{coord["id"]}"}/>
+            <% end %>
+          </tr>
+        </tbody>
+      </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-row items-center justify-between">
+        <.live_component module={NewEvent}
+        id="date_form" user={@user} date={@date} place={@place} user_id={@user_id}/>
+        <span><strong>distance: <%=  @distance %> km</strong></span>
+      </div>
     </div>
     """
   end

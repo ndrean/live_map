@@ -56,7 +56,6 @@ defmodule LiveMap.MixProject do
       # {:poison, "~>4.0"},
       {:geo, "~> 3.4"},
       {:geo_postgis, "~> 3.4"},
-      # {:oban, "~> 2.13.3"},
       {:ecto_erd, "~> 0.5.0", only: :dev},
       {:timex, "~> 3.7"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},

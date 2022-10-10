@@ -1,0 +1,171 @@
+Date : 2022-10-10 13:40:31
+Directory : /Users/nevendrean/code/elixir/live_map
+Total : 99 files,  3898 codes, 698 comments, 706 blanks, all 5302 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| Elixir         |         70 |      2,409 |        518 |        496 |      3,423 |
+| JavaScript     |          8 |        581 |        134 |         81 |        796 |
+| CSS            |          2 |        222 |         12 |         27 |        261 |
+| JSON           |          3 |        218 |          0 |          3 |        221 |
+| HEEx           |         11 |        179 |          1 |         29 |        209 |
+| Markdown       |          1 |        135 |          0 |         41 |        176 |
+| XML            |          1 |         62 |          1 |          1 |         64 |
+| SQL            |          1 |         61 |         32 |         23 |        116 |
+| HTML           |          1 |         20 |          0 |          3 |         23 |
+| Graphviz (DOT) |          1 |         11 |          0 |          2 |         13 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                              | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                 |         99 |      3,898 |        698 |        706 |      5,302 |
+| assets                                                                                            |         12 |      1,021 |        146 |        110 |      1,277 |
+| assets/css                                                                                        |          2 |        222 |         12 |         27 |        261 |
+| assets/js                                                                                         |          6 |        405 |        125 |         72 |        602 |
+| assets/vendor                                                                                     |          1 |        145 |          7 |          6 |        158 |
+| config                                                                                            |          5 |        131 |        153 |         41 |        325 |
+| lib                                                                                               |         54 |      1,987 |        180 |        358 |      2,525 |
+| lib/live_map                                                                                      |         10 |        655 |         18 |         92 |        765 |
+| lib/live_map/changesets                                                                           |          2 |         57 |          0 |         15 |         72 |
+| lib/live_map/schemas                                                                              |          3 |        319 |          9 |         46 |        374 |
+| lib/live_map_mail                                                                                 |          4 |         63 |          0 |          8 |         71 |
+| lib/live_map_mail/templates                                                                       |          2 |         21 |          0 |          0 |         21 |
+| lib/live_map_mail/templates/email                                                                 |          2 |         21 |          0 |          0 |         21 |
+| lib/live_map_web                                                                                  |         38 |      1,178 |        157 |        232 |      1,567 |
+| lib/live_map_web/channels                                                                         |          3 |         52 |         30 |         17 |         99 |
+| lib/live_map_web/controllers                                                                      |          5 |        161 |          5 |         27 |        193 |
+| lib/live_map_web/live                                                                             |          7 |        599 |         51 |        103 |        753 |
+| lib/live_map_web/live/forms                                                                       |          2 |        189 |         17 |         38 |        244 |
+| lib/live_map_web/live/tables                                                                      |          2 |        238 |         15 |         28 |        281 |
+| lib/live_map_web/templates                                                                        |          9 |        158 |          1 |         29 |        188 |
+| lib/live_map_web/templates/email                                                                  |          2 |         21 |          0 |          0 |         21 |
+| lib/live_map_web/templates/layout                                                                 |          3 |         44 |          1 |         10 |         55 |
+| lib/live_map_web/templates/page                                                                   |          3 |         88 |          0 |         19 |        107 |
+| lib/live_map_web/templates/welcome                                                                |          1 |          5 |          0 |          0 |          5 |
+| lib/live_map_web/views                                                                            |         10 |         67 |         31 |         18 |        116 |
+| priv                                                                                              |          7 |        247 |         26 |         42 |        315 |
+| priv/repo                                                                                         |          6 |        185 |         25 |         41 |        251 |
+| priv/repo/migrations                                                                              |          5 |         63 |          7 |         19 |         89 |
+| priv/static                                                                                       |          1 |         62 |          1 |          1 |         64 |
+| priv/static/images                                                                                |          1 |         62 |          1 |          1 |         64 |
+| test                                                                                              |         13 |        155 |        144 |         75 |        374 |
+| test/date_picker                                                                                  |          1 |         12 |          0 |          4 |         16 |
+| test/live_map                                                                                     |          1 |          0 |         61 |         16 |         77 |
+| test/live_map_mail                                                                                |          1 |          0 |         45 |         10 |         55 |
+| test/live_map_web                                                                                 |          5 |         16 |         34 |         15 |         65 |
+| test/live_map_web/channels                                                                        |          1 |          0 |         22 |          6 |         28 |
+| test/live_map_web/controllers                                                                     |          1 |          0 |          7 |          2 |          9 |
+| test/live_map_web/views                                                                           |          3 |         16 |          5 |          7 |         28 |
+| test/support                                                                                      |          4 |        125 |          4 |         29 |        158 |
+| test/support/fixtures                                                                             |          1 |         21 |          0 |          3 |         24 |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                          | language       | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| /Users/nevendrean/code/elixir/live_map/.formatter.exs                                             | Elixir         |          5 |          0 |          1 |          6 |
+| /Users/nevendrean/code/elixir/live_map/README.md                                                  | Markdown       |        135 |          0 |         41 |        176 |
+| /Users/nevendrean/code/elixir/live_map/assets/css/app.css                                         | CSS            |        137 |          3 |         19 |        159 |
+| /Users/nevendrean/code/elixir/live_map/assets/css/phoenix.css                                     | CSS            |         85 |          9 |          8 |        102 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/app.js                                           | JavaScript     |         48 |         26 |         14 |         88 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/fbLogin.js                                       | JavaScript     |         44 |          7 |          5 |         56 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/infiniteScroll.js                                | JavaScript     |         30 |          1 |          1 |         32 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/maphook.js                                       | JavaScript     |        246 |         44 |         40 |        330 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/user.js                                          | JavaScript     |         22 |          1 |          5 |         28 |
+| /Users/nevendrean/code/elixir/live_map/assets/js/user_socket.js                                   | JavaScript     |         15 |         46 |          7 |         68 |
+| /Users/nevendrean/code/elixir/live_map/assets/package-lock.json                                   | JSON           |        209 |          0 |          1 |        210 |
+| /Users/nevendrean/code/elixir/live_map/assets/package.json                                        | JSON           |          9 |          0 |          1 |         10 |
+| /Users/nevendrean/code/elixir/live_map/assets/tailwind.config.js                                  | JavaScript     |         31 |          2 |          3 |         36 |
+| /Users/nevendrean/code/elixir/live_map/assets/vendor/topbar.js                                    | JavaScript     |        145 |          7 |          6 |        158 |
+| /Users/nevendrean/code/elixir/live_map/config/config.exs                                          | Elixir         |         46 |         20 |         13 |         79 |
+| /Users/nevendrean/code/elixir/live_map/config/dev.exs                                             | Elixir         |         33 |         38 |          8 |         79 |
+| /Users/nevendrean/code/elixir/live_map/config/prod.exs                                            | Elixir         |          3 |         43 |          4 |         50 |
+| /Users/nevendrean/code/elixir/live_map/config/runtime.exs                                         | Elixir         |         34 |         42 |         10 |         86 |
+| /Users/nevendrean/code/elixir/live_map/config/test.exs                                            | Elixir         |         15 |         10 |          6 |         31 |
+| /Users/nevendrean/code/elixir/live_map/ecto_erd.dot                                               | Graphviz (DOT) |         11 |          0 |          2 |         13 |
+| /Users/nevendrean/code/elixir/live_map/events.sql                                                 | SQL            |         61 |         32 |         23 |        116 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map.ex                                            | Elixir         |          8 |          0 |          2 |         10 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/application.ex                                | Elixir         |         25 |          5 |          5 |         35 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/changesets/new_event.ex                       | Elixir         |         26 |          0 |          6 |         32 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/changesets/query_picker.ex                    | Elixir         |         31 |          0 |          9 |         40 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/geojson.ex                                    | Elixir         |         47 |          2 |          6 |         55 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/postgres_types.ex                             | Elixir         |          5 |          0 |          1 |          6 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/repo.ex                                       | Elixir         |        136 |          1 |         14 |        151 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/schemas/event_participants.ex                 | Elixir         |        181 |          6 |         23 |        210 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/schemas/events.ex                             | Elixir         |         92 |          1 |         13 |        106 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/schemas/users.ex                              | Elixir         |         46 |          2 |         10 |         58 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map/token.ex                                      | Elixir         |         66 |          1 |          5 |         72 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_mail/email.ex                                 | Elixir         |         39 |          0 |          7 |         46 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_mail/mailer.ex                                | Elixir         |          3 |          0 |          1 |          4 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_mail/templates/email/confirmation.html.heex   | HEEx           |         10 |          0 |          0 |         10 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_mail/templates/email/demande.html.heex        | HEEx           |         11 |          0 |          0 |         11 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web.ex                                        | Elixir         |         83 |          5 |         24 |        112 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/channels/event_channel.ex                 | Elixir         |          7 |         26 |          7 |         40 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/channels/presence.ex                      | Elixir         |         10 |          0 |          2 |         12 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/channels/user_socket.ex                   | Elixir         |         35 |          4 |          8 |         47 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/controllers/github_auth_controller.ex     | Elixir         |         23 |          0 |          5 |         28 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/controllers/google_auth_controller.ex     | Elixir         |         21 |          0 |          5 |         26 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/controllers/mail_controller.ex            | Elixir         |         96 |          5 |         11 |        112 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/controllers/page_controller.ex            | Elixir         |         12 |          0 |          3 |         15 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/controllers/welcome_controller.ex         | Elixir         |          9 |          0 |          3 |         12 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/endpoint.ex                               | Elixir         |         36 |         10 |         10 |         56 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/gettext.ex                                | Elixir         |         15 |          3 |          7 |         25 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/forms/new_event.ex                   | Elixir         |         65 |          2 |         12 |         79 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/forms/query_picker.ex                | Elixir         |        124 |         15 |         26 |        165 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/map_comp.ex                          | Elixir         |         74 |          5 |         15 |         94 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/map_live.ex                          | Elixir         |         90 |         14 |         20 |        124 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/participants.ex                      | Elixir         |          8 |          0 |          2 |         10 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/tables/new_event_table.ex            | Elixir         |         79 |          0 |          9 |         88 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/live/tables/selected_events.ex            | Elixir         |        159 |         15 |         19 |        193 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/router.ex                                 | Elixir         |         36 |         16 |         13 |         65 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/telemetry.ex                              | Elixir         |         54 |         10 |          8 |         72 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/email/confirmation.html.heex    | HEEx           |         10 |          0 |          0 |         10 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/email/demande.html.heex         | HEEx           |         11 |          0 |          0 |         11 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/layout/app.html.heex            | HEEx           |          4 |          0 |          3 |          7 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/layout/live.html.heex           | HEEx           |         15 |          0 |          4 |         19 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/layout/root.html.heex           | HEEx           |         25 |          1 |          3 |         29 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/page/index.html.heex            | HEEx           |         47 |          0 |          6 |         53 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/page/request.html.heex          | HEEx           |         31 |          0 |         13 |         44 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/page/welcome.html.heex          | HEEx           |         10 |          0 |          0 |         10 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/templates/welcome/welcome.html.heex       | HEEx           |          5 |          0 |          0 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/datalist_input.ex                   | Elixir         |          9 |          0 |          3 |         12 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/demande_participate_view.ex         | Elixir         |          3 |          1 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/email_view.ex                       | Elixir         |          3 |          1 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/error_helpers.ex                    | Elixir         |         27 |         17 |          4 |         48 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/error_view.ex                       | Elixir         |          6 |          8 |          3 |         17 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/github_auth_view.ex                 | Elixir         |          3 |          1 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/google_auth_view.ex                 | Elixir         |          3 |          1 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/layout_view.ex                      | Elixir         |          5 |          2 |          2 |          9 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/page_view.ex                        | Elixir         |          4 |          0 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/lib/live_map_web/views/welcome_view.ex                     | Elixir         |          4 |          0 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/mix.exs                                                    | Elixir         |         62 |         17 |          8 |         87 |
+| /Users/nevendrean/code/elixir/live_map/mix.lock                                                   | Elixir         |         63 |          0 |          1 |         64 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/migrations/.formatter.exs                        | Elixir         |          4 |          0 |          1 |          5 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/migrations/20220919184546_postgis_enum.exs       | Elixir         |         12 |          0 |          3 |         15 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/migrations/20220919190000_create_users.exs       | Elixir         |         10 |          3 |          4 |         17 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/migrations/20220919195327_create_events.exs      | Elixir         |         20 |          1 |          6 |         27 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/migrations/20220919215903_event_participants.exs | Elixir         |         17 |          3 |          5 |         25 |
+| /Users/nevendrean/code/elixir/live_map/priv/repo/seeds.exs                                        | Elixir         |        122 |         18 |         22 |        162 |
+| /Users/nevendrean/code/elixir/live_map/priv/static/images/kitesurf.svg                            | XML            |         62 |          1 |          1 |         64 |
+| /Users/nevendrean/code/elixir/live_map/read.json                                                  | JSON           |          0 |          0 |          1 |          1 |
+| /Users/nevendrean/code/elixir/live_map/test.html                                                  | HTML           |         20 |          0 |          3 |         23 |
+| /Users/nevendrean/code/elixir/live_map/test/date_picker/date_picker_test.exs                      | Elixir         |         12 |          0 |          4 |         16 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map/downwind_test.exs                            | Elixir         |          0 |         61 |         16 |         77 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_mail/live_map_mail_test.exs                  | Elixir         |          0 |         45 |         10 |         55 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_web/channels/event_channel_test.exs          | Elixir         |          0 |         22 |          6 |         28 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_web/controllers/page_controller_test.exs     | Elixir         |          0 |          7 |          2 |          9 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_web/views/error_view_test.exs                | Elixir         |         10 |          1 |          4 |         15 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_web/views/layout_view_test.exs               | Elixir         |          3 |          4 |          2 |          9 |
+| /Users/nevendrean/code/elixir/live_map/test/live_map_web/views/page_view_test.exs                 | Elixir         |          3 |          0 |          1 |          4 |
+| /Users/nevendrean/code/elixir/live_map/test/support/channel_case.ex                               | Elixir         |         27 |          2 |          7 |         36 |
+| /Users/nevendrean/code/elixir/live_map/test/support/conn_case.ex                                  | Elixir         |         29 |          2 |          8 |         39 |
+| /Users/nevendrean/code/elixir/live_map/test/support/data_case.ex                                  | Elixir         |         48 |          0 |         11 |         59 |
+| /Users/nevendrean/code/elixir/live_map/test/support/fixtures/downwind_fixtures.ex                 | Elixir         |         21 |          0 |          3 |         24 |
+| /Users/nevendrean/code/elixir/live_map/test/test_helper.exs                                       | Elixir         |          2 |          0 |          1 |          3 |
+| Total                                                                                             |                |      3,898 |        698 |        706 |      5,302 |
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

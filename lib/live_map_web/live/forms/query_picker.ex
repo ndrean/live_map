@@ -22,12 +22,11 @@ defmodule LiveMapWeb.QueryPicker do
     {:ok, assign(socket, assigns)}
   end
 
-  # render query table with map coords
+  # render query table once map coords are ready
   def render(%{coords: %{"distance" => distance}} = assigns) do
     assigns = assign(assigns, distance: parse(distance))
     assigns = assign(assigns, :d, to_km(assigns.distance))
 
-    # phx-change="search"
     ~H"""
     <div>
     <.form :let={f}  for={@changeset}
@@ -36,7 +35,7 @@ defmodule LiveMapWeb.QueryPicker do
       id="query_picker"
       >
 
-      <span><%= @d %> km</span>
+      <span>Map radius: <%= @d %> km</span>
       <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
       <br/>
 
@@ -50,38 +49,39 @@ defmodule LiveMapWeb.QueryPicker do
 
       <%= select(f, :status, @status) %>
       <%= error_tag(f, :status) %>
-
+      <br />
       <%= date_input(f, :start_date, id: "start_date" ) %>
       <%= error_tag(f, :start_date) %>
       <%= date_input(f, :end_date, id: "end_date") %>
       <%= error_tag(f, :end_date) %>
-      <%= submit "submit",
-      class: "inline-block mr-60 px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
-      %>
+      <br/>
+      <div class="text-center">
+        <%= submit "submit",
+        class: "inline-block mr-60 px-6 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
+        %>
+      </div>
     </.form>
     </div>
     """
   end
 
-  # render init query table without map coords
+  # first render without map coords
   def render(assigns) do
     ~H"""
       <div></div>
     """
   end
 
+  # fill in a datalist for users when typing
   def handle_event("search", %{"query_picker" => %{"user" => string}}, socket) do
     datalist = LiveMap.User.search(string) |> Enum.map(& &1.email)
     {:noreply, assign(socket, users: datalist)}
   end
 
-  # def handle_event("validate", %{"query_picker" => form}, socket) do
-  #   changeset =
-  #     QueryPicker.changeset(form)
-  #     |> Map.put(:action, :insert)
-
-  #   {:noreply, assign(socket, changeset: changeset)}
-  # end
+  # given map coords and mandatory dates, returns events to the liveview (send)
+  # the query formats the output as [event_id, map_owner, map_demanders_array || map_confirmed_array ]
+  # [6, %{"confirmed" => ["demander@gmail.com"], "owner" => ["ownern@yahoo.fr"]},
+  # %{"date" => "2022-10-10"}]
 
   def handle_event("send", %{"query_picker" => form}, socket) do
     changeset = QueryPicker.changeset(form)

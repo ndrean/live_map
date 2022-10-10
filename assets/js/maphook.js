@@ -33,16 +33,16 @@ function getLocation(map) {
 
 function addButton(html = "") {
   return `
-  <h5>${html}</h5>
+  <p>${html}</p>
   <button type="button"
   class="remove inline-block px-6 py-2.5 bg-red-600 text-white font-medium text-xs leading-tight uppercase rounded-full shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out"
   ">Remove</button>
   `;
 }
 
-function setRandColor() {
-  return "#" + Math.floor(Math.random() * 16777215).toString(16);
-}
+// function setRandColor() {
+//   return "#" + Math.floor(Math.random() * 16777215).toString(16);
+// }
 
 // proxied store of the event with markers data
 const place = proxy({
@@ -65,28 +65,55 @@ export const MapHook = {
     const layergroup = L.layerGroup().addTo(map);
     const datagroup = L.layerGroup().addTo(map);
     const lineLayer = L.layerGroup().addTo(map);
-    const showLayer = L.layerGroup().addTo(map);
+    const highlightLayer = L.layerGroup().addTo(map);
 
-    // limited to one request per second
+    //**** wrapper to Nominatim endpoint. limited to one request per second
     const geoCoder = L.Control.Geocoder.nominatim();
-    let mymarkers = null;
-    // run the geolcation API.
+
+    // ***** run the geolcation API.
     // Alternatively, the "coder" is provided circa L232
     getLocation(map);
 
-    // use pushEventTo with phx-target (elements)
+    // store of new event. use pushEventTo with phx-target (elements)
     subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
 
-    // moveend mutates "movingmap"
-    subscribe(movingmap, () =>
-      this.pushEventTo("#map", "postgis", { movingmap })
-    );
+    //  ******** TOGGLING - HIGHLIGHTING events with CHECKBOX
+    let mymarkers = null;
+    // store the toggled = highlighted events from checkbox SSR
+    let toggled = [];
 
-    this.handleEvent("new pub", ({ geojson }) => {
-      clearEvent();
-      handleData(geojson);
+    // "highlight" an event-id (DB) and put in highLayer
+    this.handleEvent("toggle_up", ({ id }) => {
+      // we find the event with "id" and add it to the highlighted layer
+      L.geoJSON(mymarkers, {
+        filter: function (feature, layer) {
+          if (feature.properties.id === Number(id)) {
+            toggled.push(feature);
+            return { color: "#ff0000", weight: 8 };
+          }
+        },
+      }).addTo(highlightLayer);
     });
 
+    //  remove the "highlighted" layer by event-id (DB)
+    this.handleEvent("toggle_down", ({ id }) => {
+      // we remove everything <=> set back to "normal"
+      highlightLayer.clearLayers();
+      //  define a new set with event "id" removed
+      toggled = toggled.filter((t) => t.properties.id !== Number(id));
+      //  and put back a lighlighted layer with this new filtered set
+      L.geoJSON(toggled, {
+        onEachFeature: () => ({ color: "#ff0000", weight: 8 }),
+      }).addTo(highlightLayer);
+    });
+
+    // remove the "highlighted" layer to keep in sync with checkboxes defaults false
+    this.handleEvent("toggle_all_down", () => {
+      highlightLayer.clearLayers();
+      toggled = [];
+    });
+
+    // ****************
     // reset the newly saved event
     function clearEvent() {
       layergroup.clearLayers();
@@ -95,39 +122,13 @@ export const MapHook = {
       place.distance = 0;
     }
 
-    let toggled = [];
-
-    // find (by the db id) and highlight the path
-    this.handleEvent("toggle_up", ({ id }) => {
-      console.log({ id }, "up");
-      L.geoJSON(mymarkers, {
-        filter: function (feature, layer) {
-          if (feature.properties.id === Number(id)) {
-            toggled.push(feature);
-            return { color: "#ff0000", weight: 8 };
-          }
-        },
-      }).addTo(showLayer);
+    // add a broadcasted new event
+    this.handleEvent("new pub", ({ geojson }) => {
+      clearEvent();
+      handleData(geojson);
     });
 
-    //  remove the highlighted layer by id
-    this.handleEvent("toggle_down", ({ id }) => {
-      console.log({ id }, "dwn");
-      showLayer.clearLayers();
-      toggled = toggled.filter((t) => t.properties.id !== Number(id));
-      L.geoJSON(toggled, {
-        filter: function (feature, layer) {
-          return { color: "#ff0000", weight: 8 };
-        },
-      }).addTo(showLayer);
-    });
-
-    this.handleEvent("toggle_all_down", () => {
-      showLayer.clearLayers();
-      toggled = [];
-    });
-
-    // listener to update existing events at location
+    // listener to moved map
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
@@ -157,11 +158,13 @@ export const MapHook = {
     function info(ad, owner, date, distance) {
       const evtDate = new Date(date).toDateString();
       return `
-            <h4>${owner}, the ${evtDate}</h4>
-            <h6>${ad}</h6>
+            <h4>${evtDate}, ${owner}</h4>
+            <p>${ad}</p>
             <h1>${distance} km</h1>
             `;
     }
+
+    // ******** Primitives to deal with new event creation, drag, delete and get address
 
     // Delete: callback to "popupopen": you get a delete button defined above inside
     function maybeDelete(marker, id) {
@@ -269,6 +272,7 @@ export const MapHook = {
       });
     }
 
+    // *********** form Geocoder
     // provides a form to find a place by its name and fly-to
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
     //
@@ -289,7 +293,13 @@ export const MapHook = {
       updateDeleteMarker(marker, location.id);
     });
 
-    // listener that sends centre and radius of displayed map for the backend to retrieve events
+    // ****** capture map moves
+    // moveend mutates "movingmap" push to backend
+    subscribe(movingmap, () =>
+      this.pushEventTo("#map", "postgis", { movingmap })
+    );
+
+    // listener that mutates "movingmap" object with new coords map for the backend to retrieve events
     map.on("moveend", () => {
       movingmap.center = map.getCenter();
       const { _northEast: ne, _southWest: sw } = map.getBounds();
@@ -298,18 +308,7 @@ export const MapHook = {
       ).toFixed(1);
     });
 
-    // this.handleEvent("add", ({ coords: [lat, lng] }) => {
-    //   const coords = L.latLng([Number(lat), Number(lng)]);
-    //   const index = place.coords.length;
-    //   const marker = L.marker(coords, { draggable: true });
-    //   marker.addTo(layergroup).bindPopup(addButton);
-    //   // to get the id, you need to add to the layer firstly
-    //   const id = marker._leaflet_id;
-    //   discover(marker, coords, index, id);
-    //   updateDeleteMarker(marker, id);
-    // });
-
-    // Delete listener triggered from pushEvent
+    // ***** Delete listener triggered from SSR pushEvent
     this.handleEvent("delete_marker", ({ id }) => {
       layergroup.eachLayer((layer) => {
         if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);

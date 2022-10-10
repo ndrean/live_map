@@ -2,10 +2,13 @@ defmodule LiveMapWeb.SelectedEvents do
   use LiveMapWeb, :live_component
   import Phoenix.Component
   alias LiveMap.Event
+  alias LiveMapWeb.SelectedEvents
+  alias LiveMapWeb.MailController
 
   def mount(_p, s, socket) do
     IO.inspect(s, label: "mout selected")
-    {:ok, assign(socket, checked: false)}
+
+    {:ok, assign(socket, live_action: nil)}
   end
 
   # @impl true
@@ -36,9 +39,6 @@ defmodule LiveMapWeb.SelectedEvents do
   end
 
   def render(assigns) do
-    # assigns = assign(assigns, checked: false)
-    IO.inspect(assigns, label: "assigns")
-
     ~H"""
     <div>
     <table id="selected">
@@ -92,12 +92,19 @@ defmodule LiveMapWeb.SelectedEvents do
                 />
             </td>
             <td>
+            <%# if @live_action in [:show] do %>
+            <%!-- <.modal return_to={Routes.live_path(@socket, :index) }> --%>
+              <%!-- <Participants.display pending={pending} confirmed={@onfirmed}/> --%>
+            <%!-- </.modal> --%>
+            <%# end %>
+
               <%= if (@user in pending or @user in confirmed or owner == @user) do %>
                 <button
                   class="opacity-50 inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
                   phx-click="send_demand"
                   disabled
-                  phx-value-event-id={id}
+                  phx-target={@myself}
+                  phx-value-id={id}
                   phx-value-user-id={@user_id}
                   > Send demand
                 </button>
@@ -105,7 +112,8 @@ defmodule LiveMapWeb.SelectedEvents do
                 <button
                     class="inline-block mr-6 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
                     phx-click="send_demand"
-                    phx-value-event-id={id}
+                    phx-target={@myself}
+                    phx-value-id={id}
                     phx-value-user-id={@user_id}
                     > Send demand
                   </button>
@@ -134,11 +142,51 @@ defmodule LiveMapWeb.SelectedEvents do
   @impl true
   # highlight the event in Leaflet.js when checkbox is ticked in table events
   def handle_event("checkbox", %{"id" => id, "value" => "on"}, socket) do
-    {:noreply, push_event(socket, "toggle_up", %{id: String.to_integer(id)})}
+    id = if is_binary(id), do: String.to_integer(id)
+    {:noreply, push_event(socket, "toggle_up", %{id: id})}
   end
 
   # remove the highlight in Leaflet when checkbox toggled off in table events
   def handle_event("checkbox", %{"id" => id}, socket) do
-    {:noreply, push_event(socket, "toggle_down", %{id: String.to_integer(id)})}
+    id = if is_binary(id), do: String.to_integer(id)
+    {:noreply, push_event(socket, "toggle_down", %{id: id})}
+  end
+
+  # we send an email from the user to the owner for an event,
+  # and update the view to block resending
+  # and remove any highlighted event and block the action
+  def handle_event("send_demand", %{"id" => id, "user-id" => user_id}, socket) do
+    e_id = if is_binary(id), do: String.to_integer(id)
+    user_id = if is_binary(user_id), do: String.to_integer(user_id)
+
+    # remove the highlight if the user forgot since the checkbox return to default false on update
+    send(self(), {:down_check_all})
+
+    Task.Supervisor.async_nolink(LiveMap.EventSup, fn ->
+      %{event_id: e_id, user_id: user_id}
+      |> MailController.create_demand()
+
+      user_email = socket.assigns.user
+
+      # update the table record in SelectEvents
+      socket.assigns.selected
+      |> Enum.map(fn [id, users, date] ->
+        if id == e_id,
+          do: [
+            id,
+            %{users | "pending" => [user_email | users["pending"]]},
+            date
+          ],
+          else: [id, users, date]
+      end)
+    end)
+    |> then(fn task ->
+      selected = Task.await(task)
+
+      # LV callback will update the live_component SelectedEvents
+      send_update(SelectedEvents, id: "selected", selected: selected)
+    end)
+
+    {:noreply, socket}
   end
 end
