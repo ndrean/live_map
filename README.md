@@ -1,5 +1,8 @@
 # LiveMap
 
+TODO: improve this or write a post in dev.to !!!
+
+
 mix phx.gen.context Downwind Place places latitude:float longitude:float addre
 ss:string country:string
 
@@ -49,31 +52,6 @@ Use geography, not geometry, even if performance penalty but there is no project
 =# insert into mytable (name, size, geom) values ('a', 1.0, 'point(1 10)');
 =# select to_jsonb(mytable.\*) from mytable;
 
-<http://blog.cleverelephant.ca/2019/03/geojson.html>
-
-CREATE OR REPLACE FUNCTION rowjsonb_to_geojson(
-rowjsonb JSONB,
-geom_column TEXT DEFAULT 'geom')
-RETURNS TEXT AS
-
-$$
-DECLARE
- json_props jsonb;
- json_geom jsonb;
- json_type jsonb;
-BEGIN
- IF NOT rowjsonb ? geom_column THEN
-   RAISE EXCEPTION 'geometry column ''%'' is missing', geom_column;
- END IF
- json_geom := ST_AsGeoJSON((rowjsonb ->> geom_column)::geometry)::jsonb;
- json_geom := jsonb_build_object('geometry', json_geom);
- json_props := jsonb_build_object('properties', rowjsonb - geom_column);
- json_type := jsonb_build_object('type', 'Feature');
- return (json_type || json_geom || json_props)::text;
-END;
-$$
-
-LANGUAGE 'plpgsql' IMMUTABLE STRICT;
 
 select \* from table1, table2
 where st_distance(table1.the_geom,table2.the_geom) < 1000

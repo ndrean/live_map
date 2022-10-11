@@ -35,7 +35,7 @@ defmodule LiveMapWeb.MapLive do
     <div>
     <p>Number connected user: <%= @presence %></p>
     <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id}/>
-    <.live_component module={QueryPicker} id="query_picker" current={@current} user_id={@user_id} coords={@coords}/>
+    <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords}/>
     <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current}/>
     </div>
     """

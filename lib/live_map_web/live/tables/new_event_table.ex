@@ -31,7 +31,7 @@ defmodule LiveMapWeb.NewEventTable do
             <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
               <div class="overflow-x-auto">
       <table class="min-w-full">
-        <caption class="text-sm text-left">You are editing a new event; select two points, set the date and save.</caption>
+        <caption class="text-sm text-left">You are editing a new event; select two points, set a future date and save.</caption>
         <thead class="border-b bg-gray-800">
           <tr>
             <th class="text-sm font-medium text-center text-white  px-6 py-2 text-left">

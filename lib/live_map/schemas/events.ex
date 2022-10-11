@@ -23,43 +23,27 @@ defmodule LiveMap.Event do
     |> foreign_key_constraint(:user_id)
   end
 
+  @doc """
+  A multi to create in one transaction (important for Rollback) a new event and a new event_participant with the previous EVENT_ID and with the user as the owner of the event
+  """
   def new(params) do
-    # to be refactored with Ecto.Multi
-    {:ok, event} =
-      %__MODULE__{}
-      |> changeset(params)
-      |> Repo.insert()
-
-    EventParticipants.new(%{
-      event_id: event.id,
-      user_id: params.user_id,
-      status: :owner
-    })
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:evt, Event.changeset(%Event{}, params))
+    |> Ecto.Multi.run(:ep, fn repo, %{evt: event} ->
+      repo.insert(
+        EventParticipants.changeset(%EventParticipants{}, %{
+          event_id: event.id,
+          user_id: params.user_id,
+          status: :owner
+        })
+      )
+    end)
+    |> Repo.transaction()
   end
 
-  def owner(id) do
-    from(e in "events",
-      join: u in "users",
-      on: u.id == e.user_id,
-      where: e.id == ^id,
-      select: [u.email]
-    )
-    |> Repo.one()
-  end
-
-  def list() do
-    Repo.all(Event)
-  end
-
-  def count do
-    Repo.aggregate(Event, :count, :id)
-  end
-
-  def delete_event(id) do
-    Repo.get_by(Event, id: id)
-    |> Repo.delete()
-  end
-
+  @doc """
+  Return a GeoJSON struct after saving an Event and owner associated EvetnParticipant
+  """
   def save_geojson(place, owner_id, date) do
     %{
       "coords" => [
@@ -70,36 +54,76 @@ defmodule LiveMap.Event do
       "color" => color
     } = place
 
-    conv = fn s -> String.to_float(s) end
+    check = fn s -> if is_binary(s), do: String.to_float(s), else: s / 1 end
+    lat1 = check.(lat1)
+    lat2 = check.(lat2)
+    lng1 = check.(lng1)
+    lng2 = check.(lng2)
+    distance = check.(distance)
 
     case Event.new(%{
            user_id: owner_id,
            coordinates: %Geo.LineString{
-             coordinates: [{conv.(lng2), conv.(lat2)}, {conv.(lng1), conv.(lat1)}],
+             coordinates: [{lng2, lat2}, {lng1, lat1}],
              srid: 4326
            },
-           distance: conv.(distance),
+           distance: distance,
            ad1: ad1,
            ad2: ad2,
            date: date,
            color: color
          }) do
-      {:ok, %{event_id: event_id}} ->
+      {:error, _op, _reason, _others} ->
+        :error
+
+      {:ok, %{evt: %LiveMap.Event{id: event_id}}} ->
         GeoJSON.new_from(
           %GeoJSON{},
           event_id,
-          [conv.(lng2), conv.(lat2)],
-          [conv.(lng1), conv.(lat1)],
+          [lng2, lat2],
+          [lng1, lat1],
           ad1,
           ad2,
           date,
           User.email(owner_id),
-          conv.(distance),
+          distance,
           color
         )
-
-      {:error, reason} ->
-        {:error, reason}
     end
+  end
+
+  @doc """
+  List of all users
+  """
+  def list() do
+    Repo.all(Event)
+  end
+
+  @doc """
+  Number of users
+  """
+  def count do
+    Repo.aggregate(Event, :count, :id)
+  end
+
+  @doc """
+  Delete an event given its ID
+  """
+  def delete_event(id) do
+    Repo.get_by(Event, id: id)
+    |> Repo.delete()
+  end
+
+  @doc """
+  Find the owner of an event given its ID
+  """
+  def owner(id) do
+    from(e in "events",
+      join: u in "users",
+      on: u.id == e.user_id,
+      where: e.id == ^id,
+      select: [u.email]
+    )
+    |> Repo.one()
   end
 end

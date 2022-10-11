@@ -10,11 +10,10 @@ defmodule LiveMapWeb.QueryPicker do
   def mount(socket) do
     {:ok,
      assign(socket,
-       changeset: QueryPicker.changeset(%{}),
+       changeset: QueryPicker.changeset(%QueryPicker{}),
        status: ["all", "pending", "confirmed"],
        users: [],
-       user: nil,
-       users: []
+       new_query: %QueryPicker{}
      )}
   end
 
@@ -26,17 +25,21 @@ defmodule LiveMapWeb.QueryPicker do
   def render(%{coords: %{"distance" => distance}} = assigns) do
     assigns = assign(assigns, distance: parse(distance))
     assigns = assign(assigns, :d, to_km(assigns.distance))
+    assigns = assign(assigns, :user, assigns.user)
+    IO.inspect(assigns, label: "render")
 
     ~H"""
     <div>
     <.form :let={f}  for={@changeset}
       phx-submit="send"
+      phx-change="date"
       phx-target={@myself}
       id="query_picker"
       >
 
       <span>Map radius: <%= @d %> km</span>
       <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
+
       <br/>
 
       <%= text_input(f, :user, phx_change: "search", phx_target: @myself, phx_debounce: "500", list: "datalist", placeholder: "enter an email") %>
@@ -72,6 +75,15 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
+  def handle_event("date", %{"query_picker" => params}, socket) do
+    changeset =
+      socket.assigns.new_query
+      |> QueryPicker.changeset(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
   # fill in a datalist for users when typing
   def handle_event("search", %{"query_picker" => %{"user" => string}}, socket) do
     datalist = LiveMap.User.search(string) |> Enum.map(& &1.email)
@@ -84,7 +96,9 @@ defmodule LiveMapWeb.QueryPicker do
   # %{"date" => "2022-10-10"}]
 
   def handle_event("send", %{"query_picker" => form}, socket) do
-    changeset = QueryPicker.changeset(form)
+    coords = socket.assigns.coords
+    params = to_params(form, coords)
+    changeset = QueryPicker.changeset(%QueryPicker{}, params)
 
     # reset all hilghlighted events since checkbox defaults to false on refresh (no more in sync)
     send(self(), {:down_check_all})
@@ -95,16 +109,14 @@ defmodule LiveMapWeb.QueryPicker do
         {:noreply, assign(socket, changeset: changeset)}
 
       true ->
-        process_params(form, socket.assigns.coords)
+        process_params(params)
     end
 
     # we uncheck all checkboxes with Javacsript listener since not everything is updated
     {:noreply, push_event(socket, "clear_boxes", %{})}
   end
 
-  defp process_params(form, coords) do
-    params = extract_params_for_query(form, coords)
-
+  defp process_params(params) do
     Task.Supervisor.async(LiveMap.EventSup, fn ->
       Repo.select_in_map(params)
     end)
@@ -125,11 +137,13 @@ defmodule LiveMapWeb.QueryPicker do
     end)
   end
 
-  defp extract_params_for_query(form, coords) do
+  defp to_params(form, coords) do
     %{
       "distance" => d,
       "end_date" => end_date,
-      "start_date" => start_date
+      "start_date" => start_date,
+      "user" => user,
+      "status" => status
     } = form
 
     {d, _} = Float.parse(d)
@@ -142,7 +156,9 @@ defmodule LiveMapWeb.QueryPicker do
       lng: lng,
       distance: d,
       end_date: end_date,
-      start_date: start_date
+      start_date: start_date,
+      user: user,
+      status: status
     }
   end
 
