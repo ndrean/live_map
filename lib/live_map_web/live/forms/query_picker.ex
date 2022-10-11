@@ -26,7 +26,6 @@ defmodule LiveMapWeb.QueryPicker do
     assigns = assign(assigns, distance: parse(distance))
     assigns = assign(assigns, :d, to_km(assigns.distance))
     assigns = assign(assigns, :user, assigns.user)
-    IO.inspect(assigns, label: "render")
 
     ~H"""
     <div>
