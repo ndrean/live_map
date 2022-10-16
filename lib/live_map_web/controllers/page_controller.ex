@@ -4,11 +4,13 @@ defmodule LiveMapWeb.PageController do
   def index(conn, _params) do
     oauth_google_url = ElixirAuthGoogle.generate_oauth_url(conn)
     oauth_github_url = ElixirAuthGithub.login_url(%{scopes: ["user:email"]})
+    oauth_facebook_url = ElixirAuthFacebook.generate_oauth_url()
 
     conn
     |> render("index.html",
       oauth_github_url: oauth_github_url,
-      oauth_google_url: oauth_google_url
+      oauth_google_url: oauth_google_url,
+      oauth_facebook_url: oauth_facebook_url
     )
   end
 end

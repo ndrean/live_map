@@ -53,6 +53,7 @@ defmodule LiveMap.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:elixir_auth_google, "~> 1.6.3"},
       {:elixir_auth_github, "~> 1.6.1"},
+      {:corsica, "~> 1.0"},
       # {:poison, "~>4.0"},
       {:geo, "~> 3.4"},
       {:geo_postgis, "~> 3.4"},
@@ -60,7 +61,8 @@ defmodule LiveMap.MixProject do
       {:timex, "~> 3.7"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:faker, "~> 0.17", only: [:dev, :test]},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:httpoison, "~> 1.8"}
     ]
   end
 

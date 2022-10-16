@@ -21,8 +21,9 @@ defmodule LiveMapWeb.MapComp do
       <div id="map"
         phx-component={2}
         phx-hook="MapHook"
-        phx-update="ignore">
+        phx-update="ignore"
         phx-target={@myself}
+      >
       </div>
       <NewEventTable.display  user_id={@user_id} user={@current} place={@place} date={@date}/>
     </div>
@@ -36,8 +37,9 @@ defmodule LiveMapWeb.MapComp do
       <div id="map"
         phx-component={2}
         phx-hook="MapHook"
-        phx-update="ignore">
+        phx-update="ignore"
         phx-target={@myself}
+      >
       </div>
       <NewEventTable.display  user={@current} place={@place} date={@date}/>
     </div>
@@ -50,7 +52,7 @@ defmodule LiveMapWeb.MapComp do
     {:noreply, assign(socket, :place, place)}
   end
 
-  #  the "moveend" mutates proxy(movingmap) and subscribe triggers pushEvent
+  #  we detected the map was moved, so the with new coords, we query the local events
   @impl true
   def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
     user_id = socket.assigns.user_id

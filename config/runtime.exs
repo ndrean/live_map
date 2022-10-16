@@ -49,8 +49,10 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("PHX_HOST") || "localhost"
+  # host = "myapp.localhost"
   port = String.to_integer(System.get_env("PORT") || "4000")
+  # port = 443
 
   config :live_map, LiveMapWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
@@ -62,6 +64,7 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port,
       compress: true
+      # check_origin: ["https://myapp.localhost", "http://127.0.0.1:4000", "http://localhost:4000"]
     ],
     secret_key_base: secret_key_base
 

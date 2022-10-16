@@ -1,6 +1,6 @@
 <section class="phx-hero">
 
-  <p>To get started, login to your Google Account:</p>
+  <p>To get started, login to your favorite Account:</p>
   <div style="display:flex; flex-direction:column; width:368px; margin-left:133px;">
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
 
@@ -23,8 +23,7 @@
       </div>
     </a>
   </div>
-  <p>To get started, login to your GitHub Account: </p>
-
+  <br/>
   <div style="display:flex; flex-direction:column; width:368px; margin-left:133px">
     <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap">
     <a href={@oauth_github_url}
@@ -46,7 +45,95 @@
         Sign in with GitHub
       </div>
     </a>
-    
-    
   </div>
 </section>
+
+<%!-- ************** GOOGLE BUTTON ************************* --%>
+<%!-- 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<div id="g_id_onload"
+  data-client_id={System.get_env("GOOGLE_CLIENT_ID")}
+  data-login_uri="https://myapp.localhost"
+  data-auto_prompt="false"
+  >
+</div>
+<div class="g_id_signin"
+  data-type="standard"
+  data-size="large"
+  data-theme="outline"
+  data-text="sign_in_with"
+  data-shape="rectangular"
+  data-logo_alignment="left">
+</div> --%>
+<br/>
+
+<%!-- ********************* SSR FACEBOOK BUTTON ************************ --%>
+<a class="" href={@oauth_facebook_url}>
+  <img src={Routes.static_path(@conn, "/images/fb_login.png")} style="margin-left: 120px;"/>
+</a>
+<br/>
+
+<%!-- ********************** FB JS SDK Login Button **************************** --%>
+ <%!-- <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script> --%>
+<%!--
+<script>
+  function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
+    console.log('statusChangeCallback2');
+    console.log(response);                   // The current login status of the person.
+    if (response.status === 'connected') {   // Logged into your webpage and Facebook.
+      testAPI();  
+    } else {                                 // Not logged into your webpage or we are unable to tell.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into this webpage.';
+    }
+  }
+
+  function checkLoginState() {               // Called when a person is finished with the Login Button.
+    FB.getLoginStatus(function(response) {   // See the onlogin handler
+      statusChangeCallback(response);
+    });
+  }
+
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '366589421180047',
+      cookie     : true,                     // Enable cookies to allow the server to access the session.
+      xfbml      : true,                     // Parse social plugins on this webpage.
+      version    : 'v15.0'           // Use this Graph API version for this call.
+    });
+
+
+    FB.getLoginStatus(function(response) {   // Called after the JS SDK has been initialized.
+      console.log({ response }, "loginStatus2");
+      statusChangeCallback(response);        // Returns the login status.
+    });
+  };
+ 
+  function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      console.log('Successful login for: ' + response.name);
+      document.getElementById('status').innerHTML =
+        'Thanks for logging in, ' + response.name + '!';
+    });
+  }
+</script> --%>
+
+
+
+<%!-- Tried to get element with id of "m_login_auto_search_form_contactpoint_hidden_input" but it is not present on the page --%>
+
+<hr />
+<br />
+<%!-- FB SDK WITH HOOK --%>
+<button phx-hook="fbLoginHook" id="fbhook" type="button"> FB Hook</button>
+<%!-- RENDERED BUTTON  --%>
+<fb:login-button 
+  scope="public_profile,email" 
+  onlogin="checkLoginState();"
+>
+</fb:login-button> 
+
+<%!-- RENDER LOGIN MESSAGE --%>
+<div id="status">
+</div>

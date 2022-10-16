@@ -19,11 +19,11 @@ defmodule LiveMapWeb.Router do
 
     live("/map", MapLive)
     get "/welcome", WelcomeController, :index
-    # forward "/welcome", Plugs.WelcomePageRedirector, :index
     get "/", PageController, :index
 
     get "/auth/google/callback", GoogleAuthController, :index
     get "/auth/github/callback", GithubAuthController, :index
+    get "/auth/facebook/callback", FacebookAuthController, :index
 
     get "/mail/:token", MailController, :confirm_link, params: "token"
   end

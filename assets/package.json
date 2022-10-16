@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@tailwindcss/forms": "^0.5.3",
     "clsx": "^1.2.1",
     "leaflet": "^1.9.1",
     "leaflet-control-geocoder": "^2.4.0",

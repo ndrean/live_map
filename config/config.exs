@@ -15,12 +15,17 @@ config :elixir_auth_google,
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
   google_scope: "profile email"
 
+# config :elixir_auth_facebook,
+#   facebook_client_id: System.get_env("FACEBOOK_APP_ID"),
+#   facebook_client_secret: System.get_env("FACEBOOK_APP_SECRET"),
+#   facebook_scope: "public_profile"
+
 config :geo_postgis,
   json_library: Jason
 
 # Configures the endpoint
 config :live_map, LiveMapWeb.Endpoint,
-  url: [host: "localhost"],
+  # url: [host: "myapp.localhost"],
   render_errors: [view: LiveMapWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: LiveMap.PubSub,
   live_view: [signing_salt: "ez1lDCj3"]

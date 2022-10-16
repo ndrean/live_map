@@ -7,7 +7,8 @@ defmodule LiveMap.Event do
     field :distance, :float, default: nil
     field :ad1, :string, default: nil
     field :ad2, :string, default: nil
-    field :date, :date, default: Date.utc_today()
+    field :date, :date
+    # , default: Date.utc_today()
     field :coordinates, Geo.PostGIS.Geometry
     field :color, :string
     timestamps()
@@ -73,8 +74,8 @@ defmodule LiveMap.Event do
            date: date,
            color: color
          }) do
-      {:error, _op, _reason, _others} ->
-        :error
+      {:error, _op, changeset, _others} ->
+        {:error, changeset}
 
       {:ok, %{evt: %LiveMap.Event{id: event_id}}} ->
         GeoJSON.new_from(

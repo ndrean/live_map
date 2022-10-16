@@ -109,7 +109,12 @@ defmodule LiveMap.Repo do
       ;"
     ]
 
-    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
+    case Ecto.Adapters.SQL.query(
+           Repo,
+           query,
+           [lng, lat, distance, start_date, end_date]
+           #  log: true
+         ) do
       {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
         rows
 
