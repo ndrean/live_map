@@ -49,14 +49,15 @@
 </section>
 
 <%!-- ************** GOOGLE BUTTON ************************* --%>
-<%!-- 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<div id="g_id_onload"
-  data-client_id={System.get_env("GOOGLE_CLIENT_ID")}
-  data-login_uri="https://myapp.localhost"
-  data-auto_prompt="false"
+
+<div class="flex items-center">
+  <div id="g_id_onload"
+    data-client_id={System.get_env("GOOGLE_CLIENT_ID")}
+    data-login_uri=""
+    data-auto_prompt="true"
   >
-</div>
+  </div>
 <div class="g_id_signin"
   data-type="standard"
   data-size="large"
@@ -64,76 +65,26 @@
   data-text="sign_in_with"
   data-shape="rectangular"
   data-logo_alignment="left">
-</div> --%>
+</div> 
+</div>
 <br/>
 
 <%!-- ********************* SSR FACEBOOK BUTTON ************************ --%>
-<a class="" href={@oauth_facebook_url}>
-  <img src={Routes.static_path(@conn, "/images/fb_login.png")} style="margin-left: 120px;"/>
+ <a class="" href={@oauth_facebook_url}>
+  <img style="margin-left: 120px;" width="250" alt="fb-ssr"
+    src="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&amp;ccb=1-7&amp;_nc_sid=ad8a9d&amp;_nc_ohc=8sb1L4zz4BUAX_EvUKb&amp;_nc_ht=scontent-cdt1-1.xx&amp;oh=00_AT9npEF786Ao623QdsCGbrNq9s4R9v1xzFeX5GkOkAbT6g&amp;oe=6354DA64"
+  />
 </a>
 <br/>
+  <%!-- src={Routes.static_path(@conn, "/images/fb_login.png")} /> --%>
 
 <%!-- ********************** FB JS SDK Login Button **************************** --%>
- <%!-- <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script> --%>
-<%!--
-<script>
-  function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
-    console.log('statusChangeCallback2');
-    console.log(response);                   // The current login status of the person.
-    if (response.status === 'connected') {   // Logged into your webpage and Facebook.
-      testAPI();  
-    } else {                                 // Not logged into your webpage or we are unable to tell.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into this webpage.';
-    }
-  }
 
-  function checkLoginState() {               // Called when a person is finished with the Login Button.
-    FB.getLoginStatus(function(response) {   // See the onlogin handler
-      statusChangeCallback(response);
-    });
-  }
+<script>window.app_id="<%= assigns[:app_id] %>";</script>
+<div id="fb-root"></div>
+<%!-- <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v15.0&appId=366589421180047&autoLogAppEvents=1" nonce="DO0Om7wZ"></script>
+<div class="fb-login-button" data-width="" data-size="large" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div> --%>
 
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId      : '366589421180047',
-      cookie     : true,                     // Enable cookies to allow the server to access the session.
-      xfbml      : true,                     // Parse social plugins on this webpage.
-      version    : 'v15.0'           // Use this Graph API version for this call.
-    });
-
-
-    FB.getLoginStatus(function(response) {   // Called after the JS SDK has been initialized.
-      console.log({ response }, "loginStatus2");
-      statusChangeCallback(response);        // Returns the login status.
-    });
-  };
- 
-  function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
-    console.log('Welcome!  Fetching your information.... ');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      document.getElementById('status').innerHTML =
-        'Thanks for logging in, ' + response.name + '!';
-    });
-  }
-</script> --%>
-
-
-
-<%!-- Tried to get element with id of "m_login_auto_search_form_contactpoint_hidden_input" but it is not present on the page --%>
-
-<hr />
-<br />
-<%!-- FB SDK WITH HOOK --%>
-<button phx-hook="fbLoginHook" id="fbhook" type="button"> FB Hook</button>
-<%!-- RENDERED BUTTON  --%>
-<fb:login-button 
-  scope="public_profile,email" 
-  onlogin="checkLoginState();"
->
-</fb:login-button> 
-
-<%!-- RENDER LOGIN MESSAGE --%>
-<div id="status">
-</div>
+<button id="fbhook"  type="button"> 
+  <img src="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&amp;ccb=1-7&amp;_nc_sid=ad8a9d&amp;_nc_ohc=8sb1L4zz4BUAX_EvUKb&amp;_nc_ht=scontent-cdt1-1.xx&amp;oh=00_AT9npEF786Ao623QdsCGbrNq9s4R9v1xzFeX5GkOkAbT6g&amp;oe=6354DA64" width="350" alt="" style="margin-left: 120px;"/>
+</button>

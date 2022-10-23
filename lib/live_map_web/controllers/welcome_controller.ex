@@ -1,11 +1,16 @@
 defmodule LiveMapWeb.WelcomeController do
-  use LiveMapWeb, :controller
+  use Phoenix.Controller
+  require Logger
 
-  def index(conn, p) do
-    IO.inspect(p, label: "welcome")
+  def index(conn, _) do
     profile = get_session(conn, :profile)
+
+    Logger.warning(inspect(profile))
+
     user_token = get_session(conn, :user_token)
-    conn = conn |> assign(:user_token, user_token)
-    render(conn, "welcome.html", profile: profile)
+
+    conn
+    |> assign(:user_token, user_token)
+    |> render("index.html", profile: profile)
   end
 end

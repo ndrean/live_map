@@ -35,7 +35,7 @@ defmodule LiveMap.EventParticipants do
   {:ok, %LiveMap.EventParticipants{ ...}}
   ```
   """
-  def set_pending(params = %{user_id: _user_id, event_id: _event_id}) do
+  def set_pending(%{user_id: _user_id, event_id: _event_id} = params) do
     mtoken = LiveMap.Token.mail_generate(params)
 
     params =
@@ -50,7 +50,7 @@ defmodule LiveMap.EventParticipants do
   @doc """
   Sets the status of a user for an event to confirmed and removes the token
   """
-  def set_confirmed(params = %{event_id: event_id, user_id: user_id}) do
+  def set_confirmed(%{event_id: event_id, user_id: user_id} = params) do
     params =
       params
       |> Map.put(:mtoken, nil)

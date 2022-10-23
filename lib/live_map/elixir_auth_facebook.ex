@@ -1,215 +1,238 @@
-defmodule ElixirAuthFacebook do
+defmodule LiveMap.ElixirAuthFacebook do
+  import Plug.Conn
+
   @moduledoc """
+  This module exposes two functions to enable Facebook Login
+  from the server
 
+  - "generate_oauth_url" : takes the conn from the controller
+  (to get the domain) and returns an URL with a query string.
+  We reach Facebook with this URL.
 
-  Get user access token
-  <https://developers.facebook.com/docs/marketing-apis/overview/authentication/>
+  - "handle_callback": the callback of the endpoint that receives
+  Facebook's response
   """
 
-  @default_callback_path "https://localhost:4443/auth/facebook/callback"
+  @default_callback_path "/auth/facebook/callback"
   @default_scope "public_profile"
-  @auth_type "rerequest"
   @fb_dialog_oauth "https://www.facebook.com/v15.0/dialog/oauth?"
   @fb_access_token "https://graph.facebook.com/v15.0/oauth/access_token?"
   @fb_debug "https://graph.facebook.com/debug_token?"
   @fb_profile "https://graph.facebook.com/v15.0/me?fields=id,email,name,picture"
-  @app_id System.get_env("FACEBOOK_APP_ID")
-  @app_secret System.get_env("FACEBOOK_APP_SECRET")
-  @app_access_token @app_id <> "|" <> @app_secret
 
+  # ------ APIs--------------
   @doc """
-  Generate URI for first access with temporary "code" from users' credentials.
-  We also inject a "salt" to prevent CSRF and the APP_ID and we check if our "salt" is happily returned
+  Generates the url that opens Login dialogue.
+  Needs the APP_ID and STATE env variables.
   """
-  def generate_oauth_url() do
-    @fb_dialog_oauth <> params_1()
+  def generate_oauth_url(conn), do: @fb_dialog_oauth <> params_1(conn)
+
+  # user denies dialog
+  @spec handle_callback(any, map) ::
+          {:error, {:access, any} | {:check_profile, any} | {:state, <<_::160>>}} | {:ok, map}
+  def handle_callback(_conn, %{"error" => message}) do
+    {:error, {:access, message}}
   end
 
-  @doc """
-  Generate URI for second query to exchange the "code" for an "access_token".
-  The server generates the call and sends the APP_SECRET
-  """
-  defp get_access_token(code) do
-    @fb_access_token <> params_2(code)
-  end
+  def handle_callback(conn, %{"state" => state, "code" => code}) do
+    case check_state(state) do
+      false ->
+        {:error, {:state, "Error with the state"}}
 
-  @doc """
-  Third query to inspect Access Token
-  """
-  defp debug_token(token) do
-    @fb_debug <> params_3(token)
-  end
-
-  @doc """
-  Fetch user's profile with the Graph API.
-  """
-  defp graph_api(), do: @fb_profile
-
-  @doc """
-  Function to document how to terminate errors. Use flash, redirect...
-  """
-  def terminate(conn, message, path) do
-    conn
-    |> Phoenix.Controller.put_flash(:error, inspect(message))
-    |> Phoenix.Controller.redirect(to: path)
-    |> Plug.Conn.halt()
-  end
-
-  def handle_callback(conn, params, term \\ &terminate/3)
-
-  def handle_callback(conn, %{"error" => error}, term) do
-    term.(conn, error, "/")
-  end
-
-  @doc """
-  We receive the "state" aka as "salt" we sent.
-  """
-  def handle_callback(conn, %{"state" => state, "code" => code} = params, term) do
-    keys = Map.keys(params)
-
-    with {:salt, true} <- {:salt, check_salt(state)},
-         {:code, true} <- {:code, "code" in keys} do
-      fb_oauth = get_access_token(code)
-
-      case HTTPoison.get(fb_oauth) do
-        {:error, %HTTPoison.Error{id: nil, reason: err}} ->
-          term.(conn, err, "/")
-
-        {:ok, %HTTPoison.Response{body: body}} ->
-          case Jason.decode!(body) do
-            %{"error" => %{"message" => message}} ->
-              term.(conn, message, "/")
-
-            body ->
-              conn
-              |> Plug.Conn.assign(:body, body)
-              |> Plug.Conn.assign(:term, term)
-              |> get_login()
-              |> get_profile()
-          end
-      end
-    else
-      {:salt, false} ->
-        term.(conn, "salt false", "/")
-
-      {:code, false} ->
-        term.(conn, "code false", "/")
+      true ->
+        code
+        |> access_token_uri(conn)
+        |> decode_response()
+        |> then(fn data ->
+          conn
+          |> assign(:data, data)
+          |> get_data()
+          |> get_profile()
+          |> check_profile()
+        end)
     end
   end
 
-  # def decode_body(conn, body) do
-  #   Plug.Conn.assign(conn, :body, Jason.decode!(body))
-  # end
+  def get_data({:error, message}), do: {:error, {:get_data, message}}
 
-  @doc """
-  If user does not accept the Login dialog
-  """
-
-  def get_login(%Plug.Conn{assigns: %{body: %{"error" => %{"message" => message}}}} = conn) do
-    conn.assigns.term.(conn, message, "/")
+  def get_data(%Plug.Conn{assigns: %{data: %{"error" => %{"message" => message}}}}) do
+    {:error, {:get_data, message}}
   end
 
-  # curl -X GET "https://graph.facebook.com/oauth/access_token?client_id=366589421180047&client_secret=a7f31cd0acd223dd63af686842c3f224&grant_type=client_credentials"
-
-  def get_login(%Plug.Conn{assigns: %{body: %{"access_token" => token}}} = conn) do
-    term = conn.assigns.term
-
-    case HTTPoison.get(debug_token(token)) do
-      {:ok, %HTTPoison.Response{body: body}} ->
-        case Jason.decode!(body) do
-          %{"error" => %{"message" => message}} ->
-            term.(conn, message, "/")
-
-          %{"data" => data} ->
-            %{"user_id" => fb_id, "is_valid" => valid, "expires_at" => exp} = data
-
-            conn
-            |> Plug.Conn.assign(:token, token)
-            |> Plug.Conn.assign(:exp, exp)
-            |> Plug.Conn.assign(:valid, valid)
-            |> Plug.Conn.assign(:fb_id, fb_id)
-        end
-
-      {:error, %HTTPoison.Error{id: nil, reason: err}} ->
-        term.(conn, err, "/")
-    end
-  end
-
-  @doc """
-  <https://developers.facebook.com/docs/graph-api/reference/user/>
-  """
-
-  def get_profile(%Plug.Conn{assigns: %{valid: false}} = conn) do
-    conn.assigns.term.(conn, "renew your credentials", "/")
-  end
-
-  def get_profile(%Plug.Conn{assigns: %{token: token, exp: exp, valid: true}} = conn) do
-    params = %{"access_token" => token} |> URI.encode_query()
-
-    me_point = graph_api() <> "&" <> params
-    term = conn.assigns.term
-
-    case HTTPoison.get(me_point) do
-      {:error, %HTTPoison.Error{id: nil, reason: err}} ->
-        term.(conn, err, "/")
-
-      {:ok, %HTTPoison.Response{body: body}} ->
-        case Jason.decode!(body) do
-          %{"error" => %{"message" => message}} ->
-            term.(conn, message, "/")
-
-          %{"email" => email, "id" => fb_id, "name" => name, "picture" => avatar} ->
-            {:ok,
-             %{
-               email: email,
-               fb_id: fb_id,
-               name: name,
-               avatar: avatar,
-               exp: exp,
-               token: token
-             }}
-        end
-    end
-  end
-
-  def get_salt() do
-    Application.get_env(:live_map, LiveMapWeb.Endpoint)
-    |> List.keyfind(:live_view, 0)
-    |> then(fn {:live_view, [signing_salt: val]} ->
-      val
+  def get_data(%Plug.Conn{assigns: %{data: %{"access_token" => token}}} = conn) do
+    token
+    |> debug_token_uri()
+    |> decode_response()
+    |> Map.get("data")
+    |> then(fn data ->
+      conn
+      |> assign(:data, data)
+      |> assign(:access_token, token)
+      |> assign(:is_valid, data["is_valid"])
     end)
   end
 
-  def check_salt(state) do
-    get_salt() == state
+  def get_profile({:error, message}), do: {:error, {:get_profile, message}}
+
+  def get_profile(%Plug.Conn{assigns: %{is_valid: nil}}) do
+    {:error, {:get_profile, "renew your credentials"}}
   end
 
-  defp params_1() do
-    %{
-      "client_id" => @app_id,
-      "state" => get_salt(),
-      "redirect_uri" => @default_callback_path,
-      "scope" => @default_scope
-    }
-    |> URI.encode_query()
+  def get_profile(%Plug.Conn{assigns: %{access_token: token, is_valid: true}} = conn) do
+    URI.encode_query(%{"access_token" => token})
+    |> graph_api()
+    |> decode_response()
+    |> then(fn data ->
+      assign(conn, :profile, data)
+    end)
   end
 
-  defp params_2(code) do
-    %{
-      "client_id" => @app_id,
-      "state" => get_salt(),
-      "redirect_uri" => @default_callback_path,
-      "code" => code,
-      "client_secret" => @app_secret
-    }
-    |> URI.encode_query()
+  def check_profile({:error, message}), do: {:error, {:check_profile, message}}
+
+  def check_profile(%Plug.Conn{assigns: %{data: %{"error" => %{"message" => message}}}}) do
+    {:error, {:check_profile, message}}
   end
 
-  defp params_3(token) do
-    %{
-      "access_token" => @app_access_token,
-      "input_token" => token
-    }
-    |> URI.encode_query()
+  def check_profile(%Plug.Conn{
+        assigns: %{access_token: token, profile: profile}
+      }) do
+    profile =
+      profile
+      |> nice_map()
+      |> Map.put(:access_token, token)
+      |> exchange_id()
+
+    {:ok, profile}
+  end
+
+  # ------ Definition of Credentials
+  def app_id() do
+    System.get_env("FACEBOOK_APP_ID") ||
+      Application.get_env(:elixir_auth_facebook, :fb_app_id) ||
+      raise("""
+      App ID missing
+      """)
+  end
+
+  def app_secret() do
+    System.get_env("FACEBOOK_APP_SECRET") ||
+      Application.get_env(:elixir_auth_facebook, :fb_app_secret) ||
+      raise """
+      App secret missing
+      """
+  end
+
+  def app_access_token(), do: app_id() <> "|" <> app_secret()
+
+  #  anti-CSRF check
+  def get_state() do
+    System.get_env("FACEBOOK_STATE") ||
+      Application.get_env(:elixir_auth_facebook, :app_state) ||
+      raise """
+      App state missing
+      """
+  end
+
+  # ---------- Definition of the URLs
+
+  # derives the URL from the "conn" struct and the input
+  # def generate_redirect_url(%Plug.Conn{host: "localhost"}) do
+  #   @mydom <> @default_callback_path
+  # end
+
+  def get_baseurl_from_conn(%{host: h, port: p}) when h == "localhost" do
+    # if System.get_env("FACEBOOK_HTTPS") == "true",
+    if p != 4000,
+      do: "https://localhost",
+      else: "http://#{h}:#{p}"
+  end
+
+  def get_baseurl_from_conn(%{host: h}) do
+    "https://#{h}"
+  end
+
+  def generate_redirect_url(conn),
+    do: get_baseurl_from_conn(conn) <> @default_callback_path
+
+  # Generates the url for the exchange "code" to "access_token".
+  def access_token_uri(code, conn), do: @fb_access_token <> params_2(code, conn)
+
+  # Generates the url for Access Token inspection.
+  def debug_token_uri(token), do: @fb_debug <> params_3(token)
+
+  # Generates the Graph API url to query for users data.
+  def graph_api(access), do: @fb_profile <> "&" <> access
+
+  # ------ Private Helpers -------------
+
+  # utility function: receives an url and provides the response body
+  def decode_response(url) do
+    url
+    |> HTTPoison.get!()
+    |> Map.get(:body)
+    |> Jason.decode!()
+  end
+
+  # ---  cleaning the profile --------
+  def into_atoms(strings) do
+    for {k, v} <- strings, into: %{}, do: {String.to_atom(k), v}
+  end
+
+  # deep dive into the map
+  def nice_map(map) do
+    map
+    |> into_atoms()
+    |> Map.update!(:picture, fn pic ->
+      pic["data"]
+      |> into_atoms()
+    end)
+  end
+
+  # FB gives and ID. We replace "id" to "fb_id"
+  # to avoid confusion in the returned data
+  def exchange_id(profile) do
+    profile
+    |> Map.put_new(:fb_id, profile.id)
+    |> Map.delete(:id)
+  end
+
+  # ----- Helpers on state -------
+  # verify that the received state is equal to the system state
+  def check_state(state), do: get_state() == state
+
+  # ----building query strings ------
+  def params_1(conn) do
+    URI.encode_query(
+      %{
+        "client_id" => app_id(),
+        "state" => get_state(),
+        "redirect_uri" => generate_redirect_url(conn),
+        "scope" => @default_scope
+      },
+      :rfc3986
+    )
+  end
+
+  def params_2(code, conn) do
+    URI.encode_query(
+      %{
+        "client_id" => app_id(),
+        "state" => get_state(),
+        "redirect_uri" => generate_redirect_url(conn),
+        "code" => code,
+        "client_secret" => app_secret()
+      },
+      :rfc3986
+    )
+  end
+
+  def params_3(token) do
+    URI.encode_query(
+      %{
+        "access_token" => app_access_token(),
+        "input_token" => token
+      },
+      :rfc3986
+    )
   end
 end

@@ -15,10 +15,15 @@ config :elixir_auth_google,
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
   google_scope: "profile email"
 
-# config :elixir_auth_facebook,
-#   facebook_client_id: System.get_env("FACEBOOK_APP_ID"),
-#   facebook_client_secret: System.get_env("FACEBOOK_APP_SECRET"),
-#   facebook_scope: "public_profile"
+config :elixir_auth_github,
+  github_client_id: System.get_env("GITHUB_CLIENT_ID"),
+  github_client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+  github_scope: "public_profile"
+
+config :live_map,
+  app_id: System.get_env("FACEBOOK_APP_ID"),
+  app_secret: System.get_env("FACEBOOK_APP_SECRET"),
+  app_state: System.get_env("FACEBOOK_STATE")
 
 config :geo_postgis,
   json_library: Jason
@@ -81,3 +86,9 @@ config :phoenix, :json_library, Jason
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
+# config :elixir_auth_facebook,
+#   app_id: System.get_env("FACEBOOK_APP_ID"),
+#   app_secret: System.get_env("FACEBOOK_APP_SECRET"),
+#   app_state: System.get_env("FACEBOOK_STATE"),
+#   https: true

@@ -12,6 +12,7 @@ defmodule LiveMapWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    post "/auth/one_tap", LiveMapWeb.OneTapController, :handle
   end
 
   scope "/", LiveMapWeb do
@@ -21,17 +22,17 @@ defmodule LiveMapWeb.Router do
     get "/welcome", WelcomeController, :index
     get "/", PageController, :index
 
-    get "/auth/google/callback", GoogleAuthController, :index
-    get "/auth/github/callback", GithubAuthController, :index
-    get "/auth/facebook/callback", FacebookAuthController, :index
-
     get "/mail/:token", MailController, :confirm_link, params: "token"
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", LiveMapWeb do
-  #   pipe_through :api
-  # end
+  scope "/auth", LiveMapWeb do
+    pipe_through :browser
+
+    get "/google/callback", GoogleAuthController, :index
+    get "/github/callback", GithubAuthController, :index
+    get "/facebook/callback", FacebookAuthController, :login
+    get "/fbk/sdk", FbSdkAuthController, :handle
+  end
 
   # Enables LiveDashboard only for development
   #

@@ -36,7 +36,7 @@ defmodule LiveMap.GeoJSON do
   end
 
   def new_from(
-        geojson = %LiveMap.GeoJSON{},
+        %LiveMap.GeoJSON{} = geojson,
         id,
         startpoint,
         endpoint,

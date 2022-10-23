@@ -5,9 +5,10 @@ defmodule LiveMapWeb.SelectedEvents do
   alias LiveMapWeb.SelectedEvents
   alias LiveMapWeb.MailController
 
-  def mount(_p, s, socket) do
-    IO.inspect(s, label: "mout selected")
-
+  @moduledoc """
+  Table to display the results of the query
+  """
+  def mount(_p, _s, socket) do
     {:ok, assign(socket, live_action: nil)}
   end
 

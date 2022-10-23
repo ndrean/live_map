@@ -62,7 +62,7 @@ defmodule LiveMap.Token do
            LiveMapWeb.Endpoint,
            "user token",
            token,
-           max_age: 86400
+           max_age: 86_400
          ) do
       {:ok, data} -> {:ok, data}
       {:error, reason} -> {:error, reason}

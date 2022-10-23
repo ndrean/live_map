@@ -8,8 +8,6 @@ defmodule NewEvent.NewEventTest do
 
   test "renders form", %{conn: conn} do
     {:ok, view, html} = live(conn, "/")
-    IO.inspect(html, label: "html")
-    IO.inspect(view, label: "view")
     assert html =~ ""
   end
 end

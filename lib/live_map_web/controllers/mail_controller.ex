@@ -1,5 +1,5 @@
 defmodule LiveMapWeb.MailController do
-  use LiveMapWeb, :controller
+  use Phoenix.Controller
   require Logger
   alias LiveMapMail.Email
   alias LiveMapMail.Mailer
@@ -25,7 +25,7 @@ defmodule LiveMapWeb.MailController do
   %{ep_status: "confirmed", user_email: "bibi", user_id: 2}
   ```
   """
-  def create_demand(params = %{event_id: event_id, user_id: user_id}) do
+  def create_demand(%{event_id: event_id, user_id: user_id} = params) do
     with token <- EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
       params = Map.put(params, :mtoken, token)
 

@@ -13,18 +13,17 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import { clsx } from "clsx";
 import topbar from "../vendor/topbar";
 import { MapHook } from "./maphook";
-import { fbLoginHook } from "./fbLogin";
-
+// import { fbLoginHook } from "./fbLoginHook.js";
+import { facebook } from "./facebook";
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { MapHook, fbLoginHook },
+  hooks: { MapHook },
 });
 
 // Show progress bar on live navigation and form submits
@@ -50,3 +49,11 @@ window.addEventListener("phx:clear_boxes", () => {
       .forEach((cb) => (cb.checked = false));
   }
 });
+
+//  FB-SDK
+const fbutton = document.getElementById("fbhook");
+if (fbutton) facebook(fbutton);
+
+// GOOGLE-ONE-TAP
+const oneTap = document.querySelector("#g_id_onload");
+if (oneTap) oneTap.dataset.login_uri = window.location.href + "auth/one_tap";

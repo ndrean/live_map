@@ -7,7 +7,6 @@ defmodule LiveMap.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
-      # compilers: [:gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
@@ -48,21 +47,21 @@ defmodule LiveMap.MixProject do
       {:phoenix_swoosh, "~> 1.0"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      # {:gettext, "~> 0.18"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
       {:elixir_auth_google, "~> 1.6.3"},
       {:elixir_auth_github, "~> 1.6.1"},
-      {:corsica, "~> 1.0"},
-      # {:poison, "~>4.0"},
       {:geo, "~> 3.4"},
       {:geo_postgis, "~> 3.4"},
-      {:ecto_erd, "~> 0.5.0", only: :dev},
       {:timex, "~> 3.7"},
+      {:httpoison, "~> 1.8"},
+      {:jose, "~> 1.11"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:faker, "~> 0.17", only: [:dev, :test]},
+      {:ecto_erd, "~> 0.5.0", only: :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:httpoison, "~> 1.8"}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:joken, "~> 2.5"}
     ]
   end
 

@@ -5,6 +5,9 @@ defmodule LiveMapWeb.QueryPicker do
   alias LiveMap.Repo
   require Logger
 
+  @moduledoc """
+  Form with a date as input and saves the completed event
+  """
   def mount(socket) do
     {:ok,
      assign(socket,
