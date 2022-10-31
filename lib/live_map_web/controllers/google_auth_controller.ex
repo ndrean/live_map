@@ -1,10 +1,10 @@
 defmodule LiveMapWeb.GoogleAuthController do
-  use Phoenix.Controller
+  use LiveMapWeb, :controller
   alias LiveMap.User
+  action_fallback LiveMapWeb.LoginErrorController
 
   def index(conn, %{"code" => code}) do
-    with {:ok, token} <- ElixirAuthGoogle.get_token(code, conn),
-         {:ok, profile} <- ElixirAuthGoogle.get_user_profile(token.access_token),
+    with {:ok, profile} <- Libraries.ElixirAuthGoogle.get_profile(code, conn),
          %{email: email} <- profile do
       user = User.new(email)
       user_token = LiveMap.Token.user_generate(user.id)
@@ -15,7 +15,7 @@ defmodule LiveMapWeb.GoogleAuthController do
       |> put_session(:profile, profile)
       |> put_session(:origin, "google_ssr")
       |> put_view(LiveMapWeb.WelcomeView)
-      |> redirect(to: LiveMapWeb.Router.Helpers.welcome_path(conn, :index))
+      |> redirect(to: Routes.welcome_path(conn, :index))
       |> halt()
     end
   end

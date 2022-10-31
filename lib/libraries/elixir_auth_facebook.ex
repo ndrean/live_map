@@ -1,4 +1,4 @@
-defmodule LiveMap.ElixirAuthFacebook do
+defmodule Libraries.ElixirAuthFacebook do
   import Plug.Conn
 
   @moduledoc """
@@ -17,19 +17,19 @@ defmodule LiveMap.ElixirAuthFacebook do
   @default_scope "public_profile"
   @fb_dialog_oauth "https://www.facebook.com/v15.0/dialog/oauth?"
   @fb_access_token "https://graph.facebook.com/v15.0/oauth/access_token?"
-  @fb_debug "https://graph.facebook.com/debug_token?"
   @fb_profile "https://graph.facebook.com/v15.0/me?fields=id,email,name,picture"
 
   # ------ APIs--------------
   @doc """
   Generates the url that opens Login dialogue.
-  Needs the APP_ID and STATE env variables.
+  Receives the conn and delivers and URL
   """
   def generate_oauth_url(conn), do: @fb_dialog_oauth <> params_1(conn)
 
+  @doc """
+  Receives Facebook's payload and outputs the user's profile
+  """
   # user denies dialog
-  @spec handle_callback(any, map) ::
-          {:error, {:access, any} | {:check_profile, any} | {:state, <<_::160>>}} | {:ok, map}
   def handle_callback(_conn, %{"error" => message}) do
     {:error, {:access, message}}
   end
@@ -37,6 +37,7 @@ defmodule LiveMap.ElixirAuthFacebook do
   def handle_callback(conn, %{"state" => state, "code" => code}) do
     case check_state(state) do
       false ->
+        # ok
         {:error, {:state, "Error with the state"}}
 
       true ->
@@ -46,39 +47,18 @@ defmodule LiveMap.ElixirAuthFacebook do
         |> then(fn data ->
           conn
           |> assign(:data, data)
-          |> get_data()
           |> get_profile()
           |> check_profile()
         end)
     end
   end
 
-  def get_data({:error, message}), do: {:error, {:get_data, message}}
-
-  def get_data(%Plug.Conn{assigns: %{data: %{"error" => %{"message" => message}}}}) do
-    {:error, {:get_data, message}}
+  def get_profile(%{assigns: %{data: %{"error" => %{"message" => message}}}}) do
+    # ok
+    {:error, {:get_profile, message}}
   end
 
-  def get_data(%Plug.Conn{assigns: %{data: %{"access_token" => token}}} = conn) do
-    token
-    |> debug_token_uri()
-    |> decode_response()
-    |> Map.get("data")
-    |> then(fn data ->
-      conn
-      |> assign(:data, data)
-      |> assign(:access_token, token)
-      |> assign(:is_valid, data["is_valid"])
-    end)
-  end
-
-  def get_profile({:error, message}), do: {:error, {:get_profile, message}}
-
-  def get_profile(%Plug.Conn{assigns: %{is_valid: nil}}) do
-    {:error, {:get_profile, "renew your credentials"}}
-  end
-
-  def get_profile(%Plug.Conn{assigns: %{access_token: token, is_valid: true}} = conn) do
+  def get_profile(%{assigns: %{data: %{"access_token" => token}}} = conn) do
     URI.encode_query(%{"access_token" => token})
     |> graph_api()
     |> decode_response()
@@ -87,78 +67,39 @@ defmodule LiveMap.ElixirAuthFacebook do
     end)
   end
 
-  def check_profile({:error, message}), do: {:error, {:check_profile, message}}
-
-  def check_profile(%Plug.Conn{assigns: %{data: %{"error" => %{"message" => message}}}}) do
+  def check_profile({:error, message}) do
+    # ok
     {:error, {:check_profile, message}}
   end
 
-  def check_profile(%Plug.Conn{
-        assigns: %{access_token: token, profile: profile}
-      }) do
+  def check_profile(%{assigns: %{profile: %{"error" => %{"message" => message}}}}) do
+    # ok
+    {:error, {:check_profile2, message}}
+  end
+
+  def check_profile(%{assigns: %{profile: profile}}) do
     profile =
       profile
       |> nice_map()
-      |> Map.put(:access_token, token)
       |> exchange_id()
 
     {:ok, profile}
   end
 
-  # ------ Definition of Credentials
-  def app_id() do
-    System.get_env("FACEBOOK_APP_ID") ||
-      Application.get_env(:elixir_auth_facebook, :fb_app_id) ||
-      raise("""
-      App ID missing
-      """)
-  end
-
-  def app_secret() do
-    System.get_env("FACEBOOK_APP_SECRET") ||
-      Application.get_env(:elixir_auth_facebook, :fb_app_secret) ||
-      raise """
-      App secret missing
-      """
-  end
-
-  def app_access_token(), do: app_id() <> "|" <> app_secret()
-
-  #  anti-CSRF check
-  def get_state() do
-    System.get_env("FACEBOOK_STATE") ||
-      Application.get_env(:elixir_auth_facebook, :app_state) ||
-      raise """
-      App state missing
-      """
-  end
-
   # ---------- Definition of the URLs
 
-  # derives the URL from the "conn" struct and the input
-  # def generate_redirect_url(%Plug.Conn{host: "localhost"}) do
-  #   @mydom <> @default_callback_path
-  # end
-
+  @spec get_baseurl_from_conn(%{:host => any, optional(any) => any}) :: false | <<_::64, _::_*8>>
   def get_baseurl_from_conn(%{host: h, port: p}) when h == "localhost" do
-    # if System.get_env("FACEBOOK_HTTPS") == "true",
-    if p != 4000,
-      do: "https://localhost",
-      else: "http://#{h}:#{p}"
+    (p != 4000 && "https://localhost") || "http://" <> h <> ":#{p}"
   end
 
-  def get_baseurl_from_conn(%{host: h}) do
-    "https://#{h}"
-  end
+  def get_baseurl_from_conn(%{host: h}), do: "https://" <> h
 
   def generate_redirect_url(conn),
     do: get_baseurl_from_conn(conn) <> @default_callback_path
 
   # Generates the url for the exchange "code" to "access_token".
   def access_token_uri(code, conn), do: @fb_access_token <> params_2(code, conn)
-
-  # Generates the url for Access Token inspection.
-  def debug_token_uri(token), do: @fb_debug <> params_3(token)
 
   # Generates the Graph API url to query for users data.
   def graph_api(access), do: @fb_profile <> "&" <> access
@@ -217,7 +158,6 @@ defmodule LiveMap.ElixirAuthFacebook do
     URI.encode_query(
       %{
         "client_id" => app_id(),
-        "state" => get_state(),
         "redirect_uri" => generate_redirect_url(conn),
         "code" => code,
         "client_secret" => app_secret()
@@ -226,13 +166,29 @@ defmodule LiveMap.ElixirAuthFacebook do
     )
   end
 
-  def params_3(token) do
-    URI.encode_query(
-      %{
-        "access_token" => app_access_token(),
-        "input_token" => token
-      },
-      :rfc3986
-    )
+  # ---------- CREDENTIALS -----------
+  def app_id() do
+    System.get_env("FACEBOOK_APP_ID") ||
+      Application.get_env(:elixir_auth_facebook, :fb_app_id) ||
+      raise("""
+      App ID missing
+      """)
+  end
+
+  def app_secret() do
+    System.get_env("FACEBOOK_APP_SECRET") ||
+      Application.get_env(:elixir_auth_facebook, :fb_app_secret) ||
+      raise """
+      App secret missing
+      """
+  end
+
+  #  anti-CSRF check
+  def get_state() do
+    System.get_env("FACEBOOK_STATE") ||
+      Application.get_env(:elixir_auth_facebook, :app_state) ||
+      raise """
+      App state missing
+      """
   end
 end

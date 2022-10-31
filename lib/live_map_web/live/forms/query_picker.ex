@@ -160,7 +160,7 @@ defmodule LiveMapWeb.QueryPicker do
         process_params(params)
     end
 
-    # we uncheck all checkboxes with Javacsript listener since not everything is updated
+    # we uncheck all checkboxes with Javascript listener since not everything is updated
     {:noreply, push_event(socket, "clear_boxes", %{})}
   end
 

@@ -30,6 +30,7 @@ defmodule LiveMapWeb.UserSocket do
         Logger.error("#{reason}: invalid token")
 
       {:ok, user_id} ->
+        Logger.warning("connected")
         {:ok, assign(socket, curr_id: user_id)}
     end
   end

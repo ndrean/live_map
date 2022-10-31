@@ -62,9 +62,13 @@ export const MapHook = {
       attribution: "c OpenStreeMap",
     }).addTo(map);
 
-    const layergroup = L.layerGroup().addTo(map);
-    const datagroup = L.layerGroup().addTo(map);
+    // layer for the Event creation
+    const layergp = L.layerGroup().addTo(map);
+    //  layer for the Line for the Event creation
     const lineLayer = L.layerGroup().addTo(map);
+    // layer for the fetched Events from the DB
+    const datagroup = L.layerGroup().addTo(map);
+    // layer for the highlighted
     const highlightLayer = L.layerGroup().addTo(map);
 
     //**** wrapper to Nominatim endpoint. limited to one request per second
@@ -78,14 +82,14 @@ export const MapHook = {
     subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
 
     //  ******** TOGGLING - HIGHLIGHTING events with CHECKBOX
-    let mymarkers = null;
+    let myEvts = [];
     // store the toggled = highlighted events from checkbox SSR
     let toggled = [];
 
     // "highlight" an event-id (DB) and put in highLayer
     this.handleEvent("toggle_up", ({ id }) => {
       // we find the event with "id" and add it to the highlighted layer
-      L.geoJSON(mymarkers, {
+      L.geoJSON(myEvts, {
         filter: function (feature, layer) {
           if (feature.properties.id === Number(id)) {
             toggled.push(feature);
@@ -115,25 +119,39 @@ export const MapHook = {
 
     // ****************
     // reset the newly saved event
-    function clearEvent() {
-      layergroup.clearLayers();
+    function clearEvents() {
+      layergp.clearLayers();
       lineLayer.clearLayers();
+      datagroup.clearLayers();
       place.coords = [];
       place.distance = 0;
     }
 
-    // add a broadcasted new event
-    this.handleEvent("new pub", ({ geojson }) => {
-      clearEvent();
-      handleData(geojson);
+    // remove event in case of error
+    this.handleEvent("clear_event", () => clearEvents());
+
+    this.handleEvent("delete_event", ({ id }) => {
+      clearEvents();
+      const [{ features: features }] = myEvts;
+      myEvts[0].features = features.filter(
+        (feature) => feature.properties.id !== Number(id)
+      );
+      handleData(myEvts);
     });
 
-    // listener to moved map
+    // add a broadcasted new event
+    this.handleEvent("new_pub", ({ geojson }) => {
+      clearEvents();
+      myEvts.push(geojson);
+      handleData(myEvts);
+    });
+
+    // received update from DB after moved map
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
       // save geojson to be able to highlight a specific event
-      mymarkers = data;
+      myEvts = data;
       // process to create line and markers on each feature
       if (data)
         L.geoJSON(data, {
@@ -172,7 +190,7 @@ export const MapHook = {
         .querySelector("button.remove")
         .addEventListener("click", function () {
           place.coords = place.coords.filter((c) => c.id !== id) || [];
-          layergroup.removeLayer(marker);
+          layergp.removeLayer(marker);
           const index = place.coords.findIndex((c) => c.id === Number(id));
           if (index <= 1) {
             lineLayer.clearLayers();
@@ -212,9 +230,9 @@ export const MapHook = {
       const index = place.coords.findIndex((c) => c.id === id);
       // limitation of 1 request per second for Nominatim
 
-      setTimeout(() => {
-        discover(mark, newLatLng, index, id);
-      }, 1000);
+      // setTimeout(() => {
+      discover(mark, newLatLng, index, id);
+      // }, 1000);
       mark.on("popupopen", () => maybeDelete(mark, id));
       mark.on("dragend", () => draggedMarker(mark, id, lineLayer));
     }
@@ -255,7 +273,7 @@ export const MapHook = {
         if (html) html = addButton(html);
 
         const marker = L.marker(e.latlng, { draggable: true });
-        marker.addTo(layergroup).bindPopup(html);
+        marker.addTo(layergp).bindPopup(html);
         // you need to add the marker to the map to get the _leaflet_id
         const location = {
           id: marker._leaflet_id,
@@ -276,11 +294,11 @@ export const MapHook = {
     // provides a form to find a place by its name and fly-to
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
     //
-    coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
+    coder.on("mark_geocode", function ({ geocode: { center, html, name } }) {
       map.flyTo(center, 10);
       html = addButton(html);
       const marker = L.marker(center, { draggable: true });
-      marker.addTo(layergroup).bindPopup(html);
+      marker.addTo(layergp).bindPopup(html);
 
       const location = {
         id: marker._leaflet_id,
@@ -295,9 +313,9 @@ export const MapHook = {
 
     // ****** capture map moves
     // moveend mutates "movingmap" push to backend
-    subscribe(movingmap, () =>
-      this.pushEventTo("#map", "postgis", { movingmap })
-    );
+    subscribe(movingmap, () => {
+      this.pushEventTo("#map", "postgis", { movingmap });
+    });
 
     // listener that mutates "movingmap" object with new coords map for the backend to retrieve events
     map.on("moveend", () => {
@@ -310,8 +328,8 @@ export const MapHook = {
 
     // ***** Delete listener triggered from SSR pushEvent
     this.handleEvent("delete_marker", ({ id }) => {
-      layergroup.eachLayer((layer) => {
-        if (layer._leaflet_id === Number(id)) layer.removeFrom(layergroup);
+      layergp.eachLayer((layer) => {
+        if (layer._leaflet_id === Number(id)) layer.removeFrom(layergp);
       });
       // udpate the state and redraw the line if necessary
       const index = place.coords.findIndex((c) => c.id === Number(id));

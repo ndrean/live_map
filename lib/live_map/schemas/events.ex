@@ -2,6 +2,8 @@ defmodule LiveMap.Event do
   use Ecto.Schema
   import Ecto.{Changeset, Query}
   alias LiveMap.{Repo, User, EventParticipants, Event, GeoJSON}
+  require Logger
+  alias Phoenix.LiveView.JS
 
   schema "events" do
     field :distance, :float, default: nil
@@ -75,21 +77,23 @@ defmodule LiveMap.Event do
            color: color
          }) do
       {:error, _op, changeset, _others} ->
+        Logger.warning(changeset.errors)
         {:error, changeset}
 
       {:ok, %{evt: %LiveMap.Event{id: event_id}}} ->
-        GeoJSON.new_from(
-          %GeoJSON{},
-          event_id,
-          [lng2, lat2],
-          [lng1, lat1],
-          ad1,
-          ad2,
-          date,
-          User.email(owner_id),
-          distance,
-          color
-        )
+        {:ok,
+         GeoJSON.new_from(
+           %GeoJSON{},
+           event_id,
+           [lng2, lat2],
+           [lng1, lat1],
+           ad1,
+           ad2,
+           date,
+           User.email(owner_id),
+           distance,
+           color
+         )}
     end
   end
 
@@ -108,9 +112,12 @@ defmodule LiveMap.Event do
   end
 
   @doc """
-  Delete an event given its ID
+  Delete an event given its ID. Associated event.participants will be deleted too.
   """
   def delete_event(id) do
+    JS.dispatch("event:event_delete", to: "#check_#{id}")
+    |> IO.inspect()
+
     Repo.get_by(Event, id: id)
     |> Repo.delete()
   end

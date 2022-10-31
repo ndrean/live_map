@@ -54,47 +54,45 @@ defmodule LiveMapWeb.NewEvent do
 
   # adds real-time validation
   def handle_event("validate", %{"new_event" => %{"event_date" => date}}, socket) do
-    # socket.assigns.new_event
     changeset =
       %NewEvent{}
       |> NewEvent.changeset(%{"event_date" => date})
-      |> Map.put(:action, :validate)
+      |> Map.put(:action, :insert)
 
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   # save new event and broadcast to every user
-  def handle_event("up_date", %{"new_event" => %{"event_date" => date}} = _params, socket) do
-    changeset = socket.assigns.changeset
+  def handle_event("up_date", %{"new_event" => %{"event_date" => date}}, socket) do
+    %{user_id: owner_id, place: place} = socket.assigns
 
-    Task.Supervisor.async_nolink(LiveMap.EventSup, fn ->
-      case changeset.valid? do
-        true ->
-          %{user_id: owner_id, place: place} = socket.assigns
+    case Event.save_geojson(place, owner_id, date) do
+      {:error, changeset} ->
+        case event_date_blank?(changeset) do
+          true ->
+            IO.inspect(changeset, label: "handel_Event_up_date")
 
-          case Event.save_geojson(place, owner_id, date) do
-            {:error, changeset} ->
-              changeset = Map.put(changeset, :action, :insert)
-              {:error, socket, changeset}
+            changeset =
+              %NewEvent{}
+              |> NewEvent.changeset(%{"event_date" => date})
+              |> Map.put(:action, :insert)
 
-            geojson ->
-              :ok = Endpoint.broadcast!("event", "new event", %{geojson: geojson})
-          end
+            {:noreply, assign(socket, :changeset, changeset)}
 
-        false ->
-          changeset = Map.put(changeset, :action, :insert)
-          {:error, socket, changeset}
-      end
-    end)
-    |> Task.await()
-    |> then(fn res ->
-      case res do
-        :ok ->
-          {:noreply, socket}
+          false ->
+            IO.puts("false handle_event_up_date")
+            socket = assign(socket, :changeset, changeset)
+            send(self(), "flash_error")
+            {:noreply, push_event(socket, "clear_event", %{})}
+        end
 
-        {:error, socket, changeset} ->
-          {:noreply, assign(socket, :changeset, changeset)}
-      end
-    end)
+      {:ok, geojson} ->
+        # broadcast to all users a new event
+        :ok = Endpoint.broadcast!("event", "new_event", %{geojson: geojson})
+        {:noreply, socket}
+    end
   end
+
+  def event_date_blank?(%Ecto.Changeset{errors: [date: {"can't be blank", _}]}), do: true
+  def event_date_blank?(_), do: false
 end

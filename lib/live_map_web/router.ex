@@ -12,7 +12,7 @@ defmodule LiveMapWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
-    post "/auth/one_tap", LiveMapWeb.OneTapController, :handle
+    post "/auth/google/callback", LiveMapWeb.OneTapController, :handle
   end
 
   scope "/", LiveMapWeb do
@@ -31,7 +31,7 @@ defmodule LiveMapWeb.Router do
     get "/google/callback", GoogleAuthController, :index
     get "/github/callback", GithubAuthController, :index
     get "/facebook/callback", FacebookAuthController, :login
-    get "/fbk/sdk", FbSdkAuthController, :handle
+    get "/fbk/sdk", FbSdkAuthController, :handler
   end
 
   # Enables LiveDashboard only for development

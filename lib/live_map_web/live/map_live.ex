@@ -42,22 +42,19 @@ defmodule LiveMapWeb.MapLive do
     """
   end
 
-  #  phx-click from row in "new event table"
+  #  backend delete of marker: phx-click from row in "new event table"
   @impl true
   def handle_event("delete_marker", %{"id" => id}, socket) do
-    id = if is_binary(id), do: String.to_integer(id)
+    id = if is_binary(id), do: String.to_integer(id), else: id
     {:noreply, push_event(socket, "delete_marker", %{id: id})}
   end
 
-  def handle_event("delete_event", %{"id" => id, "owner" => _owner}, socket) do
-    id = if is_binary(id), do: String.to_integer(id)
-
-    LiveMap.Event.delete_event(id)
-    {:noreply, put_flash(socket, :info, "really wanna delete it?")}
-    # end
+  @impl true
+  # update all the maps when an event is deleted
+  def handle_info(%{topic: "event", event: "delete_event", payload: %{id: id}}, socket) do
+    {:noreply, push_event(socket, "delete_event", %{id: id})}
   end
 
-  @impl true
   #  remove all highlights in Leaflet since checkboxes defaults to false on refresh (no more sync)
   def handle_info({:down_check_all}, socket) do
     {:noreply, push_event(socket, "toggle_all_down", %{})}
@@ -66,15 +63,16 @@ defmodule LiveMapWeb.MapLive do
   # broadcast new event to all users from the date_picker form
   @impl true
   def handle_info(
-        %{topic: "event", event: "new event", payload: %{geojson: geojson}},
+        %{topic: "event", event: "new_event", payload: %{geojson: geojson}},
         socket
       ) do
-    {:noreply, push_event(socket, "new pub", %{geojson: geojson})}
+    IO.inspect(label: "handle_info_new_event")
+    {:noreply, push_event(socket, "new_pub", %{geojson: geojson})}
   end
 
-  def handle_info(%{event: "presence_diff"}, socket) do
-    nb_users = Presence.list("presence") |> map_size
-    {:noreply, assign(socket, presence: nb_users)}
+  # example of error: bad user_id
+  def handle_info("flash_error", socket) do
+    {:noreply, put_flash(socket, :error, "Event not saved due to error")}
   end
 
   # update the assigns with new map coords for QueryPicker to be able to query the area
@@ -86,22 +84,21 @@ defmodule LiveMapWeb.MapLive do
   # we need to transform a record from [id, map_owner, map_pending || map_confirmed, date]
   # to [id, map_owner, map_pending, map_confirmed, date]
   def handle_info({:selected_events, payload}, socket) do
-    payload =
-      payload
-      |> Enum.map(fn [id, users, date] = _event ->
-        users = users |> Map.keys() |> set_all_keys(users)
-        [id, users, date]
-      end)
-
-    # update the child table
-    send_update(SelectedEvents, id: "selected", selected: payload)
-
-    # socket =
-    #   socket
-    #   |> assign(:selected, payload)
-    #   |> assign(page: socket.assigns.page + 1)
+    payload
+    |> Enum.map(fn [id, users, date] = _event ->
+      users = users |> Map.keys() |> set_all_keys(users)
+      [id, users, date]
+    end)
+    |> then(fn payload ->
+      send_update(SelectedEvents, id: "selected", selected: payload)
+    end)
 
     {:noreply, socket}
+  end
+
+  def handle_info(%{event: "presence_diff"}, socket) do
+    nb_users = Presence.list("presence") |> map_size
+    {:noreply, assign(socket, presence: nb_users)}
   end
 
   defp set_all_keys(keys, users) do

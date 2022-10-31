@@ -16,7 +16,8 @@ defmodule LiveMap.Repo.Migrations.CreateEvents do
 
     create index(:events, [:user_id])
 
-    execute("ALTER TABLE events ADD COLUMN coordinates geography(LINESTRING, 4326);")
+    # execute("SELECT AddGeometryColumn('events', 'coordinates', '4326', 'LINESTRING', 2)")
+    execute("ALTER TABLE events ADD COLUMN coordinates geography(LINESTRING);")
     execute("CREATE INDEX  events_gix ON events USING GIST (coordinates);")
   end
 

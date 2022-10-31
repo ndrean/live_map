@@ -1,11 +1,10 @@
 defmodule LiveMapWeb.WelcomeController do
-  use Phoenix.Controller
+  use LiveMapWeb, :controller
   require Logger
+  action_fallback LiveMapWeb.LoginErrorController
 
   def index(conn, _) do
     profile = get_session(conn, :profile)
-
-    Logger.warning(inspect(profile))
 
     user_token = get_session(conn, :user_token)
 

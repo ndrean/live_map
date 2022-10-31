@@ -44,6 +44,7 @@ defmodule LiveMap.EventParticipants do
       |> Map.put(:status, :pending)
 
     LiveMap.EventParticipants.new(params)
+
     mtoken
   end
 

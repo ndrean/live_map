@@ -1,18 +1,10 @@
 defmodule LiveMapWeb.FacebookAuthController do
-  use Phoenix.Controller
-
-  action_fallback LiveMapWeb.LoginError
-
-  # def terminate(conn, message, path),
-  #   do:
-  #     conn
-  #     |> put_flash(:error, inspect(message))
-  #     |> redirect(to: path)
-  #     |> halt()
+  use LiveMapWeb, :controller
+  alias LiveMap.ElixirAuthFacebook
+  alias Libraries.ElixirAuthFacebook
+  action_fallback LiveMapWeb.LoginErrorController
 
   def login(conn, params) do
-    # example with modified termination function: &custom_term/3
-
     with {:ok, profile} <- ElixirAuthFacebook.handle_callback(conn, params),
          %{email: email} <- profile do
       user = LiveMap.User.new(email)

@@ -1,17 +1,16 @@
 # LiveMap
 
 TODO: explain!!
+
 - update the map when running the query ??
-- modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability) 
+- modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability)
 - more queries in the table: selection by user and by status
 - for fun: add a svg graph to show distances per user
 - add a serverless chat?
 
+<https://www.codejam.info/2021/11/elixir-intercepting-phoenix-liveview-events-javascript.html>
 
-
-
-
-This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. It is inspired by [this talk](https://www.youtube.com/watch?v=xXWyOy9XdA8&t=255s) and some ideas are learned and solutions borrowed from [this book](https://pragprog.com/titles/puphoe/building-table-views-with-phoenix-liveview/), [this author](https://akoutmos.com/) and [this organisation](https://github.com/dwyl). 
+This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. It is inspired by [this talk](https://www.youtube.com/watch?v=xXWyOy9XdA8&t=255s) and some ideas are learned and solutions borrowed from [this book](https://pragprog.com/titles/puphoe/building-table-views-with-phoenix-liveview/), [this author](https://akoutmos.com/) and [this organisation](https://github.com/dwyl).
 
 - [0. Quick presentation](#quick-presentation-of-the-app)
 
@@ -24,15 +23,17 @@ This is a little social web app that displays simple "events" on an interactive 
 - [4. Rendering events when moving the map](#rendering-of-events-on-the-map)
 
 - [5. Invitation management process](#manage-the-invitations)
-    - [partial index](#partial-index)
-    - [Multi on association](#multi-on-assoc)
+
+  - [partial index](#partial-index)
+  - [Multi on association](#multi-on-assoc)
 
 - [6. Schemaless changeset example with the date validator and "reat-time"](#schemaless-date-changeset-and-real-time)
-    - [Customer error_tag](#custom-error-tag)
+
+  - [Customer error_tag](#custom-error-tag)
 
 - [7. Queries]
-    - [Generate a table from the map](#generate-a-table-from-the-map)
-    - [Custom datalist input and `phx_debounce`](#custom-datalist-input-and-phx_debounce) 
+  - [Generate a table from the map](#generate-a-table-from-the-map)
+  - [Custom datalist input and `phx_debounce`](#custom-datalist-input-and-phx_debounce)
 - [8. Postgis setup](#postgis-setup)
 
   11.[Table and Queries for user data]
@@ -48,13 +49,11 @@ A user can create an event which is a journey from a point A to a point B. It is
 A user can ask to participate to an event via a button. This triggers a notification and confirmation process, all done via mail. Note that every user has to be registered and an email address is obtained with a direct social media login.
 
 The app is a single page app with a LiveView. The map is a `live-component` and the date forms, and the tables are functional components.
-One point to mention is when you use variables in a component: the compiler asks you to pass them instead into the assigns for change tracking. 
-
+One point to mention is when you use variables in a component: the compiler asks you to pass them instead into the assigns for change tracking.
 
 ## Tooling
 
-The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client": it fetches online png files from a server - OpenStreetMap - and stitches this collection of images. The immediate optimisation  would be to use **vector tiles** instead and the more powerful library [maplibre](https://maplibre.org/maplibre-gl-js-docs/api/). The Leaflet setup and code is [here](#leaflet-setup)
-
+The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client": it fetches online png files from a server - OpenStreetMap - and stitches this collection of images. The immediate optimisation would be to use **vector tiles** instead and the more powerful library [maplibre](https://maplibre.org/maplibre-gl-js-docs/api/). The Leaflet setup and code is [here](#leaflet-setup)
 
 The database is a Postgres database with the **Postgis** extension enabled. We use the **geography** version. We perform a "[nearest neighbours] (https://postgis.net/workshops/postgis-intro/knn.html)" search to the current location with regards to the dimension of the map. See also Crunchy data [post](https://www.crunchydata.com/blog/a-deep-dive-into-postgis-nearest-neighbor-search).
 
@@ -63,18 +62,15 @@ The config for Postgis is [down here](#postgis-setup).
 
 The map and the table are "soft" live updated whenever a new event is created by a user, and `Presence` is enabled too.
 
-
 [:arrow_up:]()
 
-##  Events and Markers
-
+## Events and Markers
 
 You have two kind of markers:
 
-- markers as vertices of events retrieved from the database, 
+- markers as vertices of events retrieved from the database,
 
-- markers created by clicking on the map, to build a new event. 
-
+- markers created by clicking on the map, to build a new event.
 
 When you create a marker, a table appears below to set the date and save and broadcast it. You can move/drag, or delete the marker while the event is not saved. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered. All other servers (Esri/ArcGis, Mapbox or Google) require an API key and pay-per-usage.
 
@@ -86,7 +82,7 @@ An example of an event creation:
 
 with the ephemeral table:
 
-![Event table](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/wkpwg9e8xr29015z40m8.png)  
+![Event table](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/wkpwg9e8xr29015z40m8.png)
 
 The client code is [here](#leaflet-maphook-code)
 
@@ -96,9 +92,7 @@ The client code is [here](#leaflet-maphook-code)
 
 The ER Diagram of the database. This schema is generated by the library [Ecto_ERD](https://github.com/fuelen/ecto_erd/).
 
-
 ![ERD project](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/4ggpvgysqbcqz4aioiqm.png)
-
 
 [:arrow_up:]()
 
@@ -106,7 +100,7 @@ The ER Diagram of the database. This schema is generated by the library [Ecto_ER
 
 #### GeoJSON format
 
-We use the [GeoJson format](https://macwright.com/2015/03/23/geojson-second-bite.html). This [repo](https://github.com/tmcw/awesome-geojson) links to some GeoJson utilities. Leaflet has primitives to work easily with a collection of GeoJSON objects. 
+We use the [GeoJson format](https://macwright.com/2015/03/23/geojson-second-bite.html). This [repo](https://github.com/tmcw/awesome-geojson) links to some GeoJson utilities. Leaflet has primitives to work easily with a collection of GeoJSON objects.
 
 ```json
 {
@@ -117,24 +111,24 @@ We use the [GeoJson format](https://macwright.com/2015/03/23/geojson-second-bite
 }
 ```
 
-Each feature in our case is a "LineString". It has properties related his two vertices. 
+Each feature in our case is a "LineString". It has properties related his two vertices.
 
 ```json
 {
   "type": "Feature",
   "geometry": {
-     "type": "LineString",
-     "coordinates": [
-        [-1.5, 47.2],
-        [-1.52, 47.29]
-     ]
+    "type": "LineString",
+    "coordinates": [
+      [-1.5, 47.2],
+      [-1.52, 47.29]
+    ]
   },
   "properties": {
-     "ad1": "start point address",
-     "ad2": "end point address",
-     "date": "01/09/2022",
-     "owner": "me@mail.com"
-   }
+    "ad1": "start point address",
+    "ad2": "end point address",
+    "date": "01/09/2022",
+    "owner": "me@mail.com"
+  }
 }
 ```
 
@@ -163,7 +157,7 @@ We parse the "events" table into an Elixir struct that we named "GeoJSON", used 
 
 #### Moving the map and query of the local events
 
-We have a listener on the map moves, whether pan, zoom or navigate to. It mutates a JS object `movingmap`. We send the centre and radius of the current displayed map as parameters to a query to retrieve the nearby events. When you pan, zoom, navigate in the map (the latter via the search form included in the map), a new centre and radius are calculated and the map is updated.  
+We have a listener on the map moves, whether pan, zoom or navigate to. It mutates a JS object `movingmap`. We send the centre and radius of the current displayed map as parameters to a query to retrieve the nearby events. When you pan, zoom, navigate in the map (the latter via the search form included in the map), a new centre and radius are calculated and the map is updated.
 
 ```js
 map.on("moveend", updateMapBounds);
@@ -172,7 +166,7 @@ function updateMapBounds() {
 }
 ```
 
-The object is "proxied" (Javascript `proxy`) in the front-end where we save the centre and radius of the displayed map. It gets updated/mutated by the callback of the listener "moveend" 
+The object is "proxied" (Javascript `proxy`) in the front-end where we save the centre and radius of the displayed map. It gets updated/mutated by the callback of the listener "moveend"
 
 ```js
 const movingmap = proxy({ center: [], distance: 10_000 });
@@ -182,8 +176,8 @@ We subscribe to mutations (we used **Valtio**), and push this data to the server
 
 ```js
 subscribe(movingmap, () => {
-      this.pushEventTo("#map", "postgis", { movingmap });
- });
+  this.pushEventTo("#map", "postgis", { movingmap });
+});
 ```
 
 Server-side, the handler is:
@@ -204,7 +198,7 @@ def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
             LiveMap.Repo.features_in_map(lng, lat, String.to_float(distance))
             |> List.flatten()
           end)
-          |> then(fn task -> 
+          |> then(fn task ->
             # update with new time for this user
             :ets.insert(:limit_user, {user_id, Time.utc_now()})
             case Task.await(task) do
@@ -216,7 +210,7 @@ def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
                 result
             end
           end)
-        _ -> 
+        _ ->
           nil
      end
 
@@ -224,8 +218,8 @@ def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
   end
 ```
 
-The function "features_in_map" is the Postgres query below: 
- 
+The function "features_in_map" is the Postgres query below:
+
 ```elixir
 def features_in_map(lng, lat, distance, date_start \\ default_date(0), date_end \\ default_date(30) do
 
@@ -248,7 +242,7 @@ def features_in_map(lng, lat, distance, date_start \\ default_date(0), date_end 
 
     case Ecto.Adapters.SQL.query(Repo, query, [lng, lat, distance, date_start, date_end]) do
       {:ok, %Postgrex.Result{rows: rows}} -> rows
-        
+
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.error(message)
@@ -259,12 +253,12 @@ defp default_date(d), do: Date.utc_today() |> Date.add(d)
 ```
 
 There several steps here:
-- the "costly" query has a very simple rate limiter per user, at the rate of one per second to avoid "over-fetching" for small moves of the map. We instantiate  in the LiveView `mount` a tuple `{user_id, Time.utc_now}` saved in an ETS table instantiated with the app. When the handler is triggered, the query can run if the current time is at least 1 second older than the one in ETS. When this is the case, we save in ETS the time when the user ran the query. 
-- in the `features_around` function, we query for the nearest neighbours. We used the **distance operator** [<->](https://postgis.net/docs/geometry_distance_knn.html) which accelerates the query in combination with the GIST index. 
+
+- the "costly" query has a very simple rate limiter per user, at the rate of one per second to avoid "over-fetching" for small moves of the map. We instantiate in the LiveView `mount` a tuple `{user_id, Time.utc_now}` saved in an ETS table instantiated with the app. When the handler is triggered, the query can run if the current time is at least 1 second older than the one in ETS. When this is the case, we save in ETS the time when the user ran the query.
+- in the `features_around` function, we query for the nearest neighbours. We used the **distance operator** [<->](https://postgis.net/docs/geometry_distance_knn.html) which accelerates the query in combination with the GIST index.
 - return data in GeoJSON format with [this function](https://postgis.net/docs/ST_AsGeoJSON.html).
 
-
-The data is pushed to the front-end where we have a listener. It will iterate over the features array 
+The data is pushed to the front-end where we have a listener. It will iterate over the features array
 
 ```js
 this.handleEvent("udpate_features", ({ data }) => handleData(data));
@@ -272,17 +266,17 @@ this.handleEvent("udpate_features", ({ data }) => handleData(data));
 
 The callback `handleData` will parse the GeoJSON which contains all the needed information. We know it is of type "linestring" with coordinates and we can set the properties on each vertex in a popup (owner, date, address). We also have settings for the line (with settings):
 
-```js 
+```js
 function handleData(data) {
-   if (data) {
-     L.geoJSON(data, {
-        // iterate over each feature
-        onEachFeature: onEachFeature,
-        // settings for the line
-        style: lineStyle,    
-     }).addTo(datagroup);
-   }
- }
+  if (data) {
+    L.geoJSON(data, {
+      // iterate over each feature
+      onEachFeature: onEachFeature,
+      // settings for the line
+      style: lineStyle,
+    }).addTo(datagroup);
+  }
+}
 
 // iteration
 function onEachFeature(feature, layer) {
@@ -293,7 +287,7 @@ function onEachFeature(feature, layer) {
 }
 
 // define the marker as a circle and add a popup
-function addCircleMarker(pos, addr, owner, date, color) { 
+function addCircleMarker(pos, addr, owner, date, color) {
   L.circleMarker(pos, { radius: 10, color })
     .bindPopup(info(addr, owner, date))
     .addTo(datagroup);
@@ -301,17 +295,17 @@ function addCircleMarker(pos, addr, owner, date, color) {
 
 // create the html in the popup
 function info(addr, owner, date) {
-   const evtDate = new Date(date).toDateString();
-   return `
+  const evtDate = new Date(date).toDateString();
+  return `
      <h4>${owner}, the ${evtDate}</h4>
      <h5>${addr}</h5>
    `;
-};
+}
 ```
 
 [:arrow_up:]()
 
-##  Manage the invitations
+## Manage the invitations
 
 The process is similar to a password-less login. In fact, the login is via a social media login (which we don't describe) thus we get the user's email which is supposed to be verified. All the flow below will use emails and the process is described in the diagram below:
 
@@ -363,7 +357,7 @@ def changeset(%__MODULE__{} = event_participants, attrs) do
 
 #### Multi on assoc
 
-When a user creates an event, he is the "owner". A new event is created along with an "event_participants". The status is set to the value "owner". 
+When a user creates an event, he is the "owner". A new event is created along with an "event_participants". The status is set to the value "owner".
 
 ```
 # record in "event_participants"
@@ -402,7 +396,7 @@ SFMyNTY.g2gDbQAAABR...
 [event_id, owner_id, "pending", SFMyNTY.g2gDbQAAABR...]
 ```
 
-With these two fields (event_id, user_id), we find the owner and send him a mail with a "magic" link with this token. It invites him to follow the link to "confirm" the event to the demander. 
+With these two fields (event_id, user_id), we find the owner and send him a mail with a "magic" link with this token. It invites him to follow the link to "confirm" the event to the demander.
 
 When the owner clicks on the link, it hits an endpoint where we `verify` and `decode_query` the token. If it is valid, this gives the "event_id" and "user_id". We can retrieve a token from the DB and check for equality. If everything is correct (i.e. not ":expired" or ":invalid"), the status is updated, the token destroyed and a confirmation mail is sent to the user.
 
@@ -419,8 +413,7 @@ This process is run in a `Task` and uses **Swoosh** (no Oban nor a lamdba for th
 
 [:arrow_up:]()
 
-
-## Schemaless date changeset and  real time
+## Schemaless date changeset and real time
 
 Here is described the "save event" form in combination with "real-time" update.
 
@@ -476,7 +469,7 @@ def render(%{len: len} = assigns) when len>1 do
   ~H"""
   <div>
   <.form :let={f} for={@changeset} id="form" phx-submit="up_date" phx-target={@myself} class="...">
-      <%= submit "Update", class: "..." %> 
+      <%= submit "Update", class: "..." %>
       <%= date_input(f, :event_date, id: "date" %>
       <%= error_tag(f, :event_date), class: "m-1 ..." %>
   </.form>
@@ -487,7 +480,7 @@ end
 def render(assigns) do
   ~H"""
     <div></div>
-  """ 
+  """
 end
 
 def handle_event("up_date", %{"date_picker" => %{"event_date" => date}} = _p, socket) do
@@ -525,7 +518,6 @@ def handle_event("up_date", %{"date_picker" => %{"event_date" => date}} = _p, so
 end
 ```
 
-
 We used a GeoJson in an Elixir struct. It just needs a setter to populate an instance from an Event record:
 
 ```elixir
@@ -555,9 +547,9 @@ In the front-end, there is a corresponding listener that consumes GeoJSON object
 
 ```js
 this.handleEvent("new pub", ({ geojson }) => {
-      clearEvent();
-      handleData(geojson);
- });
+  clearEvent();
+  handleData(geojson);
+});
 ```
 
 #### Custom error tag
@@ -582,6 +574,7 @@ end
 #### Generate a table from the map
 
 When the user is at a given location, he can query to get the events at this location given a future time frame. The format of the data is:
+
 ```
 [event_id, map_owner, map_demanders_array || map_confirmed_array ]
 
@@ -589,6 +582,7 @@ When the user is at a given location, he can query to get the events at this loc
 ```
 
 To get this form, you can run a query `Repo.query()` like:
+
 ```sql
  WITH geo_events AS (
    SELECT coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy, events.id,  events.date, ep.user_id, u.email, ep.status
@@ -648,7 +642,7 @@ def handle_event("search", %{"form" => %{"user" => string}}, socket) do
 which is triggered on `phx_change` by the input element below of the form
 
 ```elixir
-<%= text_input(f, :user, 
+<%= text_input(f, :user,
   phx_change: "search",
   phx_target: @myself,
   phx_debounce: "500",
@@ -668,7 +662,6 @@ The output in the terminal indeed shows:
 Event: "search"
 Parameters: %{"_target" => ["form", "user"], "form" => %{"user" => "xxxx"}
 ```
-
 
 By default no datalist element is provided. You need to add a custom helper named "InputHelpers" here to be able to use a "datalist_input":
 
@@ -756,10 +749,13 @@ You also need to load the CSS and set the height and width to the div that holds
 
 ```css
 /* app.css */
-@import 'leaflet/dist/leaflet.css';
-@import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+@import "leaflet/dist/leaflet.css";
+@import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
-#mymap { height: 400px; width: 100%; }
+#mymap {
+  height: 400px;
+  width: 100%;
+}
 ```
 
 To render the map, add two bindings: `phx-update="ignore"` to let Leaflet update tiles without interacting with LiveView (see [docs](https://hexdocs.pm/phoenix_live_view/dom-patching.html#content)), and `phx-hook` to your custom "hook":
@@ -771,7 +767,7 @@ def render(assigns) do
     <div id="mymap" phx-update="ignore" phx-hook="MapHook"></div>
   ""
 end
-``` 
+```
 
 Client-side, you name this object as in your `phx-hook`:
 
@@ -780,7 +776,7 @@ export const MapHook = {
   import L from 'leaflet'
 
   mounted() {
-    const map = L.('mymap', { renderer: L.canvas() }).setView(...) 
+    const map = L.('mymap', { renderer: L.canvas() }).setView(...)
   }
 }
 ```

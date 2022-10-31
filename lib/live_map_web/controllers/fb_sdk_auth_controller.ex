@@ -1,26 +1,17 @@
 defmodule LiveMapWeb.FbSdkAuthController do
-  use Phoenix.Controller
+  use LiveMapWeb, :controller
   require Logger
+  alias Libraries.ElixirSdkFacebook
 
-  defp into_atoms(strings) do
-    for {k, v} <- strings, into: %{}, do: {String.to_atom(k), v}
-  end
+  action_fallback LiveMapWeb.LoginErrorController
 
-  defp into_deep(params, key) do
-    params
-    |> into_atoms()
-    |> Map.update!(key, fn pic ->
-      pic
-      |> Jason.decode!()
-      |> into_atoms()
-    end)
-  end
+  def handler(conn, params) do
+    with profile <- ElixirSdkFacebook.parse(params),
+         %{email: email} <- profile do
+      user =
+        LiveMap.User.new(email)
+        |> IO.inspect(label: "user")
 
-  def handle(conn, params) do
-    profile = into_deep(params, :picture)
-
-    with %{email: email} <- profile do
-      user = LiveMap.User.new(email)
       user_token = LiveMap.Token.user_generate(user.id)
 
       conn
@@ -29,8 +20,8 @@ defmodule LiveMapWeb.FbSdkAuthController do
       |> put_session(:user_id, user.id)
       |> put_session(:origin, "fb_sdk")
       |> put_session(:profile, profile)
-      |> put_view(LiveMapWeb.WelcomeView)
-      |> redirect(to: LiveMapWeb.Router.Helpers.welcome_path(conn, :index))
+      # |> put_view(LiveMapWeb.WelcomeView)
+      |> redirect(to: Routes.welcome_path(conn, :index))
       |> halt()
     end
   end

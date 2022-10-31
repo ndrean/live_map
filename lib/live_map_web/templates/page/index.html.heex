@@ -49,6 +49,7 @@
 </section>
 
 <%!-- ************** GOOGLE BUTTON ************************* --%>
+<%= System.get_env("GOOGLE_CLIENT_ID") %>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <div class="flex items-center">
@@ -72,12 +73,11 @@
 <%!-- ********************* SSR FACEBOOK BUTTON ************************ --%>
  <a class="" href={@oauth_facebook_url}>
   <img style="margin-left: 120px;" width="250" alt="fb-ssr"
-    src="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&amp;ccb=1-7&amp;_nc_sid=ad8a9d&amp;_nc_ohc=8sb1L4zz4BUAX_EvUKb&amp;_nc_ht=scontent-cdt1-1.xx&amp;oh=00_AT9npEF786Ao623QdsCGbrNq9s4R9v1xzFeX5GkOkAbT6g&amp;oe=6354DA64"
-  />
+  src={Routes.static_path(@conn, "/images/fb_login.png")} />
 </a>
 <br/>
-  <%!-- src={Routes.static_path(@conn, "/images/fb_login.png")} /> --%>
 
+    <%!-- scr="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&ccb=1-7&_nc_sid=ad8a9d&_nc_ohc=-7Eal1ebej0AX9p_FQj&_nc_ht=scontent-cdt1-1.xx&oh=00_AfBzgENSA79y3oIE5gfBr0JJX9DQ_6HDOoHcjUgf_B-q-Q&oe=6360B7E4" --%>
 <%!-- ********************** FB JS SDK Login Button **************************** --%>
 
 <script>window.app_id="<%= assigns[:app_id] %>";</script>
@@ -86,5 +86,6 @@
 <div class="fb-login-button" data-width="" data-size="large" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div> --%>
 
 <button id="fbhook"  type="button"> 
-  <img src="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&amp;ccb=1-7&amp;_nc_sid=ad8a9d&amp;_nc_ohc=8sb1L4zz4BUAX_EvUKb&amp;_nc_ht=scontent-cdt1-1.xx&amp;oh=00_AT9npEF786Ao623QdsCGbrNq9s4R9v1xzFeX5GkOkAbT6g&amp;oe=6354DA64" width="350" alt="" style="margin-left: 120px;"/>
+  <img style="margin-left: 120px;" width="250" alt="fb-ssr"
+  src={Routes.static_path(@conn, "/images/fb_login.png")} />
 </button>

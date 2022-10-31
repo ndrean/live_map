@@ -1,5 +1,14 @@
 import Config
 
+# https://www.openmymind.net/Elixir-Without-Ecto/
+# config :postgrex,
+#   config: [
+#     username: "postgres",
+#     password: "postgres",
+#     hostname: "localhost",
+#     database: "live_map_dev"
+# ]
+
 # Configure your database
 config :live_map, LiveMap.Repo,
   username: "postgres",

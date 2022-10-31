@@ -1,7 +1,7 @@
 // We import the CSS which is extracted to its own file by esbuild. Remove this line if you add a your own CSS build pipeline (e.g postcss).
 // import "../css/app.css";
 
-// import "./user_socket.js";
+import "./user_socket.js";
 
 // The simplest option is to put them in assets/vendor and import them using relative paths:
 //     import "../vendor/some-package.js"
@@ -35,7 +35,7 @@ window.addEventListener("phx:page-loading-stop", (info) => topbar.hide());
 liveSocket.connect();
 
 // expose liveSocket on window for web console debug logs and latency simulation:
-liveSocket.enableDebug();
+// liveSocket.enableDebug();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
@@ -56,4 +56,5 @@ if (fbutton) facebook(fbutton);
 
 // GOOGLE-ONE-TAP
 const oneTap = document.querySelector("#g_id_onload");
-if (oneTap) oneTap.dataset.login_uri = window.location.href + "auth/one_tap";
+if (oneTap)
+  oneTap.dataset.login_uri = window.location.href + "auth/google/callback";

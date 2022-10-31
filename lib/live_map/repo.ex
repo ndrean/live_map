@@ -62,6 +62,7 @@ defmodule LiveMap.Repo do
       "
     ]
 
+    # before ST_MakePoint
     case Repo.query(query, [lng, lat, distance, date_start, date_end]) do
       {:ok, %Postgrex.Result{rows: rows}} ->
         rows

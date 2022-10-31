@@ -10,15 +10,15 @@ import Config
 config :live_map,
   ecto_repos: [LiveMap.Repo]
 
-config :elixir_auth_google,
-  google_client_id: System.get_env("GOOGLE_CLIENT_ID"),
-  google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
-  google_scope: "profile email"
+# config :elixir_auth_google,
+#   google_client_id: System.get_env("GOOGLE_CLIENT_ID"),
+#   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET"),
+#   google_scope: "profile email"
 
-config :elixir_auth_github,
-  github_client_id: System.get_env("GITHUB_CLIENT_ID"),
-  github_client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
-  github_scope: "public_profile"
+# config :elixir_auth_github,
+#   github_client_id: System.get_env("GITHUB_CLIENT_ID"),
+#   github_client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+#   github_scope: "public_profile"
 
 config :live_map,
   app_id: System.get_env("FACEBOOK_APP_ID"),

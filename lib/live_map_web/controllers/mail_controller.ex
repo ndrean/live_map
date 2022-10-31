@@ -1,5 +1,5 @@
 defmodule LiveMapWeb.MailController do
-  use Phoenix.Controller
+  use LiveMapWeb, :controller
   require Logger
   alias LiveMapMail.Email
   alias LiveMapMail.Mailer
