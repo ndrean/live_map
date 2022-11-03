@@ -70,8 +70,6 @@ defmodule LiveMapWeb.NewEvent do
       {:error, changeset} ->
         case event_date_blank?(changeset) do
           true ->
-            IO.inspect(changeset, label: "handel_Event_up_date")
-
             changeset =
               %NewEvent{}
               |> NewEvent.changeset(%{"event_date" => date})
@@ -80,9 +78,8 @@ defmodule LiveMapWeb.NewEvent do
             {:noreply, assign(socket, :changeset, changeset)}
 
           false ->
-            IO.puts("false handle_event_up_date")
             socket = assign(socket, :changeset, changeset)
-            send(self(), "flash_error")
+            send(self(), "flash_update")
             {:noreply, push_event(socket, "clear_event", %{})}
         end
 

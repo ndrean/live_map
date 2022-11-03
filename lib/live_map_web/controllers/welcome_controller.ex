@@ -10,6 +10,6 @@ defmodule LiveMapWeb.WelcomeController do
 
     conn
     |> assign(:user_token, user_token)
-    |> render("index.html", profile: profile)
+    |> render(:index, profile: profile)
   end
 end

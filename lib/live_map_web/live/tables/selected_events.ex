@@ -14,7 +14,7 @@ defmodule LiveMapWeb.SelectedEvents do
   @impl true
   def update(assigns, socket) do
     #   #   socket = assign_events(socket)
-    IO.puts("update")
+    IO.puts("update selected events")
 
     {:ok, assign(socket, assigns)}
   end
@@ -38,7 +38,15 @@ defmodule LiveMapWeb.SelectedEvents do
     """
   end
 
+  def render(%{selected: []} = assigns) do
+    ~H"""
+    <div></div>
+    """
+  end
+
   def render(assigns) do
+    IO.inspect(assigns.flash, label: "flash")
+
     ~H"""
     <div>
     <table id="selected">
@@ -52,8 +60,8 @@ defmodule LiveMapWeb.SelectedEvents do
           <th>Participants</th>
         </tr>
       </thead>
-      <tbody>
-        <%= for [id, %{"owner" => [owner], "pending"=> pending, "confirmed" => confirmed}, %{"date" => date}] <- @selected do %>
+      <tbody :for={[id, %{"owner" => [owner], "pending"=> pending, "confirmed" => confirmed}, %{"date" => date}] <- @selected} >
+        <%# for [id, %{"owner" => [owner], "pending"=> pending, "confirmed" => confirmed}, %{"date" => date}] <- @selected do %>
           <tr id={"event-#{id}"}
             class="mb-1"
           >
@@ -129,7 +137,7 @@ defmodule LiveMapWeb.SelectedEvents do
               <% end %>
             </td>
           </tr>
-        <% end %>
+        <%# end %>
       </tbody>
     </table>
     </div>

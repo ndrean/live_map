@@ -40,7 +40,7 @@ liveSocket.connect();
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
 
-//  clear checkboxes if any checked in the table query events
+//  clear checkboxes if any checked in the table query events after sending new event
 window.addEventListener("phx:clear_boxes", () => {
   const table = document.getElementById("selected");
   if (table) {

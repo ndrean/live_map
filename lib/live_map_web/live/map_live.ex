@@ -35,9 +35,9 @@ defmodule LiveMapWeb.MapLive do
     ~H"""
     <div>
     <p>Number connected user: <%= @presence %></p>
-    <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id}/>
-    <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords}/>
-    <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current}/>
+    <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id} />
+    <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords} />
+    <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current} />
     </div>
     """
   end
@@ -66,13 +66,24 @@ defmodule LiveMapWeb.MapLive do
         %{topic: "event", event: "new_event", payload: %{geojson: geojson}},
         socket
       ) do
-    IO.inspect(label: "handle_info_new_event")
     {:noreply, push_event(socket, "new_pub", %{geojson: geojson})}
   end
 
   # example of error: bad user_id
   def handle_info("flash_error", socket) do
     {:noreply, put_flash(socket, :error, "Event not saved due to error")}
+  end
+
+  def handle_info({:flash_query_picker, message}, socket) do
+    {:noreply, put_flash(socket, :error, inspect(message))}
+  end
+
+  def handle_info({:flash_postgis, message}, socket) do
+    {:noreply, put_flash(socket, :error, inspect(message))}
+  end
+
+  def handle_info("flash_update", socket) do
+    {:noreply, put_flash(socket, :error, "Update error")}
   end
 
   # update the assigns with new map coords for QueryPicker to be able to query the area

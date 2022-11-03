@@ -81,8 +81,8 @@ export const MapHook = {
     // store of new event. use pushEventTo with phx-target (elements)
     subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
 
-    //  ******** TOGGLING - HIGHLIGHTING events with CHECKBOX
-    let myEvts = [];
+    //  ******** store the events
+    let myEvts = [{ type: "featureCollection", features: [] }];
     // store the toggled = highlighted events from checkbox SSR
     let toggled = [];
 
@@ -118,7 +118,7 @@ export const MapHook = {
     });
 
     // ****************
-    // reset the newly saved event
+    // reset the layers & "place" storage
     function clearEvents() {
       layergp.clearLayers();
       lineLayer.clearLayers();
@@ -132,7 +132,7 @@ export const MapHook = {
 
     this.handleEvent("delete_event", ({ id }) => {
       clearEvents();
-      const [{ features: features }] = myEvts;
+      const [{ features: features = [] }] = myEvts;
       myEvts[0].features = features.filter(
         (feature) => feature.properties.id !== Number(id)
       );
@@ -142,7 +142,9 @@ export const MapHook = {
     // add a broadcasted new event
     this.handleEvent("new_pub", ({ geojson }) => {
       clearEvents();
-      myEvts.push(geojson);
+      let feature = myEvts[0]?.features;
+      feature === null ? (feature = [geojson]) : feature.push(geojson);
+      myEvts[0].features = feature;
       handleData(myEvts);
     });
 
@@ -150,7 +152,7 @@ export const MapHook = {
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
-      // save geojson to be able to highlight a specific event
+      // save geojson to local store
       myEvts = data;
       // process to create line and markers on each feature
       if (data)
@@ -294,7 +296,7 @@ export const MapHook = {
     // provides a form to find a place by its name and fly-to
     const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
     //
-    coder.on("mark_geocode", function ({ geocode: { center, html, name } }) {
+    coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
       map.flyTo(center, 10);
       html = addButton(html);
       const marker = L.marker(center, { draggable: true });
@@ -324,6 +326,7 @@ export const MapHook = {
       movingmap.distance = Number(
         map.distance(L.latLng(ne), L.latLng(sw)) / 2
       ).toFixed(1);
+      console.log(movingmap.distance);
     });
 
     // ***** Delete listener triggered from SSR pushEvent

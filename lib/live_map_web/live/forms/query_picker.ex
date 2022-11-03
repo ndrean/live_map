@@ -14,11 +14,18 @@ defmodule LiveMapWeb.QueryPicker do
        changeset: QueryPicker.changeset(%QueryPicker{}),
        status: ["all", "pending", "confirmed"],
        users: [],
-       select: "all"
+       select: [],
+       #  select: "all"
+       start_date: Date.utc_today(),
+       end_date: Date.utc_today() |> Date.add(1),
+       name: ""
      )}
   end
 
   # def update(assigns, socket) do
+  #   IO.inspect(socket.assigns.select)
+  #   socket = update(socket, :select, fn sel -> [select | sel] end)
+  #   IO.inspect(socket.asigns.select)
   #   {:ok, assign(socket, assigns)}
   # end
 
@@ -28,6 +35,9 @@ defmodule LiveMapWeb.QueryPicker do
     assigns = assign(assigns, :d, to_km(assigns.distance))
     assigns = assign(assigns, :user, assigns.user)
     assigns = assign(assigns, :select, assigns.select)
+
+    assigns = assign(assigns, :start_date, assigns.start_date)
+    assigns = assign(assigns, :end_date, assigns.end_date)
 
     ~H"""
     <div>
@@ -57,13 +67,15 @@ defmodule LiveMapWeb.QueryPicker do
         <.select status={@status} select={@select}></.select>
       </div>
       <div class="flex items-center justify-around ml-3 mt-2">
-        <%= date_input(f, :start_date, class: "w-60" ) %>
+        <.date date={@start_date} name="start"></.date>
+        <%# date_input(f, :start_date, class: "w-60" ) %>
         <%= error_tag(f, :start_date) %>
         <button form="query_picker"
           class="px-2 py-2 bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         >Send
         </button>
-        <%= date_input(f, :end_date, class: "w-60") %>
+        <.date date={@end_date} name="end"></.date>
+        <%=#date_input(f, :end_date, class: "w-60") %>
         <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">
@@ -87,6 +99,17 @@ defmodule LiveMapWeb.QueryPicker do
   attr(:target, :string)
   attr(:status, :list)
   attr(:select, :string)
+  # attr(:select, :list)
+  attr(:name, :string)
+  attr(:date, :string, required: true)
+
+  def date(assigns) do
+    ~H"""
+    <input type="date" id={"#{@name}_date"} name={"query_picker[#{@name}_date]"} required
+      value={@date} class="w-60"
+    />
+    """
+  end
 
   def datalist(assigns) do
     ~H"""
@@ -107,6 +130,8 @@ defmodule LiveMapWeb.QueryPicker do
   end
 
   def select(assigns) do
+    IO.inspect(assigns.select)
+
     ~H"""
       <select id="select" name="query_picker[status]" class="w-50 ml-2 mr-2">
         <option :for={status <- @status} selected={status == @select}><%= status %></option>
@@ -114,16 +139,20 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
+  # selected={status == @select}
   def handle_event("change", %{"query_picker" => params}, socket) do
     changeset =
       %QueryPicker{}
       |> QueryPicker.changeset(params)
       |> Map.put(:action, :validate)
+      |> IO.inspect()
 
     socket =
       socket
       |> assign(:changeset, changeset)
       |> assign(:select, params["status"])
+      |> assign(:start_date, params["start_date"])
+      |> assign(:end_date, params["end_date"])
 
     {:noreply, socket}
   end
@@ -144,7 +173,9 @@ defmodule LiveMapWeb.QueryPicker do
   # %{"date" => "2022-10-10"}]
 
   def handle_event("send", %{"query_picker" => form}, socket) do
-    changeset = QueryPicker.changeset(%QueryPicker{}, form)
+    changeset =
+      QueryPicker.changeset(%QueryPicker{}, form)
+      |> IO.inspect()
 
     case changeset.valid? do
       false ->
@@ -157,14 +188,14 @@ defmodule LiveMapWeb.QueryPicker do
 
         # reset all hilghlighted events since checkbox defaults to false on refresh (no more in sync)
         send(self(), {:down_check_all})
-        process_params(params)
+        process_params(params, socket)
     end
 
     # we uncheck all checkboxes with Javascript listener since not everything is updated
     {:noreply, push_event(socket, "clear_boxes", %{})}
   end
 
-  defp process_params(params) do
+  defp process_params(params, socket) do
     Task.Supervisor.async(LiveMap.EventSup, fn ->
       Repo.select_in_map(params)
     end)
@@ -176,7 +207,13 @@ defmodule LiveMapWeb.QueryPicker do
       case Task.await(task) do
         nil ->
           Logger.warn("Could not retrieve events")
+          {:noreply, put_flash(socket, :error, "Nothing to render")}
           nil
+
+        {:error, message} ->
+          IO.puts("ici")
+          send(self(), {:flash_query_picker, message})
+          {:noreply, socket}
 
         result ->
           # send to the LiveView

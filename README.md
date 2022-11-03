@@ -2,6 +2,10 @@
 
 TODO: explain!!
 
+Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+at content.js:2:155799
+at main.js:2:225523
+
 - update the map when running the query ??
 - modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability)
 - more queries in the table: selection by user and by status

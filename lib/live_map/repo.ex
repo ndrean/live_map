@@ -19,14 +19,14 @@ defmodule LiveMap.Repo do
                 MIN(ST_Distance(ST_MakePoint($1, $2), coordinates))
               )
               FROM events;",
-           [lng, lat],
-           log: true
+           [lng, lat]
          ) do
       {:ok, res} ->
         res.rows |> List.flatten()
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)
+        {:error, message}
     end
   end
 
@@ -39,6 +39,7 @@ defmodule LiveMap.Repo do
   ```s
   iex> [GeoSJON features] = LiveMap.Repo.features_in_map(lng, lat, distance)
   """
+  # events.coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
   def features_in_map(
         lng,
         lat,
@@ -52,23 +53,35 @@ defmodule LiveMap.Repo do
         'features', json_agg(ST_AsGeoJSON(t.*)::json)
       )
       FROM (
-        SELECT events.id, users.email, events.ad1, events.ad2, events.date, events.color, events.coordinates, events.distance,
-        coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
+        SELECT events.id, users.email, events.ad1, events.ad2, events.date, events.color, events.distance,
+        events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2, 4326) AS sphere_dist
         FROM events
         INNER JOIN users on events.user_id = users.id
-        WHERE ST_Distance(ST_MakePoint($1, $2),coordinates)  < $3
+        WHERE ST_DWithin(ST_MakePoint($1, $2, 4326),coordinates, $3)
         AND events.date >= $4::date AND events.date < $5::date
-      ) AS t(id, email, ad1, ad2, date, color, coordinates, distance);
-      "
+        ORDER BY sphere_dist
+        ) AS t(id, email, ad1, ad2, date, color, coordinates, distance);
+        "
     ]
 
-    # before ST_MakePoint
+    # FROM (
+    #     SELECT events.id, users.email, events.ad1, events.ad2, events.date, events.color, events.distance,
+    #     events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2)::geometry AS sphere_dist
+    #     FROM events
+    #     INNER JOIN users on events.user_id = users.id
+    #     WHERE ST_DWithin(ST_MakePoint($1, $2)::geometry,coordinates, $3)
+    #     AND events.date >= $4::date AND events.date < $5::date
+    #     ORDER BY sphere_dist
+    #     ) AS t(id, email, ad1, ad2, date, color, coordinates, distance);
+    #     "
+
     case Repo.query(query, [lng, lat, distance, date_start, date_end]) do
       {:ok, %Postgrex.Result{rows: rows}} ->
-        rows
+        {:ok, rows}
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
-        Logger.debug(message)
+        Logger.warning(message)
+        {:error, message}
     end
   end
 
@@ -81,13 +94,14 @@ defmodule LiveMap.Repo do
       }) do
     query = [
       "WITH geo_events AS (
-        SELECT events.id,  events.date, ep.user_id, u.email, ep.status, coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+        SELECT events.id,  events.date, ep.user_id, u.email, ep.status,
+        coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
         FROM events
         JOIN event_participants ep ON ep.event_id = events.id
         JOIN users u ON u.id = ep.user_id
         WHERE date >= $4::date AND date <= $5::date
         AND
-        ST_Distance(ST_MakePoint($1,$2),events.coordinates)  < $3
+        ST_DWithin(ST_MakePoint($1,$2),events.coordinates, $3)
       ),
       status_agg AS (
         SELECT id, status, ARRAY_AGG(email) emails
@@ -114,13 +128,13 @@ defmodule LiveMap.Repo do
            Repo,
            query,
            [lng, lat, distance, start_date, end_date]
-           #  log: true
          ) do
       {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
         rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)
+        {:error, message}
     end
   end
 
@@ -132,7 +146,8 @@ defmodule LiveMap.Repo do
         end_date: end_date
       }) do
     query = [
-      "SELECT events.id, events.user_id, users.email, events.ad1, events.ad2,  events.date, events.color, events.coordinates, events.coordinates  <-> ST_MakePoint($1,$2) AS sphere_graphy
+      "SELECT events.id, events.user_id, users.email, events.ad1, events.ad2,  events.date, events.color,
+      ST_Transform(events.coordinates, 4326),  events.coordinates  <-> ST_MakePoint($1,$2)::geometry AS sphere_graphy
     FROM events
     INNER JOIN users ON events.user_id = users.id
     INNER JOIN event_participants AS ep on events.id = ep.event_id
@@ -151,6 +166,7 @@ defmodule LiveMap.Repo do
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)
+        {:error, message}
     end
   end
 end

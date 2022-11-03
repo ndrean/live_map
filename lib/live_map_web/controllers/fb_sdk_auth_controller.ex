@@ -8,10 +8,7 @@ defmodule LiveMapWeb.FbSdkAuthController do
   def handler(conn, params) do
     with profile <- ElixirSdkFacebook.parse(params),
          %{email: email} <- profile do
-      user =
-        LiveMap.User.new(email)
-        |> IO.inspect(label: "user")
-
+      user = LiveMap.User.new(email)
       user_token = LiveMap.Token.user_generate(user.id)
 
       conn
@@ -20,7 +17,6 @@ defmodule LiveMapWeb.FbSdkAuthController do
       |> put_session(:user_id, user.id)
       |> put_session(:origin, "fb_sdk")
       |> put_session(:profile, profile)
-      # |> put_view(LiveMapWeb.WelcomeView)
       |> redirect(to: Routes.welcome_path(conn, :index))
       |> halt()
     end

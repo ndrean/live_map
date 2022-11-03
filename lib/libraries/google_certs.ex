@@ -24,18 +24,20 @@ defmodule Libraries.ElixirGoogleCerts do
   end
 
   def check_identity(jwt) do
-    with {:ok, %{"kid" => kid, "alg" => alg}} <- Joken.peek_header(jwt) do
-      %{"keys" => certs} =
-        @g_certs3_url
-        |> HTTPoison.get!()
-        |> Map.get(:body)
-        |> Jason.decode!()
+    case Joken.peek_header(jwt) do
+      {:error, message} ->
+        {:error, message}
 
-      cert = Enum.find(certs, fn cert -> cert["kid"] == kid end)
-      signer = Joken.Signer.create(alg, cert)
-      Joken.verify(jwt, signer, [])
-    else
-      {:error, message} -> {:error, message}
+      {:ok, %{"kid" => kid, "alg" => alg}} ->
+        %{"keys" => certs} =
+          @g_certs3_url
+          |> HTTPoison.get!()
+          |> Map.get(:body)
+          |> Jason.decode!()
+
+        cert = Enum.find(certs, fn cert -> cert["kid"] == kid end)
+        signer = Joken.Signer.create(alg, cert)
+        Joken.verify(jwt, signer, [])
     end
   end
 

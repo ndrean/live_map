@@ -28,6 +28,7 @@ defmodule LiveMapWeb.UserSocket do
     case LiveMap.Token.user_check(token) do
       {:error, reason} ->
         Logger.error("#{reason}: invalid token")
+        {:error, reason}
 
       {:ok, user_id} ->
         Logger.warning("connected")

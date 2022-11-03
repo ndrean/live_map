@@ -9,7 +9,7 @@ defmodule LiveMapWeb.PageController do
          oauth_facebook_url <- ElixirAuthFacebook.generate_oauth_url(conn) do
       conn
       |> assign(:app_id, System.get_env("FACEBOOK_APP_ID"))
-      |> render("index.html",
+      |> render(:index,
         oauth_github_url: oauth_github_url,
         oauth_google_url: oauth_google_url,
         oauth_facebook_url: oauth_facebook_url

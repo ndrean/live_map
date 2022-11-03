@@ -12,6 +12,7 @@ defmodule LiveMap.QueryPicker do
     status: :string,
     lat: :float,
     lng: :float,
+    # select: :list
     select: :string
   }
 
