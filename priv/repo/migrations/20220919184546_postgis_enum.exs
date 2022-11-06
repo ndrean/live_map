@@ -3,8 +3,7 @@ defmodule LiveMap.Repo.Migrations.PostgisEnum do
 
   def up do
     execute("CREATE EXTENSION IF NOT EXISTS postgis")
-    create_enum = "CREATE TYPE event_status AS ENUM ('owner', 'pending', 'confirmed')"
-    execute(create_enum)
+    execute("CREATE TYPE event_status AS ENUM ('owner', 'pending', 'confirmed')")
   end
 
   def down do

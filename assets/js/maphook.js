@@ -326,7 +326,6 @@ export const MapHook = {
       movingmap.distance = Number(
         map.distance(L.latLng(ne), L.latLng(sw)) / 2
       ).toFixed(1);
-      console.log(movingmap.distance);
     });
 
     // ***** Delete listener triggered from SSR pushEvent

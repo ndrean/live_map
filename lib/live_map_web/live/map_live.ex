@@ -27,6 +27,7 @@ defmodule LiveMapWeb.MapLive do
        selected: nil,
        page: 1,
        temporary_assigns: [events: []]
+       # , presences: %{}]
      )}
   end
 
@@ -74,16 +75,12 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, put_flash(socket, :error, "Event not saved due to error")}
   end
 
-  def handle_info({:flash_query_picker, message}, socket) do
-    {:noreply, put_flash(socket, :error, inspect(message))}
-  end
-
-  def handle_info({:flash_postgis, message}, socket) do
-    {:noreply, put_flash(socket, :error, inspect(message))}
-  end
-
   def handle_info("flash_update", socket) do
     {:noreply, put_flash(socket, :error, "Update error")}
+  end
+
+  def handle_info({:push_flash, from, message}, socket) do
+    {:noreply, put_flash(socket, :error, inspect("#{inspect(from)}: #{inspect(message)}"))}
   end
 
   # update the assigns with new map coords for QueryPicker to be able to query the area
@@ -97,8 +94,7 @@ defmodule LiveMapWeb.MapLive do
   def handle_info({:selected_events, payload}, socket) do
     payload
     |> Enum.map(fn [id, users, date] = _event ->
-      users = users |> Map.keys() |> set_all_keys(users)
-      [id, users, date]
+      [id, set_all_keys(users), date]
     end)
     |> then(fn payload ->
       send_update(SelectedEvents, id: "selected", selected: payload)
@@ -112,21 +108,10 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, assign(socket, presence: nb_users)}
   end
 
-  defp set_all_keys(keys, users) do
-    cond do
-      "pending" not in keys and "confirmed" not in keys ->
-        users
-        |> Map.merge(%{"pending" => []})
-        |> Map.merge(%{"confirmed" => []})
-
-      "pending" not in keys ->
-        Map.merge(users, %{"pending" => []})
-
-      "confirmed" not in keys ->
-        Map.merge(users, %{"confirmed" => []})
-
-      true ->
-        users
-    end
+  defp set_all_keys(users) do
+    users
+    |> Map.update("owner", [], & &1)
+    |> Map.update("pending", [], & &1)
+    |> Map.update("confirmed", [], & &1)
   end
 end

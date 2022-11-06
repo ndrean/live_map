@@ -1,6 +1,10 @@
 defmodule LiveMapMail.Email do
   @moduledoc """
-  Mail sender module
+  Mail sender module.
+
+  Two functions are exposed:
+  - `build_demand` when a user demands to participate,
+  - `confirm_participation` when the owner confirms the participation.
   """
 
   use Phoenix.Swoosh, view: LiveMapWeb.EmailView
@@ -8,8 +12,10 @@ defmodule LiveMapMail.Email do
   @support "support@LiveMap.com"
 
   @doc """
-  This function receives a token, the event_id and user_id.
-  From this, we find the owner email and send him a mail with a magic link.
+  Sends an email on behalf of the demandeur to the owner to participate to the event.
+
+  This function receives a `token`, the `event_id` and `user_id`.
+  The function finds the "owner email" and send him a mail with a `token` or "magic link".
   """
   def build_demand(%{mtoken: mtoken, event_id: event_id, user_id: user_id} = _params) do
     [email] = LiveMap.Event.owner(event_id)
@@ -26,8 +32,9 @@ defmodule LiveMapMail.Email do
 
   @doc """
   Sends a mail to the user on behalf of the owner to confirm the event.
-  The function receives [user_id, event_id], makes a lookup for the corresponding
-  owner.email and user.email and event.date and sends a confirmation mail.
+
+  The function receives `user_id`, `event_id`, makes a lookup for the corresponding
+  `owner.email` and `user.email` and `event.date` and sends a confirmation mail.
   """
   def confirm_participation(%{user_id: user_id, event_id: event_id}) do
     %{owner: owner, user: user, date: date} =

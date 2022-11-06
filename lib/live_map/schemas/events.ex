@@ -30,7 +30,7 @@ defmodule LiveMap.Event do
   @doc """
   A multi to create in one transaction (important for Rollback) a new event and a new event_participant with the previous EVENT_ID and with the user as the owner of the event
   """
-  def new(params) do
+  def create(params) do
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:evt, Event.changeset(%Event{}, params))
     |> Ecto.Multi.run(:ep, fn repo, %{evt: event} ->
@@ -46,9 +46,24 @@ defmodule LiveMap.Event do
   end
 
   @doc """
-  Return a GeoJSON struct after saving an Event and owner associated EvetnParticipant
+  Saves the "flat Geojson" event to the DB and creates associated EventParticipant as an owner
   """
-  def save_geojson(place, owner_id, date) do
+  def save(params) do
+    case Event.create(params) do
+      {:error, _op, changeset, _others} ->
+        Logger.warning(changeset.errors)
+        {:error, changeset}
+
+      {:ok, %{evt: %LiveMap.Event{} = event}} ->
+        {:ok, GeoJSON.into_geojson(event)}
+    end
+  end
+
+  @doc """
+  Returns a "flat GeoJSON" map params to the Event.changeset
+  """
+
+  def into_params(place, owner_id, date) do
     %{
       "coords" => [
         %{"lat" => lat1, "lng" => lng1, "name" => ad1},
@@ -65,37 +80,18 @@ defmodule LiveMap.Event do
     lng2 = check.(lng2)
     distance = check.(distance)
 
-    case Event.new(%{
-           user_id: owner_id,
-           coordinates: %Geo.LineString{
-             coordinates: [{lng2, lat2}, {lng1, lat1}],
-             srid: 4326
-           },
-           distance: distance,
-           ad1: ad1,
-           ad2: ad2,
-           date: date,
-           color: color
-         }) do
-      {:error, _op, changeset, _others} ->
-        Logger.warning(changeset.errors)
-        {:error, changeset}
-
-      {:ok, %{evt: %LiveMap.Event{id: event_id}}} ->
-        {:ok,
-         GeoJSON.new_from(
-           %GeoJSON{},
-           event_id,
-           [lng2, lat2],
-           [lng1, lat1],
-           ad1,
-           ad2,
-           date,
-           User.email(owner_id),
-           distance,
-           color
-         )}
-    end
+    %{
+      user_id: owner_id,
+      coordinates: %Geo.LineString{
+        coordinates: [{lng2, lat2}, {lng1, lat1}],
+        srid: 4326
+      },
+      distance: distance,
+      ad1: ad1,
+      ad2: ad2,
+      date: date,
+      color: color
+    }
   end
 
   @doc """

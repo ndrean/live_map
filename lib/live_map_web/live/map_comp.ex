@@ -17,8 +17,6 @@ defmodule LiveMapWeb.MapComp do
 
   @impl true
   def render(%{place: %{"coords" => coords}} = assigns) when not is_nil(coords) do
-    IO.inspect(assigns.flash)
-
     ~H"""
     <div>
       <div id="map"
@@ -63,7 +61,7 @@ defmodule LiveMapWeb.MapComp do
 
     case Repo.features_in_map(lng, lat, String.to_float(distance)) do
       {:error, message} ->
-        send(self(), {:flash_postgis, message})
+        send(self(), {:push_flash, :postgis, message})
         {:noreply, socket}
 
       {:ok, rows} ->

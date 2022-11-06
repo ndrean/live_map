@@ -2,18 +2,14 @@ defmodule LiveMap.QueryPicker do
   import Ecto.Changeset
   alias LiveMap.QueryPicker
 
-  defstruct [:start_date, :end_date, :user, :distance, :status, :lat, :lng, :select]
+  # defstruct [:start_date, :end_date, :user, :distance, :status, :lat, :lng, :select]
+  defstruct [:start_date, :end_date, :user, :status]
 
   @types %{
     start_date: :date,
     end_date: :date,
     user: :string,
-    distance: :float,
-    status: :string,
-    lat: :float,
-    lng: :float,
-    # select: :list
-    select: :string
+    status: :string
   }
 
   def changeset(%QueryPicker{} = query, attrs \\ %{}) do

@@ -6,6 +6,9 @@ Uncaught (in promise) Error: A listener indicated an asynchronous response by re
 at content.js:2:155799
 at main.js:2:225523
 
+- Schemaless changset
+  <https://elixirfocus.com/posts/ecto-schemaless-changesets/>
+
 - update the map when running the query ??
 - modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability)
 - more queries in the table: selection by user and by status

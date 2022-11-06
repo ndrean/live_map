@@ -12,18 +12,22 @@ defmodule LiveMapWeb.MailController do
   The endpoint of this link triggers this function.
   This creates a new "event_participants" record, set a new token and the status to "pending"
   and sends a mail to the owner of the event.
-  ```
-  iex> LiveMapWeb.MailController.create_demand(%{event_id: 1, user_id: 2})
-  {:ok, #PID<0.861.0>}
-  # navigate to http://localhost:4000/dev/mailbox, check the mail and click the link
-  # you should get "confirmed"
-  # check in iex
-  iex>
-  UPDATE "event_participants" SET "mtoken" = $1, "status" = $2, "updated_at" = $3 WHERE "id" = $4
-  [nil, "confirmed", ~N[2022-09-29 14:55:09], 6]
-  iex>LiveMap.EventParticipants.email_with_evt_id(1)
-  %{ep_status: "confirmed", user_email: "bibi", user_id: 2}
-  ```
+
+  ### Examples
+    ```
+    iex> LiveMapWeb.MailController.create_demand(%{event_id: 1, user_id: 2})
+    # {:ok, #PID<0.861.0>}
+    # navigate to http://localhost:4000/dev/mailbox, check the mail and click the link
+    # you should get "confirmed"
+    # check in iex
+
+    iex>
+    UPDATE "event_participants" SET "mtoken" = $1, "status" = $2, "updated_at" = $3 WHERE "id" = $4
+    # [nil, "confirmed", ~N[2022-09-29 14:55:09], 6]
+
+    iex>LiveMap.EventParticipants.email_with_evt_id(1)
+    # %{ep_status: "confirmed", user_email: "bibi", user_id: 2}
+    ```
   """
   def create_demand(%{event_id: event_id, user_id: user_id} = params) do
     with token <- EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
@@ -47,12 +51,13 @@ defmodule LiveMapWeb.MailController do
     row.mtoken
   end
 
-  defp check_token(conn, mtoken) do
+  defp check_token(mtoken) do
     with {:ok, string} <- Token.mail_check(mtoken) do
       {:ok, string}
     else
       {:error, message} ->
-        json(conn, "error: #{inspect(message)}")
+        # json(conn, "error: #{inspect(message)}")
+        {:error, message}
     end
   end
 
@@ -83,29 +88,37 @@ defmodule LiveMapWeb.MailController do
   ```
   """
   def confirm_link(conn, %{"token" => token} = _params) do
-    with {:ok, string} <- check_token(conn, token) do
-      %{"event_id" => event_id, "user_id" => user_id} = URI.decode_query(string)
-      event_id = String.to_integer(event_id)
-      user_id = String.to_integer(user_id)
-      row = EventParticipants.lookup(event_id, user_id)
-      owner_mtoken = fetch_token(conn, row)
+    case check_token(token) do
+      {:ok, string} ->
+        %{"event_id" => event_id, "user_id" => user_id} = URI.decode_query(string)
+        event_id = String.to_integer(event_id)
+        user_id = String.to_integer(user_id)
+        row = EventParticipants.lookup(event_id, user_id)
 
-      case owner_mtoken do
-        nil ->
-          json(conn, "Already confirmed")
-          |> halt()
+        fetch_token(conn, row)
+        |> handle_owner_token(event_id, user_id, conn)
 
-        ^owner_mtoken ->
-          Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
-            {:ok, _} = EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
+      {:error, reason} ->
+        put_flash(conn, :info, "Error with the token: #{inspect(reason)}")
+    end
+  end
 
-            Email.confirm_participation(%{event_id: event_id, user_id: user_id})
-            |> Mailer.deliver()
-          end)
+  defp handle_owner_token(owner_mtoken, event_id, user_id, conn) do
+    case owner_mtoken do
+      nil ->
+        json(conn, "Already confirmed")
+        |> halt()
 
-          json(conn, "confirmed")
-          |> halt()
-      end
+      ^owner_mtoken ->
+        Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
+          {:ok, _} = EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
+
+          Email.confirm_participation(%{event_id: event_id, user_id: user_id})
+          |> Mailer.deliver()
+        end)
+
+        json(conn, "confirmed")
+        |> halt()
     end
   end
 end

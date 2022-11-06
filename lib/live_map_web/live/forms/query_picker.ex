@@ -4,82 +4,64 @@ defmodule LiveMapWeb.QueryPicker do
   alias LiveMap.QueryPicker
   alias LiveMap.Repo
   require Logger
+  import LiveMapWeb.LiveHelpers
 
   @moduledoc """
   Form with a date as input and saves the completed event
   """
+
+  @menu ["", "owner", "pending", "confirmed"]
+
   def mount(socket) do
     {:ok,
      assign(socket,
        changeset: QueryPicker.changeset(%QueryPicker{}),
-       status: ["all", "pending", "confirmed"],
+       status: "",
        users: [],
-       select: [],
-       #  select: "all"
        start_date: Date.utc_today(),
        end_date: Date.utc_today() |> Date.add(1),
-       name: ""
+       distance: 0,
+       d: 0,
+       menu: @menu
      )}
   end
 
-  # def update(assigns, socket) do
-  #   IO.inspect(socket.assigns.select)
-  #   socket = update(socket, :select, fn sel -> [select | sel] end)
-  #   IO.inspect(socket.asigns.select)
-  #   {:ok, assign(socket, assigns)}
-  # end
-
   # render query table once map coords are ready
   def render(%{coords: %{"distance" => distance}} = assigns) do
-    assigns = assign(assigns, distance: parse(distance))
-    assigns = assign(assigns, :d, to_km(assigns.distance))
-    assigns = assign(assigns, :user, assigns.user)
-    assigns = assign(assigns, :select, assigns.select)
+    assigns = assign(assigns, :distance, parse(distance))
+    assigns = assign(assigns, :d, to_km(distance))
 
-    assigns = assign(assigns, :start_date, assigns.start_date)
-    assigns = assign(assigns, :end_date, assigns.end_date)
+    # to default to the user's email, set assigns.user which contains the user's email
+    # assigns = assign(assigns, :user, assigns.user)
 
     ~H"""
     <div>
-    <.form :let={f}  for={@changeset}
-      phx-submit="send"
-      phx-change="change"
-      phx-target={@myself}
-      id="query_picker"
-      >
+    <.form :let={f}  for={@changeset} phx-submit="send" phx-change="change"
+      phx-target={@myself} id="query_picker"
+    >
 
-      <span>Map radius: <%= @d %> km</span>
-      <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
+      <%!-- display the distance on screen--%>
+      <p>Map radius: <%= @d %> km</p>
 
-      <br/>
+      <%!-- passing the value to the formData with no input --%>
+      <input type="hidden" value={@distance} name="query_picker[distance]" />
 
-      <%# text_input(f, :user, phx_change: "search-email", phx_target: @myself, phx_debounce: "500", list: "datalist", placeholder: "enter an email") %>
-      <%# error_tag(f, :user) %>
-      <%# datalist_input(id: "datalist") do %>
-        <%#for user <- @users do %>
-          <%# option_input(user) %>
-        <%# end %>
-      <%# end %>
-
+      <%!-- see LiveHelpers for .select and .date --%>
       <div class="flex items-center justify-around mb-2 ml-3">
-        <.datalist users={@users} target={@myself} user={@user}></.datalist>
-        <button></button>
-        <.select status={@status} select={@select}></.select>
+        <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" />
+        <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/>
       </div>
       <div class="flex items-center justify-around ml-3 mt-2">
-        <.date date={@start_date} name="start"></.date>
-        <%# date_input(f, :start_date, class: "w-60" ) %>
-        <%= error_tag(f, :start_date) %>
+        <.date date={@start_date} name="query_picker[start_date]" class="w-60" />
+          <%= error_tag(f, :start_date) %>
         <button form="query_picker"
           class="px-2 py-2 bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
-        >Send
+          >Send
         </button>
-        <.date date={@end_date} name="end"></.date>
-        <%=#date_input(f, :end_date, class: "w-60") %>
-        <%= error_tag(f, :end_date) %>
+        <.date date={@end_date} name="query_picker[end_date]" class="w-60"/>
+          <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">
-
       </div>
     </.form>
     </div>
@@ -93,21 +75,26 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
-  slot(:inner_block, required: true)
+  slot(:inner_block)
+  attr(:class, :string)
+  attr(:name, :string)
+
   attr(:users, :list)
   attr(:user, :string)
-  attr(:target, :string)
-  attr(:status, :list)
-  attr(:select, :string)
-  # attr(:select, :list)
-  attr(:name, :string)
-  attr(:date, :string, required: true)
 
-  def date(assigns) do
+  attr(:target, :string)
+
+  attr(:options, :string)
+  attr(:choice, :string)
+
+  attr(:status, :string)
+
+  attr(:date, :any)
+  attr(:radius, :float, doc: false)
+
+  def radius(assigns) do
     ~H"""
-    <input type="date" id={"#{@name}_date"} name={"query_picker[#{@name}_date]"} required
-      value={@date} class="w-60"
-    />
+    <input type="hidden" value={@radius} name={@name} id={@name} />
     """
   end
 
@@ -115,13 +102,12 @@ defmodule LiveMapWeb.QueryPicker do
     ~H"""
       <input list="datalist"
         id="datalist-input"
-        name="query_picker[user]"
+        name={@name}
         phx-change="search-email"
-        phx-target={@target}
         phx_debounce="500"
         placeholder="enter an email"
         value={@user}
-        class="form-select w-40"
+        class={@class}
         />
       <datalist id="datalist">
           <option :for={user <- @users} value={user}  />
@@ -129,28 +115,16 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
-  def select(assigns) do
-    IO.inspect(assigns.select)
-
-    ~H"""
-      <select id="select" name="query_picker[status]" class="w-50 ml-2 mr-2">
-        <option :for={status <- @status} selected={status == @select}><%= status %></option>
-      </select>
-    """
-  end
-
-  # selected={status == @select}
   def handle_event("change", %{"query_picker" => params}, socket) do
     changeset =
       %QueryPicker{}
       |> QueryPicker.changeset(params)
       |> Map.put(:action, :validate)
-      |> IO.inspect()
 
     socket =
       socket
       |> assign(:changeset, changeset)
-      |> assign(:select, params["status"])
+      |> assign(:status, params["status"])
       |> assign(:start_date, params["start_date"])
       |> assign(:end_date, params["end_date"])
 
@@ -173,9 +147,7 @@ defmodule LiveMapWeb.QueryPicker do
   # %{"date" => "2022-10-10"}]
 
   def handle_event("send", %{"query_picker" => form}, socket) do
-    changeset =
-      QueryPicker.changeset(%QueryPicker{}, form)
-      |> IO.inspect()
+    changeset = QueryPicker.changeset(%QueryPicker{}, form)
 
     case changeset.valid? do
       false ->
@@ -200,24 +172,20 @@ defmodule LiveMapWeb.QueryPicker do
       Repo.select_in_map(params)
     end)
     |> then(fn task ->
-      #   #   # rate limiter for user
-      #   #   IO.inspect(Time.utc_now())
-      # :ets.insert(:limit_user, {user_id, Time.utc_now()})
-
       case Task.await(task) do
         nil ->
           Logger.warn("Could not retrieve events")
-          {:noreply, put_flash(socket, :error, "Nothing to render")}
-          nil
+          {:noreply, socket}
 
         {:error, message} ->
-          IO.puts("ici")
-          send(self(), {:flash_query_picker, message})
+          # send to the LV as flash error message
+          send(self(), {:push_flash, :query_picker, message})
           {:noreply, socket}
 
         result ->
           # send to the LiveView
           send(self(), {:selected_events, result})
+          {:noreply, socket}
       end
     end)
   end
@@ -247,7 +215,7 @@ defmodule LiveMapWeb.QueryPicker do
     }
   end
 
-  defp parse_date(string_as_date) do
+  def parse_date(string_as_date) do
     string_as_date
     |> String.split("-")
     |> Enum.map(&String.to_integer/1)
@@ -256,10 +224,10 @@ defmodule LiveMapWeb.QueryPicker do
     end)
   end
 
-  defp parse(d), do: d |> String.to_float() |> round()
+  def parse(d), do: d |> String.to_float() |> round()
 
-  defp to_km(d) do
+  def to_km(d) do
     div1000 = fn x -> x / 1000 end
-    d |> div1000.() |> round
+    d |> parse() |> div1000.() |> round
   end
 end

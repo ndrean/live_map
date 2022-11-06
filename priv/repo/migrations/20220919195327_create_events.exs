@@ -10,18 +10,13 @@ defmodule LiveMap.Repo.Migrations.CreateEvents do
       add :ad2, :text
       add :date, :date
       add :color, :string, default: "#000"
-      add(:coordtest, :geometry)
 
       timestamps()
     end
 
     create index(:events, [:user_id])
 
-    # execute("ALTER TABLE events ADD COLUMN coordinates Geography(LINESTRING, 4326) USING ST_Transform(coordinates, 4326);")
-
-    # execute("SELECT AddGeometryColumn ('events', 'coordinates', 4326, 'LINESTRING', 2, false);")
     execute("ALTER TABLE events ADD COLUMN coordinates geography (LINESTRING);")
-
     execute("CREATE INDEX  events_gix ON events USING GIST(coordinates);")
   end
 

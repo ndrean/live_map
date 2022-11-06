@@ -5,6 +5,9 @@ defmodule LiveMap.Token do
 
   @doc """
   Generate a token for a mail given a user and an event
+
+  ### Example
+
   ```
   iex> token = LiveMap.Token.mail_generate(%{user_id: 1, event_id: 1})
   ```
@@ -18,7 +21,9 @@ defmodule LiveMap.Token do
   end
 
   @doc """
-  Check the received token with salt "mail token"
+  Checks the received token with salt "mail token"
+
+  ### Example
   ```
   iex> {:ok, token} = LiveMap.Token.mail_check("SFMyNTY.g2gDbQAAABR1c2VyX2lk...")
   ```
@@ -37,10 +42,13 @@ defmodule LiveMap.Token do
   end
 
   @doc """
-  Generate a token from a user.id
-  ```
-  iex>id = LiveMap.User.email("toto@mail.com").id
-  iex>token = LiveMap.user_generate(id)
+  Generates a token from a user.id
+
+  ### Example
+
+    ```
+    iex>id = LiveMap.User.email("toto@mail.com").id
+    iex>token = LiveMap.user_generate(id)
   ```
   """
   def user_generate(user_id) do
@@ -52,10 +60,10 @@ defmodule LiveMap.Token do
   end
 
   @doc """
-  Check the received token with salt "mail token"
-  ```
-  iex> {:ok, token} = LiveMap.Token.user_check("SFMyNTY.g2gDbQ...")
-  ```
+  Checks the received token with salt "mail token"
+    ```
+    iex> {:ok, token} = LiveMap.Token.user_check("SFMyNTY.g2gDbQ...")
+    ```
   """
   def user_check(token) do
     case Phoenix.Token.verify(

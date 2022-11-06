@@ -5,20 +5,20 @@ defmodule LiveMap.NewEvent do
   import Ecto.Changeset
   alias LiveMap.NewEvent
 
-  defstruct [:event_date]
-  @types %{event_date: :date}
+  defstruct [:date]
+  @types %{date: :date}
 
-  def changeset(%NewEvent{} = event_date, attrs \\ %{}) do
-    {event_date, @types}
-    |> Ecto.Changeset.cast(attrs, Map.keys(@types))
-    |> Ecto.Changeset.validate_required([:event_date])
+  def changeset(%NewEvent{} = event, params \\ %{}) do
+    {event, @types}
+    |> cast(params, Map.keys(@types))
+    |> validate_required([:date])
     |> validate_future()
   end
 
-  defp validate_future(%{changes: %{event_date: event_date}} = changeset) do
-    case Date.compare(event_date, Date.utc_today()) do
+  defp validate_future(%{changes: %{date: date}} = changeset) do
+    case Date.compare(date, Date.utc_today()) do
       :lt ->
-        add_error(changeset, :event_date, "Future dates only!")
+        add_error(changeset, :date, "Future dates only!")
 
       _ ->
         changeset

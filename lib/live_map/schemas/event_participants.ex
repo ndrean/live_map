@@ -15,7 +15,7 @@ defmodule LiveMap.EventParticipants do
   def changeset(%__MODULE__{} = event_participants, attrs) do
     event_participants
     |> cast(attrs, [:user_id, :event_id, :mtoken, :status])
-    |> validate_required([:status])
+    |> validate_required([:status, :event_id])
     |> unique_constraint([:user_id, :event_id], name: :evt_usr)
     |> unique_constraint([:event_id], where: "status = 'owner'", name: :unique_owner)
     |> foreign_key_constraint(:user_id)

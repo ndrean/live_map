@@ -3,43 +3,45 @@ defmodule LiveMapWeb.NewEvent do
   import Phoenix.Component
   alias LiveMap.{Event, NewEvent}
   alias LiveMapWeb.Endpoint
+  import LiveMapWeb.LiveHelpers
   require Logger
 
   def mount(socket) do
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign(:date, "")
+     |> assign(:changeset, NewEvent.changeset(%NewEvent{}))}
   end
 
   def update(assigns, socket) do
-    socket =
-      socket
-      |> assign(
-        len: assigns.place["coords"] |> length(),
-        # new_event: %NewEvent{},
-        changeset: NewEvent.changeset(%NewEvent{})
-      )
+    socket = assign(socket, len: assigns.place["coords"] |> length())
 
     {:ok, assign(socket, assigns)}
   end
 
+  attr(:date, :string)
+
   #  display the form when two markers are displayed
   def render(%{len: len} = assigns) when len > 1 do
+    assigns = assign(assigns, :date, assigns.date)
+
     ~H"""
     <div id="date_form">
       <.form :let={f}
         for={@changeset}
-        id="form"
+        id="new_event"
         phx-change="validate"
         phx-submit="up_date"
         phx-target={@myself}
 
         class="flex flex-row w-full justify-around space-x-2 px-2"
       >
-        <button type="submit"
+        <button form="new_event"
           class="inline-block  px-2 py-2 mr-4 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         > Update
         </button>
-        <%= date_input(f, :event_date, id: "event_date", class: "w-30 px-2") %>
-        <%= error_tag f, :event_date, class: "text-red-700 text-sm m-1" %>
+        <.date name="new_event[date]" class="w-30 px-2" date={@date}/>
+          <%= error_tag f, :date, class: "text-red-700 text-sm m-1" %>
       </.form>
     </div>
     """
@@ -53,43 +55,45 @@ defmodule LiveMapWeb.NewEvent do
   end
 
   # adds real-time validation
-  def handle_event("validate", %{"new_event" => %{"event_date" => date}}, socket) do
+  def handle_event("validate", %{"new_event" => %{"date" => date} = params}, socket) do
     changeset =
       %NewEvent{}
-      |> NewEvent.changeset(%{"event_date" => date})
+      |> NewEvent.changeset(params)
+      |> Map.put(:action, :validate)
+
+    socket =
+      socket
+      |> assign(:changeset, changeset)
+      |> assign(:date, date)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("up_date", params, %{assigns: %{changeset: %{valid?: false}}} = socket) do
+    changeset =
+      NewEvent.changeset(%NewEvent{}, params)
       |> Map.put(:action, :insert)
 
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
   # save new event and broadcast to every user
-  def handle_event("up_date", %{"new_event" => %{"event_date" => date}}, socket) do
+  def handle_event("up_date", %{"new_event" => params}, socket) do
     %{user_id: owner_id, place: place} = socket.assigns
 
-    case Event.save_geojson(place, owner_id, date) do
+    {status, response} =
+      Event.into_params(place, owner_id, params["date"])
+      |> Event.save()
+
+    case {status, response} do
       {:error, changeset} ->
-        case event_date_blank?(changeset) do
-          true ->
-            changeset =
-              %NewEvent{}
-              |> NewEvent.changeset(%{"event_date" => date})
-              |> Map.put(:action, :insert)
+        send(self(), {:push_flash, :error_event_creation, inspect(changeset.errors)})
+        {:noreply, socket}
 
-            {:noreply, assign(socket, :changeset, changeset)}
-
-          false ->
-            socket = assign(socket, :changeset, changeset)
-            send(self(), "flash_update")
-            {:noreply, push_event(socket, "clear_event", %{})}
-        end
-
-      {:ok, geojson} ->
+      {:ok, %LiveMap.GeoJSON{} = geojson} ->
         # broadcast to all users a new event
         :ok = Endpoint.broadcast!("event", "new_event", %{geojson: geojson})
         {:noreply, socket}
     end
   end
-
-  def event_date_blank?(%Ecto.Changeset{errors: [date: {"can't be blank", _}]}), do: true
-  def event_date_blank?(_), do: false
 end

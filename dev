@@ -1,0 +1,369 @@
+A few HTML functional components to be used in a form.
+
+## The form component
+
+We build a `:live_component` with a form to use these HTML components. We use a schemaless changeset `MyForm` to validate the data. It exports a function `changeset/2` based on a struct `%MyForm{}`.
+
+```elixir
+def mount(socket) do
+  {:ok,
+   assign(socket,
+     changeset: MyForm.changeset(%MyForm{}),
+     [... other assigns...]
+   )}
+end
+```
+
+```elixir
+def render(assigns) do
+  assigns = assign(assigns, ....
+     [...declare the accessed fields...]
+
+  ~H"""
+  <div>
+    <.form :let={f}  for={@changeset} phx-change="change" ... >
+    [...HTML function components here...]
+    </.form>
+```
+
+All the formData fields will be name-spaced with "my_form".
+We add the event handler on "change" to parse the form's params, check for the constraints and update the socket with the changes on the `changeset` and `assigns`.
+
+```elixir
+def handle_event("change", %{"my_form" => params}, socket) do
+  changeset =
+      %MyForm{}
+      |> MyForm.changeset(params)
+      |> Map.put(:action, :validate)
+
+  socket =
+    socket
+    |> assign(:changeset, changeset)
+    [... other assigns...]
+  {:noreply, socket}
+end
+```
+
+We declare the component attributes with the [compile-time](https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html#attr/3-compile-time-validations) validation.
+
+```elixir
+slot(:inner_block)
+attr(:some_attr, :string)
+```
+
+> Note: setting `required: true` to the `slot` means you can't use a self closing component.
+
+## A reusable date **input**
+
+An example of reusable input. You can use it like:
+
+```elixir
+ <.date date={@start_date} name="start"></.date>
+ <.date date={@end_date} name="end"></.date>
+```
+
+You have two attributes, populated by some assigns.
+
+- in the live_component `mount/1`, instantiate the assigns used:
+
+```elixir
+# def mount(socket)
+{:ok, assign(socket,
+  ...
+  start_date: Date.utc_today(),
+  end_date: Date.utc_today() |> Date.add(1),
+  name: ""
+}
+```
+
+- declare the attributes used in the component
+
+```elixir
+attr(:name, :string)
+attr(:date, :string)
+```
+
+- build the function `date/1` (the `formdata` fields are name-spaced with "myform")
+
+```elixir
+def date(assigns) do
+  ~H"""
+    <input type="date" id={"#{@name}_date"}
+      name={"myform[#{@name}_date]"}
+      value={@date} class="w-60"
+    />
+  """
+end
+```
+
+- in the `render(assigns)`, declare the accessed assigns:
+
+```elixir
+assigns = assign(assigns, :start_date, assigns.start_date)
+assigns = assign(assigns, :end_date, assigns.end_date)
+```
+
+- update the assigns in the "change" event handler:
+
+```elixir
+socket = socket
+    |> assign(:start_date, params["start_date"])
+    |> assign(:end_date, params["end_date"])
+```
+
+## Datalist
+
+An example with a dynamically populated `datalist`.
+We use the associated `input` to pass the value to the formData.
+
+```elixir
+def datalist(assigns) do
+  ~H"""
+    <input list="datalist" id="datalist-input"
+        name="my_form[user]"
+        phx-change="search-email"
+        phx-target={@target}
+        value={@user}
+        />
+    <datalist id="datalist">
+        <option :for={user <- @users} value={user}  />
+    </datalist>
+  """
+end
+```
+
+## Single Select list
+
+A single select functional component. It has an attribute `selected` populated from the assign `options`. We use the HTML attribute `selected` that is passed to the formData.
+
+- we set the assign `options` in the `mount/1`:
+
+```elixir
+# mount(socket)
+{:ok,
+   assign(socket,
+     changeset: MyForm.changeset(%MyForm{}),
+     options: ["a", "b", "c"],
+     [...]
+}
+```
+
+- declare the attribute `selected`:
+
+```elixir
+attr(:selected, :string)
+```
+
+- build the function HTML component `select/1`
+
+```elixir
+def select(assigns) do
+  ~H"""
+    <select id="select" name="my_form[select]">
+      <option :for={option <- @options} selected={option == @select}><%= option %></option>
+    </select>
+  """
+end
+```
+
+and commit the value change with the event handler "change":
+
+```elixir
+socket =
+  socket
+    |> assign(:changeset, changeset)
+    |> assign(:select, params["select"])
+```
+
+## Update parameter
+
+```elixir
+<span>Map radius: <%= @d %> km</span>
+      <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
+```
+
+<!--  -->
+
+A few HTML functional components to be used in a form.
+
+## The form component
+
+We build a `:live_component` with a form to use these HTML components. We use a schemaless changeset `MyForm` to validate the data. It exports a function `changeset/2` based on a struct `%MyForm{}`.
+
+```elixir
+def mount(socket) do
+  {:ok,
+   assign(socket,
+     changeset: MyForm.changeset(%MyForm{}),
+     [... other assigns...]
+   )}
+end
+```
+
+```elixir
+def render(assigns) do
+  assigns = assign(assigns, ....
+     [...declare the accessed fields...]
+
+  ~H"""
+  <div>
+    <.form :let={f}  for={@changeset} phx-change="change" ... >
+    [...HTML function components here...]
+    </.form>
+```
+
+All the formData fields will be name-spaced with "my_form".
+We add the event handler on "change" to parse the form's params, check for the constraints and update the socket with the changes on the `changeset` and `assigns`.
+
+```elixir
+def handle_event("change", %{"my_form" => params}, socket) do
+  changeset =
+      %MyForm{}
+      |> MyForm.changeset(params)
+      |> Map.put(:action, :validate)
+
+  socket =
+    socket
+    |> assign(:changeset, changeset)
+    [... other assigns...]
+  {:noreply, socket}
+end
+```
+
+We declare the component attributes with the [compile-time](https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html#attr/3-compile-time-validations) validation.
+
+```elixir
+slot(:inner_block)
+attr(:some_attr, :string)
+```
+
+> Note: setting `required: true` to the `slot` means you can't use a self closing component.
+
+## A reusable date **input**
+
+An example of reusable input. You can use it like:
+
+```elixir
+ <.date date={@start_date} name="start"></.date>
+ <.date date={@end_date} name="end"></.date>
+```
+
+You have two attributes, populated by some assigns.
+
+- in the live_component `mount/1`, instantiate the assigns used:
+
+```elixir
+# def mount(socket)
+{:ok, assign(socket,
+  ...
+  start_date: Date.utc_today(),
+  end_date: Date.utc_today() |> Date.add(1),
+  name: ""
+}
+```
+
+- declare the attributes used in the component
+
+```elixir
+attr(:name, :string)
+attr(:date, :string)
+```
+
+- build the function `date/1` (the `formdata` fields are name-spaced with "myform")
+
+```elixir
+def date(assigns) do
+  ~H"""
+    <input type="date" id={"#{@name}_date"}
+      name={"myform[#{@name}_date]"}
+      value={@date} class="w-60"
+    />
+  """
+end
+```
+
+- in the `render(assigns)`, declare the accessed assigns:
+
+```elixir
+assigns = assign(assigns, :start_date, assigns.start_date)
+assigns = assign(assigns, :end_date, assigns.end_date)
+```
+
+- update the assigns in the "change" event handler:
+
+```elixir
+socket = socket
+    |> assign(:start_date, params["start_date"])
+    |> assign(:end_date, params["end_date"])
+```
+
+## Datalist
+
+An example with a dynamically populated `datalist`.
+We use the associated `input` to pass the value to the formData.
+
+```elixir
+def datalist(assigns) do
+  ~H"""
+    <input list="datalist" id="datalist-input"
+        name="my_form[user]"
+        phx-change="search-email"
+        phx-target={@target}
+        value={@user}
+        />
+    <datalist id="datalist">
+        <option :for={user <- @users} value={user}  />
+    </datalist>
+  """
+end
+```
+
+## Single Select list
+
+A single select functional component. It has an attribute `selected` populated from the assign `options`. We use the HTML attribute `selected` that is passed to the formData.
+
+- we set the assign `options` in the `mount/1`:
+
+```elixir
+# mount(socket)
+{:ok,
+   assign(socket,
+     changeset: MyForm.changeset(%MyForm{}),
+     options: ["a", "b", "c"],
+     [...]
+}
+```
+
+- declare the attribute `selected`:
+
+```elixir
+attr(:selected, :string)
+```
+
+- build the function HTML component `select/1`
+
+```elixir
+def select(assigns) do
+  ~H"""
+    <select id="select" name="my_form[select]">
+      <option :for={option <- @options} selected={option == @select}><%= option %></option>
+    </select>
+  """
+end
+```
+
+and commit the value change with the event handler "change":
+
+```elixir
+socket =
+  socket
+    |> assign(:changeset, changeset)
+    |> assign(:select, params["select"])
+```
+
+## Update parameter
+
+```elixir
+<span>Map radius: <%= @d %> km</span>
+      <%= hidden_input(f, :distance, id: "distance", value: @distance) %>
+```
