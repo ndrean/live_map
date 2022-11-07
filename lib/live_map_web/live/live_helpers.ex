@@ -38,7 +38,9 @@ defmodule LiveMapWeb.LiveHelpers do
   """
   def date(assigns) do
     ~H"""
+    <label for={@name}><%= @label %>
     <input type="date" id={@name} name={@name} required value={@date} class={@class} />
+    </label>
     """
   end
 

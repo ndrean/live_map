@@ -45,7 +45,7 @@ defmodule LiveMapWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {LiveMapWeb.LayoutView, "live.html"}
+        layout: {LiveMapWeb.LayoutView, :live}
 
       unquote(view_helpers())
     end

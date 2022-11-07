@@ -1,17 +1,14 @@
-import L from "leaflet";
-import { geocoder } from "leaflet-control-geocoder";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import icon from "leaflet/dist/images/marker-icon.png";
 import { proxy, subscribe } from "valtio";
-import { randomColor } from "randomcolor";
 
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconAnchor: [10, 10],
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
+async function loader() {
+  return Promise.all([
+    import("leaflet"),
+    import("leaflet-control-geocoder"),
+    import("leaflet/dist/images/marker-shadow.png"),
+    import("leaflet/dist/images/marker-icon.png"),
+    import("randomcolor"),
+  ]);
+}
 
 const lineStyle = {
   color: "black",
@@ -19,6 +16,15 @@ const lineStyle = {
   dashOffset: 50,
   weight: 1,
 };
+
+async function handleGeolocationPermission(map) {
+  window.alert("Would you geolocate yourself?");
+  return navigator.permissions
+    .query({ name: "geolocation" })
+    .then(({ state }) => {
+      if (state === "granted" || state === "prompt") return getLocation(map);
+    });
+}
 
 // call the geolocation API and redirect the map to te found location
 function getLocation(map) {
@@ -55,8 +61,26 @@ const place = proxy({
 const movingmap = proxy({ center: [], distance: 10_000 });
 
 export const MapHook = {
-  mounted() {
+  geolocate(map) {
+    document
+      .getElementById("geolocation")
+      .addEventListener("click", () => handleGeolocationPermission(map));
+  },
+  async mounted() {
+    // load Leaflet and Geocoder async
+    const [L, { geocoder }, { iconShadow }, { icon }, { randomColor }] =
+      await loader();
+
+    const DefaultIcon = L.icon({
+      iconUrl: icon,
+      shadowUrl: iconShadow,
+      iconAnchor: [10, 10],
+    });
+
+    L.Marker.prototype.options.icon = DefaultIcon;
+
     const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 10);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "c OpenStreeMap",
@@ -74,9 +98,9 @@ export const MapHook = {
     //**** wrapper to Nominatim endpoint. limited to one request per second
     const geoCoder = L.Control.Geocoder.nominatim();
 
-    // ***** run the geolcation API.
+    // ***** ask to run the geolcation API.
+    this.geolocate(map);
     // Alternatively, the "coder" is provided circa L232
-    getLocation(map);
 
     // store of new event. use pushEventTo with phx-target (elements)
     subscribe(place, () => this.pushEventTo("1", "add_point", { place }));

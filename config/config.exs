@@ -47,6 +47,9 @@ config :live_map, LiveMapMail.Mailer, adapter: Swoosh.Adapters.Local
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
 
+# --splitting
+# --format=esm
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.14.29",

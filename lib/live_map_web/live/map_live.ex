@@ -1,10 +1,8 @@
 defmodule LiveMapWeb.MapLive do
-  # use Phoenix.LiveView, layout: {LiveMapWeb.LayoutView, "live.html"}
   use LiveMapWeb, :live_view
   alias LiveMapWeb.Presence
   alias LiveMapWeb.Endpoint
   alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker}
-  # alias LiveMapWeb.MailController
   require Logger
 
   @impl true

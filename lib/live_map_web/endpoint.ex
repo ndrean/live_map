@@ -25,6 +25,7 @@ defmodule LiveMapWeb.Endpoint do
     at: "/",
     from: :live_map,
     gzip: true,
+    cache_control_for_etags: "cache-control, public max-age='31436000'",
     only: ~w(assets fonts images favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the

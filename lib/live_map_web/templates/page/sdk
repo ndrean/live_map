@@ -1,0 +1,33 @@
+<%!-- ************** GOOGLE BUTTON ************************* --%>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<div class="flex items-center">
+  <div id="g_id_onload"
+    data-client_id={System.get_env("GOOGLE_CLIENT_ID")}
+    data-login_uri=""
+    data-auto_prompt="true"
+  >
+  </div>
+<div class="g_id_signin ml-2"
+  data-type="standard"
+  data-size="large"
+  data-theme="outline"
+  data-text="sign_in_with"
+  data-shape="rectangular"
+  data-logo_alignment="left">
+</div> 
+</div>
+<br/>
+
+
+    <%!-- scr="https://scontent-cdt1-1.xx.fbcdn.net/v/t39.2365-6/294967112_614766366879300_4791806768823542705_n.png?_nc_cat=105&ccb=1-7&_nc_sid=ad8a9d&_nc_ohc=-7Eal1ebej0AX9p_FQj&_nc_ht=scontent-cdt1-1.xx&oh=00_AfBzgENSA79y3oIE5gfBr0JJX9DQ_6HDOoHcjUgf_B-q-Q&oe=6360B7E4" --%>
+<%!-- ********************** FB JS SDK Login Button **************************** --%>
+
+<script nonce="2022appid">window.app_id="<%= assigns[:app_id] %>";</script>
+<div id="fb-root"></div>
+<%!-- <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v15.0&appId=366589421180047&autoLogAppEvents=1" nonce="DO0Om7wZ"></script> --%>
+<%!-- <div class="fb-login-button" data-width="" data-size="large" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div> --%>
+
+<button id="fbhook"  type="button"> 
+  <img class="ml-2" width="250" alt="fb-ssr" src={Routes.static_path(@conn, "/images/fb_login.png")} />
+</button>

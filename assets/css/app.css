@@ -6,6 +6,8 @@
 @import "leaflet/dist/leaflet.css";
 @import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
+@import url("https://fonts.cdnfonts.com/css/roboto");
+
 /* Alerts and form errors used by phx.new */
 .alert {
   padding: 15px;

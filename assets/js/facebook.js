@@ -1,4 +1,4 @@
-export function facebook(fbutton) {
+export function Facebook(fbutton) {
   (function (d, s, id) {
     var js,
       fjs = d.getElementsByTagName(s)[0];

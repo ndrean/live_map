@@ -40,7 +40,7 @@ defmodule LiveMapWeb.NewEvent do
           class="inline-block  px-2 py-2 mr-4 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         > Update
         </button>
-        <.date name="new_event[date]" class="w-30 px-2" date={@date}/>
+        <.date name="new_event[date]" class="w-30 px-2" date={@date} label="Date"/>
           <%= error_tag f, :date, class: "text-red-700 text-sm m-1" %>
       </.form>
     </div>

@@ -15,8 +15,7 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import { MapHook } from "./maphook";
-// import { fbLoginHook } from "./fbLoginHook.js";
-import { facebook } from "./facebook";
+// import { Facebook } from "./facebook";
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
@@ -52,7 +51,7 @@ window.addEventListener("phx:clear_boxes", () => {
 
 //  FB-SDK
 const fbutton = document.getElementById("fbhook");
-if (fbutton) facebook(fbutton);
+if (fbutton) Facebook(fbutton);
 
 // GOOGLE-ONE-TAP
 const oneTap = document.querySelector("#g_id_onload");
