@@ -8,6 +8,7 @@ defmodule LiveMapMail.Email do
   """
 
   use Phoenix.Swoosh, view: LiveMapWeb.EmailView
+  alias LiveMapMail.Mailer
 
   @support "support@LiveMap.com"
 
@@ -20,6 +21,7 @@ defmodule LiveMapMail.Email do
   def build_demand(%{mtoken: mtoken, event_id: event_id, user_id: user_id} = _params) do
     [email] = LiveMap.Event.owner(event_id)
     user_email = LiveMap.Repo.get_by(LiveMap.User, %{id: user_id}).email
+    [date, addr_start, addr_end] = LiveMap.Event.details(event_id)
 
     %Swoosh.Email{}
     |> to(email)
@@ -27,7 +29,11 @@ defmodule LiveMapMail.Email do
     |> subject("Demande to participate")
     |> assign(:token, mtoken)
     |> assign(:user_email, user_email)
+    |> assign(:date, date)
+    |> assign(:addr_start, addr_start)
+    |> assign(:addr_end, addr_end)
     |> render_body("demande.html")
+    |> Mailer.deliver()
   end
 
   @doc """
@@ -36,17 +42,26 @@ defmodule LiveMapMail.Email do
   The function receives `user_id`, `event_id`, makes a lookup for the corresponding
   `owner.email` and `user.email` and `event.date` and sends a confirmation mail.
   """
-  def confirm_participation(%{user_id: user_id, event_id: event_id}) do
-    %{owner: owner, user: user, date: date} =
+
+  def handle_email(%{
+        event_id: event_id,
+        user_id: user_id,
+        subject: subject,
+        rendered_body: rendered_body
+      }) do
+    %{owner: owner, user: user, date: date, addr_start: addr_start, addr_end: addr_end} =
       LiveMap.EventParticipants.owner_user_by_evt_id_user_id(event_id, user_id)
 
     %Swoosh.Email{}
     |> to(user)
     |> from(@support)
-    |> subject("Confirmation to the event")
+    |> subject(subject)
     |> assign(:date, date)
     |> assign(:user, user)
     |> assign(:owner, owner)
-    |> render_body("confirmation.html")
+    |> assign(:addr_start, addr_start)
+    |> assign(:addr_end, addr_end)
+    |> render_body(rendered_body)
+    |> Mailer.deliver()
   end
 end

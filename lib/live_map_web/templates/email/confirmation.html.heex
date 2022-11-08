@@ -3,8 +3,14 @@
     <title><%= @email.subject %></title>
   </head>
   <body>
-    <p>Hello <%= @user %></p>
-    <p>On behalf of <%= @owner %>, we are glad to confirm your participation to the event the <%= @date %></p>
+    <p>Hi! <%= @user %></p>
+    <br/>
+    <p>On behalf of <%= @owner %>, we are glad to confirm your participation to the following event</p>
+    <br/>
+    <p> The event will be held the: <%= @date %></p>
+    <p>The start point is: <%= @addr_start%></p>
+    <p>The en point is: <%= @addr_end%></p>
+    <br/>
     <p>Cheers!</p>
   </body>
 </html>

@@ -3,6 +3,7 @@ defmodule LiveMapWeb.MapLive do
   alias LiveMapWeb.Presence
   alias LiveMapWeb.Endpoint
   alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker, HeaderSection}
+  alias LiveMapMail.Email
   require Logger
 
   @impl true

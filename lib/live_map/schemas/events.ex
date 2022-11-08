@@ -117,7 +117,7 @@ defmodule LiveMap.Event do
   end
 
   @doc """
-  Find the owner of an event given its ID
+  Find the owner of an event given its ID. Used in mail
   """
   def owner(id) do
     from(e in "events",
@@ -127,5 +127,23 @@ defmodule LiveMap.Event do
       select: [u.email]
     )
     |> Repo.one()
+  end
+
+  def details(id) do
+    from(e in "events",
+      where: e.id == ^id,
+      select: [e.date, e.ad1, e.ad2]
+    )
+    |> Repo.one()
+  end
+
+  def get_event_participants(event_id) do
+    from(e in "events",
+      where: e.id == ^event_id,
+      join: ep in "event_participants",
+      on: ep.event_id == e.id,
+      select: %{user_id: ep.user_id, status: ep.status}
+    )
+    |> Repo.all()
   end
 end

@@ -50,22 +50,6 @@ defmodule LiveMap.Repo do
 
   # events.coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
 
-  # import Geo.PostGIS
-  # import Ecto.Query
-  # def q1(
-  #       lng,
-  #       lat,
-  #       distance,
-  #       date_start \\ default_date(0),
-  #       date_end \\ default_date(30)
-  #     ) do
-  #   from( evt in Event,
-  #   join: u in LiveMap.User, on: u.id == evt.user_id,
-  #   select: evt.id, u.email, evt.ad1, evt.ad2, evt.date, evt.color, evt.distance, evt.coordinates,
-  #   where: st_dwithin()
-  #   )
-  # end
-
   def features_in_map(
         lng,
         lat,
@@ -131,7 +115,8 @@ defmodule LiveMap.Repo do
       SELECT s.id, jsonb_object_agg(status, emails) status_email, jsonb_object_agg('date', date) date_date
       FROM status_agg s
       JOIN date_agg d ON d.id = s.id
-      GROUP BY s.id;
+      GROUP BY d.date, s.id
+      ORDER BY d.date ASC;
       "
     ]
 
@@ -141,7 +126,7 @@ defmodule LiveMap.Repo do
            [lng, lat, distance, start_date, end_date]
          ) do
       {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
-        rows |> IO.inspect()
+        rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)
@@ -179,7 +164,7 @@ defmodule LiveMap.Repo do
       SELECT s.id, jsonb_object_agg(status, emails) status_email, jsonb_object_agg('date', date) date_date
       FROM status_agg s
       JOIN date_agg d ON d.id = s.id
-      GROUP BY s.id
+      GROUP BY s.id;
      "
     ]
 
@@ -197,35 +182,35 @@ defmodule LiveMap.Repo do
     end
   end
 
-  def selectbis_in_map(%{
-        lng: lng,
-        lat: lat,
-        distance: distance,
-        start_date: start_date,
-        end_date: end_date
-      }) do
-    query = [
-      "SELECT e.id, e.user_id, u.email, e.ad1, e.ad2,  e.date, e.color,
-      events.coordinates
-      FROM events AS e
-      INNER JOIN users AS u ON e.user_id = u.id
-      INNER JOIN event_participants AS ep on e.id = ep.event_id
-      WHERE e.date >= $4::date AND e.date <= $5::date
-      AND e.coordinates <-> ST_MakePoint($1, $2) < $3
-      ORDER BY e.date DESC;
-      "
-    ]
+  # def selectbis_in_map(%{
+  #       lng: lng,
+  #       lat: lat,
+  #       distance: distance,
+  #       start_date: start_date,
+  #       end_date: end_date
+  #     }) do
+  #   query = [
+  #     "SELECT e.id, e.user_id, u.email, e.ad1, e.ad2,  e.date, e.color,
+  #     events.coordinates
+  #     FROM events AS e
+  #     INNER JOIN users AS u ON e.user_id = u.id
+  #     INNER JOIN event_participants AS ep on e.id = ep.event_id
+  #     WHERE e.date >= $4::date AND e.date <= $5::date
+  #     AND e.coordinates <-> ST_MakePoint($1, $2) < $3
+  #     ORDER BY e.date DESC;
+  #     "
+  #   ]
 
-    case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
-      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
-        Enum.map(rows, fn row ->
-          Repo.load(Event, {columns, row})
-          |> Repo.preload(:event_participants)
-        end)
+  #   case Repo.query(query, [lng, lat, distance, start_date, end_date], log: true) do
+  #     {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
+  #       Enum.map(rows, fn row ->
+  #         Repo.load(Event, {columns, row})
+  #         |> Repo.preload(:event_participants)
+  #       end)
 
-      {:error, %Postgrex.Error{postgres: %{message: message}}} ->
-        Logger.debug(message)
-        {:error, message}
-    end
-  end
+  #     {:error, %Postgrex.Error{postgres: %{message: message}}} ->
+  #       Logger.debug(message)
+  #       {:error, message}
+  #   end
+  # end
 end

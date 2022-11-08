@@ -55,10 +55,10 @@ defmodule LiveMapWeb.SelectedEvents do
           <th class="text-white font-['Roboto']"> Participants </th>
         </tr>
       </thead>
-      <tbody :for={[id, %{"owner" => [owner], "pending"=> pending, "confirmed" => confirmed}, %{"date" => date}] <- @selected}
-        class="overflow-x-auto"
-      >
-        <tr id={"event-#{id}"} class="mb-1">
+      <tbody>
+        <tr  :for={[id, %{"owner" => [owner], "pending"=> pending, "confirmed" => confirmed}, %{"date" => date}] <- @selected}
+          id={"event-#{id}"} class="mb-1"
+          >
           <td>
           <%!-- Notice class "pointer-events-none" --%>
             <button type="button"
@@ -142,11 +142,20 @@ defmodule LiveMapWeb.SelectedEvents do
   def handle_event("delete_event", %{"id" => id, "owner" => _owner}, socket) do
     id = convert(id)
 
-    LiveMap.Event.delete_event(id)
-    send(self(), {:down_check_all})
-    :ok = Endpoint.broadcast!("event", "delete_event", %{id: id})
-    selected = rm_event_id_from_selected(socket.assigns.selected, id)
-    send_update(SelectedEvents, id: "selected", selected: selected)
+    Task.Supervisor.start_child(LiveMap.EventSup, fn ->
+      LiveMap.Event.delete_event(id)
+      MailController.cancel_event(%{event_id: id})
+
+      # remove the check on all checkboxes
+      send(self(), {:down_check_all})
+
+      # broadcast to the front-end to remove the event
+      :ok = Endpoint.broadcast!("event", "delete_event", %{id: id})
+
+      # update the user's table
+      selected = rm_event_id_from_selected(socket.assigns.selected, id)
+      send_update(SelectedEvents, id: "selected", selected: selected)
+    end)
 
     {:noreply, put_flash(socket, :info, "Confirm u wanna delete?")}
   end

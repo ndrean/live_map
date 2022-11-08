@@ -81,7 +81,7 @@ export const MapHook = {
 
     L.Marker.prototype.options.icon = DefaultIcon;
 
-    const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 2);
+    const map = L.map("map", { renderer: L.canvas() }).setView([20, 10], 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,

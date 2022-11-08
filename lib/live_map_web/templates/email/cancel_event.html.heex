@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title><%= @email.subject %></title>
+  </head>
+  <body>
+    <p>Hi! <%= @user %></p>
+    <br/>
+    <p>On behalf of <%= @owner %>, we regret to inform you that the following event is cancelled</p>
+    <br/>
+    <p> Event date: <%= @date %></p>
+    <p>The start-point was: <%= @addr_start%></p>
+    <p>The end-point was: <%= @addr_end%></p>
+    <br/>
+    <p>See you soon! Cheers!</p>
+  </body>
+</html>

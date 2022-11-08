@@ -30,6 +30,7 @@ defmodule LiveMap.EventParticipants do
 
   @doc """
     Creates a user to an event, sets the status to pending and saves the token
+    Used in MailController.create_demand
   ```
   iex>LiveMap.EventParticipants.set_pending(%{event_id: 6, user_id: 2})
   {:ok, %LiveMap.EventParticipants{ ...}}
@@ -38,18 +39,17 @@ defmodule LiveMap.EventParticipants do
   def set_pending(%{user_id: _user_id, event_id: _event_id} = params) do
     mtoken = LiveMap.Token.mail_generate(params)
 
-    params =
-      params
-      |> Map.put(:mtoken, mtoken)
-      |> Map.put(:status, :pending)
-
-    LiveMap.EventParticipants.new(params)
+    params
+    |> Map.put(:mtoken, mtoken)
+    |> Map.put(:status, :pending)
+    |> LiveMap.EventParticipants.new()
 
     mtoken
   end
 
   @doc """
-  Sets the status of a user for an event to confirmed and removes the token
+  Sets the status of a user for an event to confirmed and removes the token.
+  Used by MailController.handle_owner_token with halt if not found.
   """
   def set_confirmed(%{event_id: event_id, user_id: user_id} = params) do
     params =
@@ -57,9 +57,14 @@ defmodule LiveMap.EventParticipants do
       |> Map.put(:mtoken, nil)
       |> Map.put(:status, :confirmed)
 
-    Repo.get_by(__MODULE__, %{event_id: event_id, user_id: user_id})
-    |> changeset(params)
-    |> Repo.update()
+    case Repo.get_by(__MODULE__, %{event_id: event_id, user_id: user_id}) do
+      nil ->
+        {:error, :not_found}
+
+      evtparts ->
+        changeset(evtparts, params)
+        |> Repo.update()
+    end
   end
 
   def list do
@@ -85,6 +90,30 @@ defmodule LiveMap.EventParticipants do
   end
 
   @doc """
+  Get the owner email and user email given [event_id, user_id]
+  Used in handle_email
+  """
+  def owner_user_by_evt_id_user_id(event_id, user_id) do
+    from(ep in "event_participants",
+      join: e in "events",
+      on: e.id == ep.event_id,
+      join: owner in "users",
+      on: owner.id == e.user_id,
+      join: u in "users",
+      on: u.id == ep.user_id,
+      where: ep.user_id == ^user_id and ep.event_id == ^event_id,
+      select: %{
+        owner: owner.email,
+        user: u.email,
+        date: e.date,
+        addr_start: e.ad1,
+        addr_end: e.ad2
+      }
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Get all the records for this event with email and status
   ```
   iex>LiveMap.EventParticipants.email_with_evt_id(1)
@@ -95,15 +124,17 @@ defmodule LiveMap.EventParticipants do
   ]
   ```
   """
-  def email_with_evt_id(event_id) do
-    from(ep in "event_participants",
-      join: u in "users",
-      on: u.id == ep.user_id,
-      where: ep.event_id == ^event_id,
-      select: %{user_id: ep.user_id, user_email: u.email, ep_status: ep.status}
-    )
-    |> Repo.all()
-  end
+
+  #  UNUSED: TBD
+  # def email_with_evt_id(event_id) do
+  #   from(ep in "event_participants",
+  #     join: u in "users",
+  #     on: u.id == ep.user_id,
+  #     where: ep.event_id == ^event_id,
+  #     select: %{user_id: ep.user_id, user_email: u.email, ep_status: ep.status}
+  #   )
+  #   |> Repo.all()
+  # end
 
   @doc """
   List of users.email and status by event_participant_id
@@ -116,15 +147,17 @@ defmodule LiveMap.EventParticipants do
   ]
   ```
   """
-  def list_participants_status_by_evt_id(evt_id) do
-    from(ep in "event_participants",
-      join: u in "users",
-      on: u.id == ep.user_id,
-      where: ep.event_id == ^evt_id,
-      select: %{status: ep.status, user: u.email, id: ep.event_id}
-    )
-    |> Repo.all()
-  end
+
+  #  UNUSED: TBD
+  # def list_participants_status_by_evt_id(evt_id) do
+  #   from(ep in "event_participants",
+  #     join: u in "users",
+  #     on: u.id == ep.user_id,
+  #     where: ep.event_id == ^evt_id,
+  #     select: %{status: ep.status, user: u.email, id: ep.event_id}
+  #   )
+  #   |> Repo.all()
+  # end
 
   @doc """
   List of events to which "user.email" participates with his status
@@ -144,15 +177,17 @@ defmodule LiveMap.EventParticipants do
   ]
   ```
   """
-  def list_events_by_user_email(user_email) do
-    from(ep in "event_participants",
-      join: u in "users",
-      on: u.id == ep.user_id,
-      where: u.email == ^user_email,
-      select: %{event_id: ep.event_id, status: ep.status, user: u.email}
-    )
-    |> Repo.all()
-  end
+
+  #  UNUSED: TBD
+  # def list_events_by_user_email(user_email) do
+  #   from(ep in "event_participants",
+  #     join: u in "users",
+  #     on: u.id == ep.user_id,
+  #     where: u.email == ^user_email,
+  #     select: %{event_id: ep.event_id, status: ep.status, user: u.email}
+  #   )
+  #   |> Repo.all()
+  # end
 
   @doc """
   List of events owner by "user.email"
@@ -165,46 +200,31 @@ defmodule LiveMap.EventParticipants do
   #   )
   # end
 
-  def token_email_by_evt_id_user_id(evt_id, u_id) do
-    from(ep in "event_participants",
-      join: e in "events",
-      on: e.id == ep.event_id,
-      join: u in "users",
-      on: u.id == ep.user_id,
-      where: ep.user_id == ^u_id and ep.event_id == ^evt_id,
-      select: %{token: ep.mtoken, user: u.email}
-    )
-    |> Repo.one()
-  end
+  #  UNUSED: TBD
+  # def token_email_by_evt_id_user_id(evt_id, u_id) do
+  #   from(ep in "event_participants",
+  #     join: e in "events",
+  #     on: e.id == ep.event_id,
+  #     join: u in "users",
+  #     on: u.id == ep.user_id,
+  #     where: ep.user_id == ^u_id and ep.event_id == ^evt_id,
+  #     select: %{token: ep.mtoken, user: u.email}
+  #   )
+  #   |> Repo.one()
+  # end
 
-  @doc """
-  Get the owner email and user email given [event_id, user_id]
-  """
-  def owner_user_by_evt_id_user_id(event_id, user_id) do
-    from(ep in "event_participants",
-      join: e in "events",
-      on: e.id == ep.event_id,
-      join: owner in "users",
-      on: owner.id == e.user_id,
-      join: u in "users",
-      on: u.id == ep.user_id,
-      where: ep.user_id == ^user_id and ep.event_id == ^event_id,
-      select: %{owner: owner.email, user: u.email, date: e.date}
-    )
-    |> Repo.one()
-  end
+  #  UNUSED: TBD
+  # def owner_user_token_by_evt_id_user_email(event_id, user_email) do
+  #   u_id = Repo.get_by(User, email: user_email).id
 
-  def owner_user_token_by_evt_id_user_email(event_id, user_email) do
-    u_id = Repo.get_by(User, email: user_email).id
-
-    from(ep in "event_participants",
-      join: e in "events",
-      on: e.id == ep.event_id,
-      join: owner in "users",
-      on: owner.id == e.user_id,
-      where: ep.event_id == ^event_id and ep.user_id == ^u_id,
-      select: %{token: ep.mtoken, status: ep.status, user: ^user_email, owner: owner.email}
-    )
-    |> Repo.one()
-  end
+  #   from(ep in "event_participants",
+  #     join: e in "events",
+  #     on: e.id == ep.event_id,
+  #     join: owner in "users",
+  #     on: owner.id == e.user_id,
+  #     where: ep.event_id == ^event_id and ep.user_id == ^u_id,
+  #     select: %{token: ep.mtoken, status: ep.status, user: ^user_email, owner: owner.email}
+  #   )
+  #   |> Repo.one()
+  # end
 end

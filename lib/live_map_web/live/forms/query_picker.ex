@@ -84,7 +84,7 @@ defmodule LiveMapWeb.QueryPicker do
 
   attr(:target, :string)
 
-  attr(:options, :string)
+  attr(:options, :list)
   attr(:choice, :string)
 
   attr(:status, :string)

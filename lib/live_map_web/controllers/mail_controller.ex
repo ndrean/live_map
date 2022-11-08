@@ -2,7 +2,6 @@ defmodule LiveMapWeb.MailController do
   use LiveMapWeb, :controller
   require Logger
   alias LiveMapMail.Email
-  alias LiveMapMail.Mailer
   alias LiveMap.EventParticipants
   alias LiveMap.Token
 
@@ -30,35 +29,33 @@ defmodule LiveMapWeb.MailController do
     ```
   """
   def create_demand(%{event_id: event_id, user_id: user_id} = params) do
-    with token <- EventParticipants.set_pending(%{event_id: event_id, user_id: user_id}) do
-      params = Map.put(params, :mtoken, token)
+    Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
+      token = EventParticipants.set_pending(%{event_id: event_id, user_id: user_id})
 
-      Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
-        Email.build_demand(params)
-        |> Mailer.deliver()
-      end)
-    else
-      {:error, %{errors: _msg}} ->
-        Logger.error("#{__MODULE__}: has already been taken")
-    end
-  end
-
-  defp fetch_token(conn, row) when is_nil(row) do
-    json(conn, "Not found")
-  end
-
-  defp fetch_token(_conn, row) do
-    row.mtoken
+      Map.put(params, :mtoken, token)
+      |> Email.build_demand()
+    end)
   end
 
   defp check_token(mtoken) do
-    with {:ok, string} <- Token.mail_check(mtoken) do
-      {:ok, string}
-    else
-      {:error, message} ->
-        # json(conn, "error: #{inspect(message)}")
-        {:error, message}
+    case Token.mail_check(mtoken) do
+      {:ok, string} -> {:ok, string}
+      {:error, message} -> {:error, message}
     end
+  end
+
+  def cancel_event(%{event_id: id}) do
+    LiveMap.Event.get_event_participants(id)
+    |> Enum.each(fn %{status: status, user_id: user_id} ->
+      if status != "owner" do
+        Email.handle_email(%{
+          event_id: id,
+          user_id: user_id,
+          subject: "Cancel the event",
+          rendered_body: "cancel_event.html"
+        })
+      end
+    end)
   end
 
   @doc """
@@ -91,34 +88,51 @@ defmodule LiveMapWeb.MailController do
     case check_token(token) do
       {:ok, string} ->
         %{"event_id" => event_id, "user_id" => user_id} = URI.decode_query(string)
-        event_id = String.to_integer(event_id)
-        user_id = String.to_integer(user_id)
-        row = EventParticipants.lookup(event_id, user_id)
-
-        fetch_token(conn, row)
-        |> handle_owner_token(event_id, user_id, conn)
+        handle_token(conn, event_id, user_id)
 
       {:error, reason} ->
         put_flash(conn, :info, "Error with the token: #{inspect(reason)}")
     end
   end
 
-  defp handle_owner_token(owner_mtoken, event_id, user_id, conn) do
-    case owner_mtoken do
+  @spec handle_token(Plug.Conn.t(), binary, binary) :: Plug.Conn.t()
+  def handle_token(conn, event_id, user_id) do
+    event_id = String.to_integer(event_id)
+    user_id = String.to_integer(user_id)
+
+    case EventParticipants.lookup(event_id, user_id) do
       nil ->
-        json(conn, "Already confirmed")
+        json(conn, "lost in translation")
         |> halt()
 
-      ^owner_mtoken ->
-        Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
-          {:ok, _} = EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id})
-
-          Email.confirm_participation(%{event_id: event_id, user_id: user_id})
-          |> Mailer.deliver()
-        end)
-
-        json(conn, "confirmed")
-        |> halt()
+      row ->
+        handle_owner_token(conn, row.mtoken, event_id, user_id)
     end
+  end
+
+  defp handle_owner_token(conn, nil, _, _) do
+    json(conn, "Event deleted or Already confirmed")
+    |> halt()
+  end
+
+  defp handle_owner_token(conn, _, event_id, user_id) do
+    Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
+      case EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id}) do
+        {:error, :not_found} ->
+          json(conn, "lost in translation")
+          |> halt()
+
+        {:ok, _res} ->
+          Email.handle_email(%{
+            event_id: event_id,
+            user_id: user_id,
+            subject: "Confirmation to the event",
+            rendered_body: "confirmation.html"
+          })
+      end
+    end)
+
+    json(conn, "confirmed")
+    |> halt()
   end
 end
