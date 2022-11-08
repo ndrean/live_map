@@ -10,7 +10,7 @@ defmodule LiveMapWeb.QueryPicker do
   Form with a date as input and saves the completed event
   """
 
-  @menu ["", "owner", "pending", "confirmed"]
+  @menu ["" | ~w(owner pending confired)]
 
   def mount(socket) do
     {:ok,
@@ -41,7 +41,7 @@ defmodule LiveMapWeb.QueryPicker do
     >
 
       <%!-- display the distance on screen--%>
-      <p>Map radius: <%= @d %> km</p>
+      <p class="text-black font-semibold font-['Roboto'] ml-2">Map radius: <%= @d %> km</p>
 
       <%!-- passing the value to the formData with no input --%>
       <input type="hidden" value={@distance} name="query_picker[distance]" />
@@ -51,14 +51,14 @@ defmodule LiveMapWeb.QueryPicker do
         <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" />
         <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/>
       </div>
-      <div class="flex items-center justify-around ml-3 mt-2">
-        <.date date={@start_date} name="query_picker[start_date]" class="w-60" label=""/>
+      <div class="flex items-center justify-around ml-1 mt-2 mr-1 mb-1">
+        <.date date={@start_date} name="query_picker[start_date]" class="w-15 ml-1 rounded-md" label=""/>
           <%= error_tag(f, :start_date) %>
         <button form="query_picker"
-          class="px-2 py-2 bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
+          class="px-2 py-2 rounded-md font-['Roboto'] bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
           >Send
         </button>
-        <.date date={@end_date} name="query_picker[end_date]" class="w-60" label="" />
+        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-md" label="" />
           <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">

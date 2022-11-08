@@ -20,7 +20,7 @@ defmodule LiveMap.Application do
       {Task.Supervisor, name: LiveMap.AsyncMailSup}
     ]
 
-    :ets.new(:limit_user, [:set, :named_table, :public])
+    # :ets.new(:limit_user, [:set, :named_table, :public])
     opts = [strategy: :one_for_one, name: LiveMap.Supervisor]
     Supervisor.start_link(children, opts)
   end

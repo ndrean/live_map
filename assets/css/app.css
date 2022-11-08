@@ -20,7 +20,7 @@
   display: flex;
 }
 #map {
-  height: 450px;
+  height: 40vh;
   width: 100%;
 }
 

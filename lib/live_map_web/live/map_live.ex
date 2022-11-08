@@ -2,7 +2,7 @@ defmodule LiveMapWeb.MapLive do
   use LiveMapWeb, :live_view
   alias LiveMapWeb.Presence
   alias LiveMapWeb.Endpoint
-  alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker}
+  alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker, HeaderSection}
   require Logger
 
   @impl true
@@ -13,7 +13,7 @@ defmodule LiveMapWeb.MapLive do
       {:ok, _} = Presence.track(self(), "presence", socket.id, %{user_id: user_id})
     end
 
-    :ets.insert(:limit_user, {user_id, Time.utc_now()})
+    # :ets.insert(:limit_user, {user_id, Time.utc_now()})
 
     {:ok,
      assign(socket,
@@ -29,14 +29,19 @@ defmodule LiveMapWeb.MapLive do
      )}
   end
 
+  # def update(assigns) do
+  # end
+
   @impl true
   def render(assigns) do
+    assigns = assign(assigns, :presence, assigns.presence)
+
     ~H"""
     <div>
-    <p>Number connected user: <%= @presence %></p>
-    <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id} />
-    <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords} />
-    <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current} />
+      <HeaderSection.display presence={@presence} />
+      <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id} />
+      <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords} />
+      <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current} />
     </div>
     """
   end

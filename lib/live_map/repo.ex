@@ -141,7 +141,7 @@ defmodule LiveMap.Repo do
            [lng, lat, distance, start_date, end_date]
          ) do
       {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
-        rows
+        rows |> IO.inspect()
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->
         Logger.debug(message)

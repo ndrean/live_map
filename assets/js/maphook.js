@@ -1,4 +1,7 @@
 import { proxy, subscribe } from "valtio";
+import { randomColor } from "randomcolor";
+// import icon from "leaflet/dist/images/marker-icon.png";
+// import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
 async function loader() {
   return Promise.all([
@@ -6,7 +9,6 @@ async function loader() {
     import("leaflet-control-geocoder"),
     import("leaflet/dist/images/marker-shadow.png"),
     import("leaflet/dist/images/marker-icon.png"),
-    import("randomcolor"),
   ]);
 }
 
@@ -68,7 +70,7 @@ export const MapHook = {
   },
   async mounted() {
     // load Leaflet and Geocoder async
-    const [L, { geocoder }, { iconShadow }, { icon }, { randomColor }] =
+    const [L, { geocoder }, { default: icon }, { default: iconShadow }] =
       await loader();
 
     const DefaultIcon = L.icon({
@@ -79,7 +81,7 @@ export const MapHook = {
 
     L.Marker.prototype.options.icon = DefaultIcon;
 
-    const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 10);
+    const map = L.map("map", { renderer: L.canvas() }).setView([45, -1], 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -110,7 +112,7 @@ export const MapHook = {
     // store the toggled = highlighted events from checkbox SSR
     let toggled = [];
 
-    // "highlight" an event-id (DB) and put in highLayer
+    // "highlight" an event-id (DB) and put in highlighterLayer
     this.handleEvent("toggle_up", ({ id }) => {
       // we find the event with "id" and add it to the highlighted layer
       L.geoJSON(myEvts, {
@@ -129,7 +131,7 @@ export const MapHook = {
       highlightLayer.clearLayers();
       //  define a new set with event "id" removed
       toggled = toggled.filter((t) => t.properties.id !== Number(id));
-      //  and put back a lighlighted layer with this new filtered set
+      //  and put back a lighlighted layer on this new filtered set
       L.geoJSON(toggled, {
         onEachFeature: () => ({ color: "#ff0000", weight: 8 }),
       }).addTo(highlightLayer);
