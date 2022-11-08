@@ -4,8 +4,6 @@ defmodule LiveMapWeb.HeaderSection do
   attr(:presence, :integer, default: 1)
 
   def display(assigns) do
-    IO.inspect(assigns.presence, label: "display")
-
     ~H"""
     <section class="flex mb-4 mt-4 justify-center">
       <div class="w-1/2 mt-0 flex flex-wrap items-center justify-center" id="geolocation">

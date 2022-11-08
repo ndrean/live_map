@@ -26,10 +26,15 @@ defmodule LiveMap.GeoJSON do
     put_in(geojson.geometry.coordinates, coordinates)
   end
 
-  defp swap_id_for_email(%GeoJSON{} = geojson, id) do
+  defp swap_user_id_for_email(%GeoJSON{} = geojson, id) do
+    {nil, geojson} =
+      get_and_update_in(
+        geojson,
+        [Access.key(:properties), Access.key(:email)],
+        &{&1, User.email(id)}
+      )
+
     geojson
-    |> Map.put(:email, User.email(id))
-    |> Map.delete(:user_id)
   end
 
   defp set_props(%GeoJSON{} = geojson, id, ad1, ad2, date, distance, color) do
@@ -39,7 +44,8 @@ defmodule LiveMap.GeoJSON do
       ad2: ad2,
       date: date,
       distance: distance,
-      color: color
+      color: color,
+      email: nil
     })
   end
 
@@ -60,7 +66,7 @@ defmodule LiveMap.GeoJSON do
 
     %GeoJSON{}
     |> set_coords(coordinates)
-    |> swap_id_for_email(user_id)
     |> set_props(id, ad1, ad2, date, distance, color)
+    |> swap_user_id_for_email(user_id)
   end
 end

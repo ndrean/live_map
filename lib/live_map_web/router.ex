@@ -2,7 +2,7 @@ defmodule LiveMapWeb.Router do
   use LiveMapWeb, :router
 
   # checked with: https://csp-evaluator.withgoogle.com/
-  @csp "script-src 'self' https://accounts.google.com/gsi/client https://connect.facebook.net/en_US/  'nonce-2022utoken' 'nonce-2022appjs' 'nonce-2022appid' 'nonce-DO0Om7wZ'; frame-src https://accounts.google.com/gsi/  'self'; connect-src https://accounts.google.com/gsi/ https://nominatim.openstreetmap.org/  wss://localhost/ ws://localhost:4000/ 'self'; form-action 'self'; style-src https://localhost/; frame-ancestors 'none'; base-uri http://localhost:4000/ https://localhost/; object-src 'none';style-src-elem http://localhost:4000/assets/ https://fonts.cdnfonts.com/css/roboto  https://accounts.google.com/gsi/style;"
+  @csp "script-src 'self' https://accounts.google.com/gsi/client https://connect.facebook.net/en_US/  'nonce-2022utoken' 'nonce-2022appjs' 'nonce-2022appid' 'nonce-DO0Om7wZ'; frame-src https://accounts.google.com/gsi/  'self'; connect-src https://accounts.google.com/gsi/ https://nominatim.openstreetmap.org/  wss://localhost/ ws://localhost:4000/ 'self'; form-action 'self'; style-src https://fonts.cdnfonts.com/css/roboto 'self'; frame-ancestors 'none'; base-uri http://localhost:4000/ https://localhost/; object-src 'none';style-src-elem 'self' https://fonts.cdnfonts.com/css/roboto  https://accounts.google.com/gsi/style;"
 
   pipeline :browser do
     plug :accepts, ["html"]

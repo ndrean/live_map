@@ -58,7 +58,7 @@ defmodule LiveMapWeb.QueryPicker do
           class="px-2 py-2 rounded-md font-['Roboto'] bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
           >Send
         </button>
-        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-md" label="" />
+        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-lg" label="" />
           <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">
@@ -75,7 +75,7 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
-  slot(:inner_block)
+  # slot(:inner_block)
   attr(:class, :string)
   attr(:name, :string)
 
@@ -155,12 +155,17 @@ defmodule LiveMapWeb.QueryPicker do
         {:noreply, assign(socket, changeset: changeset)}
 
       true ->
-        coords = socket.assigns.coords
-        params = to_params(form, coords)
+        send(self(), {:down_check_all})
+
+        form
+        |> to_params(socket.assigns.coords)
+        |> process_params(socket)
+
+        # coords = socket.assigns.coords
+        # params = to_params(form, coords)
+        # process_params(params, socket)
 
         # reset all hilghlighted events since checkbox defaults to false on refresh (no more in sync)
-        send(self(), {:down_check_all})
-        process_params(params, socket)
     end
 
     # we uncheck all checkboxes with Javascript listener since not everything is updated

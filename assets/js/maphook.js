@@ -171,6 +171,7 @@ export const MapHook = {
       let feature = myEvts[0]?.features;
       feature === null ? (feature = [geojson]) : feature.push(geojson);
       myEvts[0].features = feature;
+
       handleData(myEvts);
     });
 
