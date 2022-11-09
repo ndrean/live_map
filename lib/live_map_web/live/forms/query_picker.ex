@@ -10,7 +10,7 @@ defmodule LiveMapWeb.QueryPicker do
   Form with a date as input and saves the completed event
   """
 
-  @menu ["" | ~w(owner pending confired)]
+  @menu ["" | ~w(owner pending confirmed)]
 
   def mount(socket) do
     {:ok,
@@ -46,7 +46,6 @@ defmodule LiveMapWeb.QueryPicker do
       <%!-- passing the value to the formData with no input --%>
       <input type="hidden" value={@distance} name="query_picker[distance]" />
 
-      <%!-- see LiveHelpers for .select and .date --%>
       <div class="flex items-center justify-around mb-2 ml-3">
         <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" />
         <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/>
@@ -58,7 +57,7 @@ defmodule LiveMapWeb.QueryPicker do
           class="px-2 py-2 rounded-md font-['Roboto'] bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
           >Send
         </button>
-        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-lg" label="" />
+        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-lg" label=""/>
           <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">

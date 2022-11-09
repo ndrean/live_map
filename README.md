@@ -1,23 +1,10 @@
 # LiveMap
 
-TODO: explain!!
+This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. An event is a line with two endpoints; each endpoint has a popup that displays some informations about the point. The events are geolocated and displayed on a map.
+The objective of this app is for each user to visualise and create events and interact with other users by asking to participate to an event.
+The map discovers events when it is panned or zoomed.
 
-Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
-at content.js:2:155799
-at main.js:2:225523
-
-- Schemaless changset
-  <https://elixirfocus.com/posts/ecto-schemaless-changesets/>
-
-- update the map when running the query ??
-- modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability)
-- more queries in the table: selection by user and by status
-- for fun: add a svg graph to show distances per user
-- add a serverless chat?
-
-<https://www.codejam.info/2021/11/elixir-intercepting-phoenix-liveview-events-javascript.html>
-
-This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. It is inspired by [this talk](https://www.youtube.com/watch?v=xXWyOy9XdA8&t=255s) and some ideas are learned and solutions borrowed from [this book](https://pragprog.com/titles/puphoe/building-table-views-with-phoenix-liveview/), [this author](https://akoutmos.com/) and [this organisation](https://github.com/dwyl).
+It is inspired by [this talk](https://www.youtube.com/watch?v=xXWyOy9XdA8&t=255s) and some ideas are learned and solutions borrowed from [this book](https://pragprog.com/titles/puphoe/building-table-views-with-phoenix-liveview/), [this author](https://akoutmos.com/) and [this organisation](https://github.com/dwyl).
 
 - [0. Quick presentation](#quick-presentation-of-the-app)
 
@@ -62,9 +49,10 @@ One point to mention is when you use variables in a component: the compiler asks
 
 The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client": it fetches online png files from a server - OpenStreetMap - and stitches this collection of images. The immediate optimisation would be to use **vector tiles** instead and the more powerful library [maplibre](https://maplibre.org/maplibre-gl-js-docs/api/). The Leaflet setup and code is [here](#leaflet-setup)
 
-The database is a Postgres database with the **Postgis** extension enabled. We use the **geography** version. We perform a "[nearest neighbours] (https://postgis.net/workshops/postgis-intro/knn.html)" search to the current location with regards to the dimension of the map. See also Crunchy data [post](https://www.crunchydata.com/blog/a-deep-dive-into-postgis-nearest-neighbor-search).
+The database is a Postgres database with the **Postgis** extension enabled.
+We use the **geography** version. We perform a "[nearest neighbours] (https://postgis.net/workshops/postgis-intro/knn.html)" search to the current location with regards to the dimension of the map. See also Crunchy data [post](https://www.crunchydata.com/blog/a-deep-dive-into-postgis-nearest-neighbor-search).
 
-We use a spatial index, the [GIST](https://postgis.net/docs/using_postgis_dbmanagement.html#Create_Spatial_Table) format to improve the speed of search. We also limit the period of the retrieved events and a rate limiter.
+We use a spatial index, the [GIST](https://postgis.net/docs/using_postgis_dbmanagement.html#Create_Spatial_Table) format to improve the speed of search. We also limit the period of the retrieved events.
 The config for Postgis is [down here](#postgis-setup).
 
 The map and the table are "soft" live updated whenever a new event is created by a user, and `Presence` is enabled too.
@@ -79,9 +67,11 @@ You have two kind of markers:
 
 - markers created by clicking on the map, to build a new event.
 
-When you create a marker, a table appears below to set the date and save and broadcast it. You can move/drag, or delete the marker while the event is not saved. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered. All other servers (Esri/ArcGis, Mapbox or Google) require an API key and pay-per-usage.
+When you create a marker, a table appears below to set the date and save and broadcast it. You can move/drag, or delete the marker while the event is not saved. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered.
 
-> this "geocoding" request is sent client-side. There exists an Elixir library [geocoder](https://github.com/DaoDeCyrus/geocoder) that can handle this server-side. This is not used here as the data flow would be much more complicated and less performant in this case. Indeed, on click client-side, we send the coordinates to the geocoder to receive the data, store it in an object, and if ok, send and save the object in the database. If we had to do this server-side, we would need a GenServer to hold a state and handlers to interact with the geocoder and client.
+All other servers (Esri/ArcGis, Mapbox or Google) require an API key and pay-per-usage.
+
+> This "geocoding" request is sent by the front-end. There exists an Elixir library [geocoder](https://github.com/DaoDeCyrus/geocoder) that can handle this server-side. This is not used here as the data flow would be much more complicated and less performant in this case. Indeed, on click client-side, we send the coordinates to the geocoder to receive the data, store it in an object, and if ok, send and save the object in the database. If we had to do this server-side, we would need a GenServer to hold a state and handlers to interact with the geocoder and client.
 
 An example of an event creation:
 
@@ -107,7 +97,8 @@ The ER Diagram of the database. This schema is generated by the library [Ecto_ER
 
 #### GeoJSON format
 
-We use the [GeoJson format](https://macwright.com/2015/03/23/geojson-second-bite.html). This [repo](https://github.com/tmcw/awesome-geojson) links to some GeoJson utilities. Leaflet has primitives to work easily with a collection of GeoJSON objects.
+We use the [GeoJson format](https://macwright.com/2015/03/23/geojson-second-bite.html). This [repo](https://github.com/tmcw/awesome-geojson) links to some GeoJson utilities.
+Leaflet and PostGIS have primitives to work verry easily with a collection of GeoJSON objects.
 
 ```json
 {
@@ -151,7 +142,6 @@ use Ecto.Migration
       add :ad1, :text
       add :ad2, :text
       add :date, :date
-      # add :coordinates, :geography[]
     end
 
   execute("CREATE EXTENSION IF NOT EXISTS postgis")
@@ -160,11 +150,11 @@ use Ecto.Migration
   end
 ```
 
-We parse the "events" table into an Elixir struct that we named "GeoJSON", used later.
+We don't use JSONB but instead a "flat" table structure. The table `events` is parsed into an Elixir struct that we named "GeoJSON", used later.
 
 #### Moving the map and query of the local events
 
-We have a listener on the map moves, whether pan, zoom or navigate to. It mutates a JS object `movingmap`. We send the centre and radius of the current displayed map as parameters to a query to retrieve the nearby events. When you pan, zoom, navigate in the map (the latter via the search form included in the map), a new centre and radius are calculated and the map is updated.
+We have a listener on the map moves, whether pan, zoom or navigate to. It mutates a local store - a JS object - named `movingmap`. We send the centre and radius of the current displayed map as parameters to a query to retrieve the nearby events. When you pan, zoom, navigate in the map (the latter via the search form included in the map), a new centre and radius are calculated and the map is updated.
 
 ```js
 map.on("moveend", updateMapBounds);
@@ -176,18 +166,25 @@ function updateMapBounds() {
 The object is "proxied" (Javascript `proxy`) in the front-end where we save the centre and radius of the displayed map. It gets updated/mutated by the callback of the listener "moveend"
 
 ```js
-const movingmap = proxy({ center: [], distance: 10_000 });
+const movingmap = proxy({
+  center: [],
+  distance: 10_000,
+});
 ```
 
 We subscribe to mutations (we used **Valtio**), and push this data to the server if any:
 
 ```js
 subscribe(movingmap, () => {
-  this.pushEventTo("#map", "postgis", { movingmap });
+  this.pushEventTo("#map", "postgis", {
+    movingmap,
+  });
 });
 ```
 
 Server-side, the handler is:
+
+<details><summary> Event handler code </summary>
 
 ```elixir
 def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
@@ -222,10 +219,13 @@ def handle_event("postgis", %{"movingmap" => moving_map}, socket) do
      end
 
     {:noreply, push_event(socket, "update_map", %{data: results})}
-  end
+end
+
 ```
 
-The function "features_in_map" is the Postgres query below:
+</details>
+
+The function "features_in_map" is the Postgres query below. It is much easier to use plain SQL and build a JSON response in a GeoJSON format for `Postgrex` to handle it.
 
 ```elixir
 def features_in_map(lng, lat, distance, date_start \\ default_date(0), date_end \\ default_date(30) do
@@ -364,9 +364,9 @@ def changeset(%__MODULE__{} = event_participants, attrs) do
 
 #### Multi on assoc
 
-When a user creates an event, he is the "owner". A new event is created along with an "event_participants". The status is set to the value "owner".
+When a user creates an event, a new "event_participants" is created in the same transaction. The user's status in the event is "owner".
 
-```
+```bash
 # record in "event_participants"
 [event_id, owner_id, "owner", nil]
 ```
@@ -462,84 +462,16 @@ end
 defp validate_future(changeset), do:  changeset
 ```
 
-The form is a child `:live_component`:
-
-```elixir
-def update(assigns, socket) do
-  len = assigns.event["coords"] |> length()
-  socket = assign(socket, :len, len)
-  {:ok, assign(socket, assigns)}
-end
-
-# display the form only when two markers are displayed
-def render(%{len: len} = assigns) when len>1 do
-  ~H"""
-  <div>
-  <.form :let={f} for={@changeset} id="form" phx-submit="up_date" phx-target={@myself} class="...">
-      <%= submit "Update", class: "..." %>
-      <%= date_input(f, :event_date, id: "date" %>
-      <%= error_tag(f, :event_date), class: "m-1 ..." %>
-  </.form>
-  </div>
-  """
-end
-
-def render(assigns) do
-  ~H"""
-    <div></div>
-  """
-end
-
-def handle_event("up_date", %{"date_picker" => %{"event_date" => date}} = _p, socket) do
-    changeset = DatePicker.changeset(%{"event_date" => date})
-
-    case changeset.valid? do
-      true ->
-        %{user_id: user_id, place: place} = socket.assigns
-        create_event(%{"place" => place, "date" => date, "user_id" => user_id}, socket)
-
-      false ->
-        {:error, changeset} = Ecto.Changeset.apply_action(changeset, :insert)
-        {:noreply, assign(socket, changeset: changeset)}
-    end
-  end
-
-  def create_event(%{"place" => place, "date" => date, "user_id" => user_id}, socket) do
-    owner_id = user_id
-
-    Task.Supervisor.async_nolink(LiveMap.EventSup, fn ->
-      LiveMap.Event.save_geojson(place, owner_id, date)
-    end)
-    |> Task.await()
-    |> then(fn geojson -> handle_geojson(geojson, socket) end)
-  end
-
-  defp handle_geojson(%LiveMap.GeoJSON{} = geojson, socket) do
-    :ok = LiveMapWeb.Endpoint.broadcast!("event", "new publication", %{geojson: geojson})
-    {:noreply, put_flash(socket, :info, "Event saved")}
-  end
-
-  defp handle_geojson({:error, _reason}, socket),
-    do: {:noreply, put_flash(socket, :error, "Internal error")}
-
-end
-```
+The form is a child `:live_component`.
 
 We used a GeoJson in an Elixir struct. It just needs a setter to populate an instance from an Event record:
 
 ```elixir
 defmodule LiveMap.GeoJSON do
   defstruct type: "Feature",
-            geometry: %{type: "LineString", coordinates: []},
-            properties: %{ad1: "", ad2: "", date: Date.utc_today(), user: nil, distance: 0
-            }
-
-  defp set_coords(%LiveMap.GeoJSON{} = geojson, startpoint, endpoint) do
-    put_in(geojson.geometry.coordinates, [startpoint, endpoint])
-  end
-  defp set_props(%LiveMap.GeoJSON{} = geojson,...)
-  ...
-end
+    geometry: %{type: "LineString", coordinates: []},
+    properties: %{ad1: "", ad2: "", date: Date.utc_today(), user: nil, distance: 0
+    }
 ```
 
 It remains to write the message handler that pushes the GeoJSON to the client. Since the message is broadcasted, it is the LiveView that holds it and every connected user will get the message:
@@ -618,6 +550,26 @@ To get this form, you can run a query `Repo.query()` like:
   FROM unsorted
   ORDER BY date_date
 ;
+```
+
+This produces a list of lists which can easily be passed into a table. The structure is:
+
+```elixir
+[
+  event_id,
+  %{map of status:[users_per_status]},
+  %{date_map}
+]
+
+[
+  88,
+  %{
+    "confirmed" => ["me@gmail.com", "her@could.com"],
+    "owner" => ["you@yahoo.com"],
+    "pending" => ["any@com"]
+  },
+  %{"date" => "2022-11-08"}
+]
 ```
 
 #### Custom datalist input and `phx_debounce`
@@ -741,7 +693,7 @@ Lastly, you need to declare the extension in a migration.
 
 ## Leaflet setup
 
-You need to tell Esbuild that you use "png" images for the markers. In the config
+You need to tell Esbuild that you use "png" images for the markers.
 
 ```elixir
 # config/config.exs
@@ -765,38 +717,77 @@ You also need to load the CSS and set the height and width to the div that holds
 }
 ```
 
-To render the map, add two bindings: `phx-update="ignore"` to let Leaflet update tiles without interacting with LiveView (see [docs](https://hexdocs.pm/phoenix_live_view/dom-patching.html#content)), and `phx-hook` to your custom "hook":
+To render the map, add two bindings:
+
+- `phx-update="ignore"` to let `Leaflet` update tiles without interacting with LiveView (see [docs](https://hexdocs.pm/phoenix_live_view/dom-patching.html#content)),
+- and `phx-hook` to your custom "hook":
 
 ```elixir
 use Phoenix.LiveComponent
 def render(assigns) do
   ~H"""
-    <div id="mymap" phx-update="ignore" phx-hook="MapHook"></div>
+    <div id="mymap"
+      phx-update="ignore"
+      phx-hook="MapHook"
+    ></div>
   ""
 end
 ```
 
-Client-side, you name this object as in your `phx-hook`:
+To minimise the initial load, the `Leaflet` library is loaded async. You build an object with the same name as in your `phx-hook`:
 
 ```js
+async function loader() {
+  return Promise.all([
+    import("leaflet"),
+    import("leaflet-control-geocoder"),
+  ]);
+}
+[...]
 export const MapHook = {
-  import L from 'leaflet'
+  async mounted() {
+    const [L, { geocoder }, { default: icon }, { default: iconShadow }]
+      = await loader();
 
-  mounted() {
     const map = L.('mymap', { renderer: L.canvas() }).setView(...)
   }
 }
 ```
 
-and add this "hook" in "/assets/app.js" to the LiveSocket object:
+This "hook" in attached to the LiveSocket object.
 
 ```js
+// assets/app.js
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: { MapHook },
 });
 ```
 
+Since `Leaflet` is purely a client library, all the events are stored in a local store.
+We used 3 abstractions with local stores:
+
+- a store for the map's radius and center coordinates,
+- a store for the event creation that will eventually be saved to be database,
+- a store to display the events fetched and updated from the database.
+
+Each time the map is panned or zoomed, this triggers a "moveend" event. With the new coordinates and radius, the corresponding events are fetched from the DB and rerendered in a fresh layer to avoid a build-up in the canvas layer.
+
+When an event is created, we fetch the geolocaized address from the `nominatim` database. The user can drag-and-drop the marker to set a new location and the data is re-fetched and updated.
+
 [:arrow_up:]()
 
 ### Leaflet MapHook code
+
+## Misc notes
+
+- Schemaless changset
+  <https://elixirfocus.com/posts/ecto-schemaless-changesets/>
+
+- update the map when running the query ??
+- modal for participants status by event (list of names for pending/confirmed instead of a <td> for readability)
+- more queries in the table: selection by user and by status
+- for fun: add a svg graph to show distances per user
+- add a serverless chat?
+
+<https://www.codejam.info/2021/11/elixir-intercepting-phoenix-liveview-events-javascript.html>

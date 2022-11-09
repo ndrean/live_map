@@ -37,10 +37,11 @@ defmodule LiveMapMail.Email do
   end
 
   @doc """
-  Sends a mail to the user on behalf of the owner to confirm the event.
+  Fills a template and sends a mail to the user.
 
-  The function receives `user_id`, `event_id`, makes a lookup for the corresponding
-  `owner.email` and `user.email` and `event.date` and sends a confirmation mail.
+  The function receives `user_id`, `event_id`, `subject` and `rendered_body`.
+
+  It makes a lookup in the database.
   """
 
   def handle_email(%{

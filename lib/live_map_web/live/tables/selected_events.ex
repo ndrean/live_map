@@ -3,6 +3,7 @@ defmodule LiveMapWeb.SelectedEvents do
   import Phoenix.Component
   alias LiveMap.Event
   alias LiveMapWeb.{Endpoint, MailController, SelectedEvents}
+  import LiveMapWeb.LiveHelpers
 
   @moduledoc """
   Table to display the results of the query
@@ -41,18 +42,17 @@ defmodule LiveMapWeb.SelectedEvents do
     """
   end
 
+  @thead ~w(Action Display Date Demand Owner Participants)
+
   def render(assigns) do
+    assigns = assign(assigns, :thead, @thead)
+
     ~H"""
     <div class="overflow-x-auto">
     <table id="selected" class="table table-compact w-full">
       <thead>
         <tr>
-          <th class="text-white font-['Roboto']"> Action </th>
-          <th class="text-white font-['Roboto']"> Display </th>
-          <th class="text-white font-['Roboto']"> Date </th>
-          <th class="text-white font-['Roboto']"> Demande </th>
-          <th class="text-white font-['Roboto']"> Owner </th>
-          <th class="text-white font-['Roboto']"> Participants </th>
+          <th :for={th <- @thead}><%= th %></th>
         </tr>
       </thead>
       <tbody>
@@ -71,9 +71,7 @@ defmodule LiveMapWeb.SelectedEvents do
               class= {["inline-block ml-1 mr-1 px-6 py-2.5 bg-yellow-500 text-red-700 font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-yellow-600 hover:shadow-lg focus:bg-yellow-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-yellow-700 active:shadow-lg transition duration-150 ease-in-out",
                 (owner != @user) && "pointer-events-none opacity-50"]}
             >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-            </svg>
+              <.bin_svg />
             </button>
           </td>
           <td >
@@ -102,9 +100,7 @@ defmodule LiveMapWeb.SelectedEvents do
               class={[(@user in pending or @user in confirmed or owner == @user) && "opacity-50 ",
               "inline-block m-1 px-2 py-2.5 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"]}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-              </svg>
+              <.send_svg/>
             </button>
           </td>
           <td>
@@ -142,9 +138,12 @@ defmodule LiveMapWeb.SelectedEvents do
   def handle_event("delete_event", %{"id" => id, "owner" => _owner}, socket) do
     id = convert(id)
 
-    Task.Supervisor.start_child(LiveMap.EventSup, fn ->
+    Task.Supervisor.async(LiveMap.EventSup, fn ->
       LiveMap.Event.delete_event(id)
       MailController.cancel_event(%{event_id: id})
+    end)
+    |> then(fn task ->
+      Task.await(task)
 
       # remove the check on all checkboxes
       send(self(), {:down_check_all})

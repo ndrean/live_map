@@ -179,6 +179,8 @@ export const MapHook = {
     this.handleEvent("update_map", ({ data }) => handleData(data));
 
     function handleData(data) {
+      console.log(Object.keys(datagroup._layers).length);
+      datagroup.clearLayers();
       // save geojson to local store
       myEvts = data;
       // process to create line and markers on each feature

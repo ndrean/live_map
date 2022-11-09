@@ -20,14 +20,19 @@ defmodule LiveMapWeb.NewEvent do
   end
 
   attr(:date, :string)
+  attr(:errors, :list)
+  attr(:class, :string)
+  attr(:class_Err, :string)
 
   #  display the form when two markers are displayed
   def render(%{len: len} = assigns) when len > 1 do
-    assigns = assign(assigns, :date, assigns.date)
+    assigns =
+      assigns
+      |> assign(date: assigns.date)
 
     ~H"""
     <div id="date_form">
-      <.form :let={f}
+      <.form
         for={@changeset}
         id="new_event"
         phx-change="validate"
@@ -40,8 +45,9 @@ defmodule LiveMapWeb.NewEvent do
           class="inline-block  px-2 py-2 mr-4 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         > Update
         </button>
-        <.date name="new_event[date]" class="w-30 px-2" date={@date} label="Date"/>
-          <%= error_tag f, :date, class: "text-red-700 text-sm m-1" %>
+        <.date_err name="new_event[date]" class="w-30 px-2" class_err="mt-1" date={@date} label="Date" errors={@changeset.errors}/>
+        <%# error_tag f, :date, class: "text-red-700 text-sm m-1" %>
+
       </.form>
     </div>
     """

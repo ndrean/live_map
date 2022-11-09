@@ -11,7 +11,11 @@ defmodule LiveMapWeb.Router do
     plug :put_root_layout, {LiveMapWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug LiveMap.Headers
-    plug(:put_secure_browser_headers, %{"content-security-policy-report-only" => @csp})
+
+    plug(:put_secure_browser_headers, %{
+      "content-security-policy-report-only" => @csp
+      # "content-security-policy" => "default-src 'self'"
+    })
   end
 
   pipeline :api do

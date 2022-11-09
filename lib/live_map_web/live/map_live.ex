@@ -3,7 +3,7 @@ defmodule LiveMapWeb.MapLive do
   alias LiveMapWeb.Presence
   alias LiveMapWeb.Endpoint
   alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker, HeaderSection}
-  alias LiveMapMail.Email
+  # alias LiveMapMail.Email
   require Logger
 
   @impl true
@@ -57,6 +57,7 @@ defmodule LiveMapWeb.MapLive do
   @impl true
   # update all the maps when an event is deleted
   def handle_info(%{topic: "event", event: "delete_event", payload: %{id: id}}, socket) do
+    IO.puts("delete_Event")
     {:noreply, push_event(socket, "delete_event", %{id: id})}
   end
 
