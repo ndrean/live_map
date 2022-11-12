@@ -1,5 +1,52 @@
+<section class="text-black font-['Roboto'] text-lg mr-1 ml-1 mt-4">
+  <h2>Welcome to LiveMap</h2>
+
+  <details><summary>LiveMap is a memory aid to register your trips. Click to see the details!</summary>
+    <p>This app lets you egister your kitesurf downwinds 🏄, bike 🚴 or canyoning trips 🚣 or more!
+    Anything that has a start point and an endpoint that you want
+    to save and share. It works based on maps.</p>
+    <p>You can create "linestring" events, you can also visualize the existing events, and asked to participate to events.
+  This is your map memory aid!</p>
+  <p>You firstly need to be registered to enter this app, but don't worry, no password is required!
+      Just select your favorite social and you are done!</p>
+  </details>
+
+  <br/>
+  <details><summary> But.. how does this work? 🤨 Just click, takes 2 minutes! </summary>
+    <br/>
+    <details><summary>What is an event? 🧐 </summary>
+    <p>An event here is made of two points, a start and an endpoint, and a date.</p>
+    <p>You create an event by clicking on the map 🌐 where the event should start 📍 and where it should end, and finally
+      select a date. And that's it!</p>
+    </details>
+    <br/>
+    <details><summary>How can I visualize the events? 👀 </summary>
+    <p>You select two dates and click on search, and that's it!</p>
+    </details>
+    <br/>
+    <details><summary>How can I participate to an event? 👋 </summary>
+    <p>Once to searched to events, you just click on the green button, and the owner will receive a mail ✉.
+    Once he accepts and replies, you will receive a confirmation mail.</p>
+    <p>You can see the status of your demand ("pending" or "confirmed") by clicking on the "details" button</p>
+    <p>If the event is canceled 💔, you will be informed by mail, and the event will be removed from the list</p>
+    </details>
+    <br/>
+
+    <details><summary>Can I reschedule an event? 🗣</summary>
+    <p> Yes you can. Click on reschedule! This will cancel the current event, and everyone who were confirmed or in pending state
+    will receive a new confirmation mail with the new date.</p>
+    <p>Note that you can only reschedule the date, not the start-point nor endpoint.</p>
+    </details>
+    <br/>
+    <details><summary>Can I chat with the owner of the event? 🗣</summary>
+    <p> They is a chat with the online users. Don't worry, it's an anonymous chat, nothing is saved. Try it!</p>
+    </details>
+  </details>
+
+</section>
+
 <section class="min-h-screen flex flex-col justify-center">
-  <div class="grid-rows-1 gap-y-8">
+  <div class="grid-rows-1 gap-y-4">
     <div class= "flex flex-row">
       <div class="fw-60 ml-2">
         <a href={@oauth_google_url}
@@ -23,9 +70,9 @@
     <br/>
     <div class= "grid justify-items-end">
       <div class="mr-2 fw-60">
-        <a href={@oauth_github_url} 
+        <a href={@oauth_github_url}
           class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
-        >  
+        >
           <div class="p-1 min-h-40">
             <svg height="35" viewBox="0 0 16 16" width="52px" class="fill-white flex justify-content items-center">
               <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
@@ -43,11 +90,6 @@
         </a>
       </div>
     </div>
-  
-  <br/>
-  <div class="flex justify-center">
-    <img width="100" src={Routes.static_path(@conn, "/images/spinning.gif")} alt="spinning world"/>
-  </div>
   <br/>
   <div class="flex justify-center">
       <a class="w-60 " href={@oauth_facebook_url}>

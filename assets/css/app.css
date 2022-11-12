@@ -8,6 +8,12 @@
 
 @import url("https://fonts.cdnfonts.com/css/roboto");
 
+/* overwrite this class */
+.leaflet-container {
+  overflow: hidden;
+  border-radius: 40px;
+}
+
 /* Alerts and form errors used by phx.new */
 .alert {
   padding: 15px;

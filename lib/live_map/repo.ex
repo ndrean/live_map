@@ -4,7 +4,7 @@ defmodule LiveMap.Repo do
     adapter: Ecto.Adapters.Postgres
 
   # import Ecto.Query
-  alias LiveMap.{Repo, Event}
+  alias LiveMap.{Repo}
   require Logger
 
   @moduledoc """
@@ -96,7 +96,7 @@ defmodule LiveMap.Repo do
       }) do
     query = [
       "WITH geo_events AS (
-        SELECT e.id,  e.date, ep.user_id, u.email, ep.status
+        SELECT e.id,  e.date, ep.user_id, u.email, ep.status, e.ad1, e.ad2, e.distance
         FROM events AS e
         JOIN event_participants ep ON ep.event_id = e.id
         JOIN users u ON u.id = ep.user_id
@@ -109,10 +109,14 @@ defmodule LiveMap.Repo do
         GROUP BY id, status
       ),
       date_agg AS (
-        SELECT id, date, email
+        SELECT id, date, email, ad1, ad2, distance
         FROM geo_events
       )
-      SELECT s.id, jsonb_object_agg(status, emails) status_email, jsonb_object_agg('date', date) date_date
+      SELECT s.id, jsonb_object_agg(status, emails) AS status_email,
+        jsonb_object_agg('date', date) AS date_date,
+        jsonb_object_agg('ad1', d.ad1),
+        jsonb_object_agg('ad2', d.ad2),
+        jsonb_object_agg('d', d.distance)
       FROM status_agg s
       JOIN date_agg d ON d.id = s.id
       GROUP BY d.date, s.id
@@ -120,12 +124,14 @@ defmodule LiveMap.Repo do
       "
     ]
 
+    # JOIN geo_events ge ON ge.id = s.id
     case Ecto.Adapters.SQL.query(
            Repo,
            query,
            [lng, lat, distance, start_date, end_date]
          ) do
-      {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
+      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
+        IO.inspect(columns)
         rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->

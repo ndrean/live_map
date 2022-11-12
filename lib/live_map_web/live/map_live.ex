@@ -3,9 +3,10 @@ defmodule LiveMapWeb.MapLive do
   alias LiveMapWeb.Presence
   alias LiveMapWeb.Endpoint
   alias LiveMapWeb.{SelectedEvents, MapComp, QueryPicker, HeaderSection}
-  # alias LiveMapMail.Email
   require Logger
+  import LiveMap.Utils, only: [safely_use: 1]
 
+  # @menu ~w(a b c) <- test
   @impl true
   def mount(_, %{"email" => email, "user_id" => user_id} = _session, socket) do
     if connected?(socket) do
@@ -18,13 +19,13 @@ defmodule LiveMapWeb.MapLive do
 
     {:ok,
      assign(socket,
+       id: socket.id,
        current: email,
        user_email: email,
        user_id: user_id,
        presence: Presence.list("presence") |> map_size,
        coords: %{},
        selected: nil,
-       page: 1,
        temporary_assigns: [events: []]
        # , presences: %{}]
      )}
@@ -38,11 +39,18 @@ defmodule LiveMapWeb.MapLive do
     assigns = assign(assigns, :presence, assigns.presence)
 
     ~H"""
-    <div>
+    <div id="live">
       <HeaderSection.display presence={@presence} />
-      <.live_component module={MapComp} id="map"  current={@current} user_id={@user_id} />
-      <.live_component module={QueryPicker} id="query_picker" user={@current} user_id={@user_id} coords={@coords} />
-      <.live_component module={SelectedEvents} id="selected" selected={@selected} page={@page} user_id={@user_id} user={@current} />
+      <.live_component module={MapComp} id="map"
+        user={@current} user_id={@user_id} coords={@coords}
+      />
+      <.live_component module={QueryPicker} id="query_picker"
+        user={@current} user_id={@user_id} coords={@coords}
+      />
+      <.live_component module={SelectedEvents} id="selected"
+        selected={@selected} user_id={@user_id} user={@current}
+
+      />
     </div>
     """
   end
@@ -50,14 +58,12 @@ defmodule LiveMapWeb.MapLive do
   #  backend delete of marker: phx-click from row in "new event table"
   @impl true
   def handle_event("delete_marker", %{"id" => id}, socket) do
-    id = if is_binary(id), do: String.to_integer(id), else: id
-    {:noreply, push_event(socket, "delete_marker", %{id: id})}
+    {:noreply, push_event(socket, "delete_marker", %{id: safely_use(id)})}
   end
 
   @impl true
   # update all the maps when an event is deleted
   def handle_info(%{topic: "event", event: "delete_event", payload: %{id: id}}, socket) do
-    IO.puts("delete_Event")
     {:noreply, push_event(socket, "delete_event", %{id: id})}
   end
 
@@ -98,8 +104,8 @@ defmodule LiveMapWeb.MapLive do
   # to [id, map_owner, map_pending, map_confirmed, date]
   def handle_info({:selected_events, payload}, socket) do
     payload
-    |> Enum.map(fn [id, users, date] = _event ->
-      [id, set_all_keys(users), date]
+    |> Enum.map(fn [id, users, date, ad1, ad2, d] = _event ->
+      [id, set_all_keys(users), date, ad1, ad2, d]
     end)
     |> then(fn payload ->
       send_update(SelectedEvents, id: "selected", selected: payload)

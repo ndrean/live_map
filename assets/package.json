@@ -1,9 +1,8 @@
 {
   "dependencies": {
     "@tailwindcss/forms": "^0.5.3",
-    "clsx": "^1.2.1",
     "daisyui": "^2.38.1",
-    "leaflet": "^1.9.1",
+    "leaflet": "^1.9.2",
     "leaflet-control-geocoder": "^2.4.0",
     "randomcolor": "^0.6.2",
     "valtio": "^1.7.0"

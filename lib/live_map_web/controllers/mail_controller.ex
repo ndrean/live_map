@@ -14,7 +14,7 @@ defmodule LiveMapWeb.MailController do
 
   ### Examples
     ```
-    iex> LiveMapWeb.MailController.create_demand(%{event_id: 1, user_id: 2})
+    iex> LiveMapMail.MailController.create_demand(%{event_id: 1, user_id: 2})
     # {:ok, #PID<0.861.0>}
     # navigate to http://localhost:4000/dev/mailbox, check the mail and click the link
     # you should get "confirmed"
@@ -29,12 +29,13 @@ defmodule LiveMapWeb.MailController do
     ```
   """
   def create_demand(%{event_id: event_id, user_id: user_id} = params) do
-    Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
-      token = EventParticipants.set_pending(%{event_id: event_id, user_id: user_id})
+    # Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
+    token = EventParticipants.set_pending(%{event_id: event_id, user_id: user_id})
 
-      Map.put(params, :mtoken, token)
-      |> Email.build_demand()
-    end)
+    Map.put(params, :mtoken, token)
+    |> Email.build_demand()
+
+    # end)
   end
 
   defp check_token(mtoken) do
@@ -44,7 +45,10 @@ defmodule LiveMapWeb.MailController do
     end
   end
 
+  @spec cancel_event(%{:event_id => any, optional(any) => any}) :: :ok
   def cancel_event(%{event_id: id}) do
+    Logger.info("sending cancel mail")
+
     LiveMap.Event.get_event_participants(id)
     |> Enum.each(fn %{status: status, user_id: user_id} ->
       if status != "owner" do
@@ -102,7 +106,7 @@ defmodule LiveMapWeb.MailController do
 
     case EventParticipants.lookup(event_id, user_id) do
       nil ->
-        json(conn, "lost in translation")
+        json(conn, "lost in translation OO")
         |> halt()
 
       row ->
@@ -116,13 +120,15 @@ defmodule LiveMapWeb.MailController do
   end
 
   defp handle_owner_token(conn, _, event_id, user_id) do
-    Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
+    Task.Supervisor.start_child(LiveMap.AsyncMailSup, fn ->
       case EventParticipants.set_confirmed(%{event_id: event_id, user_id: user_id}) do
         {:error, :not_found} ->
-          json(conn, "lost in translation")
+          json(conn, "lost in translation 22")
           |> halt()
 
         {:ok, _res} ->
+          Logger.info("Sending confirmation mail")
+
           Email.handle_email(%{
             event_id: event_id,
             user_id: user_id,

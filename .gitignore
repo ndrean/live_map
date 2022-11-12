@@ -34,3 +34,6 @@ npm-debug.log
 /.elixir_ls
 .env
 /.VSCodeCounter
+/rel
+dev
+/

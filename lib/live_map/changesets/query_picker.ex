@@ -17,16 +17,17 @@ defmodule LiveMap.QueryPicker do
     |> cast(attrs, Map.keys(@types))
     |> validate_required([:start_date, :end_date])
     |> validate_future()
-    |> validate_min()
+
+    # |> validate_min()
   end
 
-  def validate_min(%{changes: %{start_date: start_date}} = changeset) do
-    yesterday = Date.utc_today() |> Date.add(-1)
+  # def validate_min(%{changes: %{start_date: start_date}} = changeset) do
+  #   yesterday = Date.utc_today() |> Date.add(-1)
 
-    if Date.compare(start_date, yesterday) == :gt,
-      do: changeset,
-      else: add_error(changeset, :start_date, "Future dates only!")
-  end
+  #   if Date.compare(start_date, yesterday) == :gt,
+  #     do: changeset,
+  #     else: add_error(changeset, :start_date, "Future dates only!")
+  # end
 
   def validate_min(changeset), do: changeset
 

@@ -3,14 +3,20 @@ import { randomColor } from "randomcolor";
 // import icon from "leaflet/dist/images/marker-icon.png";
 // import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
-async function loader() {
+async function libLoader() {
   return Promise.all([
     import("leaflet"),
     import("leaflet-control-geocoder"),
     import("leaflet/dist/images/marker-shadow.png"),
     import("leaflet/dist/images/marker-icon.png"),
+    import("./bucketLimiter.js"),
   ]);
 }
+
+// import takeToken from "./bucket";
+
+const optionLong = { interval: 5_000, bucketCapacity: 1 };
+const optionShort = { internval: 3_000, bucketCapacity: 1 };
 
 const lineStyle = {
   color: "black",
@@ -20,7 +26,7 @@ const lineStyle = {
 };
 
 async function handleGeolocationPermission(map) {
-  window.alert("Would you geolocate yourself?");
+  window.alert("Geolocate yourself!");
   return navigator.permissions
     .query({ name: "geolocation" })
     .then(({ state }) => {
@@ -56,22 +62,29 @@ function addButton(html = "") {
 const place = proxy({
   coords: [], // list of {leaflet_id, lat,lng, name} of markers where name is the address
   distance: 0, // distance between 2 markers
-  color: randomColor(),
+  color: "#0000",
 });
 
 // proxied centre and radius of the map
 const movingmap = proxy({ center: [], distance: 10_000 });
 
 export const MapHook = {
-  geolocate(map) {
-    document
-      .getElementById("geolocation")
-      .addEventListener("click", () => handleGeolocationPermission(map));
-  },
   async mounted() {
     // load Leaflet and Geocoder async
-    const [L, { geocoder }, { default: icon }, { default: iconShadow }] =
-      await loader();
+    const [
+      L,
+      { geocoder },
+      { default: icon },
+      { default: iconShadow },
+      { default: takeToken },
+    ] = await libLoader();
+
+    const start_spinner = () =>
+      this.pushEventTo("#map", "mapoff", { id: "map" });
+
+    const stop_spinner = () => this.pushEventTo("#map", "mapon", { id: "map" });
+
+    if (L) stop_spinner();
 
     const DefaultIcon = L.icon({
       iconUrl: icon,
@@ -101,8 +114,33 @@ export const MapHook = {
     const geoCoder = L.Control.Geocoder.nominatim();
 
     // ***** ask to run the geolcation API.
-    this.geolocate(map);
-    // Alternatively, the "coder" is provided circa L232
+    // delay spinner if gelocation is fast
+    let timeoutIDGeoloc = undefined;
+
+    async function geolocate(map) {
+      document
+        .getElementById("geolocation")
+        .addEventListener("click", async () => {
+          await handleGeolocationPermission(map);
+          if (!timeoutIDGeoloc)
+            timeoutIDGeoloc = setTimeout(() => {
+              start_spinner();
+            }, 200);
+        });
+    }
+    geolocate(map);
+
+    // *********** form Geocoder alternative
+    // provides a form to find a place by its name and fly-to
+    const coder = L.Control.geocoder({
+      expand: "click",
+      defaultMarkGeocode: false,
+    }).addTo(map);
+
+    coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
+      start_spinner();
+      map.flyTo(center, 11);
+    });
 
     // store of new event. use pushEventTo with phx-target (elements)
     subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
@@ -162,7 +200,7 @@ export const MapHook = {
       myEvts[0].features = features.filter(
         (feature) => feature.properties.id !== Number(id)
       );
-      handleData(myEvts);
+      return handleData(myEvts);
     });
 
     // add a broadcasted new event
@@ -171,8 +209,7 @@ export const MapHook = {
       let feature = myEvts[0]?.features;
       feature === null ? (feature = [geojson]) : feature.push(geojson);
       myEvts[0].features = feature;
-
-      handleData(myEvts);
+      return handleData(myEvts);
     });
 
     // received update from DB after moved map
@@ -183,9 +220,12 @@ export const MapHook = {
       datagroup.clearLayers();
       // save geojson to local store
       myEvts = data;
+      clearTimeout(timeoutIDGeoloc);
+      timeoutIDGeoloc = undefined;
+      stop_spinner();
       // process to create line and markers on each feature
       if (data)
-        L.geoJSON(data, {
+        return L.geoJSON(data, {
           style: lineStyle,
           onEachFeature: onEachFeature,
         }).addTo(datagroup);
@@ -217,15 +257,15 @@ export const MapHook = {
 
     // Delete: callback to "popupopen": you get a delete button defined above inside
     function maybeDelete(marker, id) {
-      document
+      return document
         .querySelector("button.remove")
         .addEventListener("click", function () {
           place.coords = place.coords.filter((c) => c.id !== id) || [];
           layergp.removeLayer(marker);
           const index = place.coords.findIndex((c) => c.id === Number(id));
           if (index <= 1) {
-            lineLayer.clearLayers();
             place.distance = 0;
+            lineLayer.clearLayers();
           }
           if (place.coords.length >= 2) {
             drawLine();
@@ -255,17 +295,21 @@ export const MapHook = {
     }
 
     // recursif Update callback to "dragend": fetches new address and redraws if needed
-    function draggedMarker(mark, id, lineLayer) {
+    async function draggedMarker(mark, id, lineLayer) {
+      // limitation of 1 request per second for Nominatim
+      mark?.dragging.disable();
+      await takeToken("click", optionLong);
+      mark.dragging.enable();
+
       const newLatLng = mark.getLatLng();
       mark.setLatLng(newLatLng);
       const index = place.coords.findIndex((c) => c.id === id);
-      // limitation of 1 request per second for Nominatim
 
-      // setTimeout(() => {
       discover(mark, newLatLng, index, id);
-      // }, 1000);
       mark.on("popupopen", () => maybeDelete(mark, id));
-      mark.on("dragend", () => draggedMarker(mark, id, lineLayer));
+      mark.on("dragend", async () => {
+        await draggedMarker(mark, id, lineLayer);
+      });
     }
 
     function updateDeleteMarker(marker, id) {
@@ -296,14 +340,18 @@ export const MapHook = {
 
     // Create listener: returns a marker with an address
     map.on("click", create);
-    function create(e) {
+    async function create(e) {
       // fetch the address from the endpoint "nominatim"
-      geoCoder.reverse(e.latlng, 12, (result) => {
+      // limitation of 1 request per second for Nominatim
+      await takeToken("click", optionLong);
+
+      return geoCoder.reverse(e.latlng, 12, (result) => {
         if (!result[0]) return;
         let { html, name } = result[0];
         if (html) html = addButton(html);
 
         const marker = L.marker(e.latlng, { draggable: true });
+        // const marker = L.marker(e.latlng);
         marker.addTo(layergp).bindPopup(html);
         // you need to add the marker to the map to get the _leaflet_id
         const location = {
@@ -317,30 +365,24 @@ export const MapHook = {
           place.coords.push(location);
           drawLine();
         }
-        updateDeleteMarker(marker, location.id);
+        return updateDeleteMarker(marker, location.id);
       });
     }
 
-    // *********** form Geocoder
-    // provides a form to find a place by its name and fly-to
-    const coder = L.Control.geocoder({ defaultMarkGeocode: false }).addTo(map);
-    //
-    coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
-      map.flyTo(center, 10);
-      html = addButton(html);
-      const marker = L.marker(center, { draggable: true });
-      marker.addTo(layergp).bindPopup(html);
+    // html = addButton(html);
+    // const marker = L.marker(center, { draggable: true });
+    // marker.addTo(layergp).bindPopup(html);
 
-      const location = {
-        id: marker._leaflet_id,
-        lat: center.lat,
-        lng: center.lng,
-        name,
-      };
-      if (place.coords.find((c) => c.id === location.id) === undefined)
-        place.coords.push(location);
-      updateDeleteMarker(marker, location.id);
-    });
+    // const location = {
+    //   id: marker._leaflet_id,
+    //   lat: center.lat,
+    //   lng: center.lng,
+    //   name,
+    // };
+    // if (place.coords.find((c) => c.id === location.id) === undefined)
+    //   place.coords.push(location);
+    // updateDeleteMarker(marker, location.id);
+    // });
 
     // ****** capture map moves
     // moveend mutates "movingmap" push to backend

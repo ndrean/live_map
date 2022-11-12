@@ -26,9 +26,9 @@ defmodule LiveMapWeb.NewEvent do
 
   #  display the form when two markers are displayed
   def render(%{len: len} = assigns) when len > 1 do
-    assigns =
-      assigns
-      |> assign(date: assigns.date)
+    # assigns =
+    #   assigns
+    #   |> assign_new(:date, fn ->  assigns.date)
 
     ~H"""
     <div id="date_form">
@@ -39,13 +39,15 @@ defmodule LiveMapWeb.NewEvent do
         phx-submit="up_date"
         phx-target={@myself}
 
-        class="flex flex-row w-full justify-around space-x-2 px-2"
+        class="flex flex-row w-full justify-around content-evenly space-x-2 px-2"
       >
         <button form="new_event"
           class="inline-block  px-2 py-2 mr-4 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
         > Update
         </button>
-        <.date_err name="new_event[date]" class="w-30 px-2" class_err="mt-1" date={@date} label="Date" errors={@changeset.errors}/>
+        <.date_err name="new_event[date]" class="w-30 px-2" date={@date} label="Date"
+          class_err="mt-1"  errors={@changeset.errors}
+        />
         <%# error_tag f, :date, class: "text-red-700 text-sm m-1" %>
 
       </.form>

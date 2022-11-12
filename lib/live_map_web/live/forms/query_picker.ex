@@ -5,6 +5,7 @@ defmodule LiveMapWeb.QueryPicker do
   alias LiveMap.Repo
   require Logger
   import LiveMapWeb.LiveHelpers
+  import LiveMap.Utils
 
   @moduledoc """
   Form with a date as input and saves the completed event
@@ -28,36 +29,44 @@ defmodule LiveMapWeb.QueryPicker do
 
   # render query table once map coords are ready
   def render(%{coords: %{"distance" => distance}} = assigns) do
-    assigns = assign(assigns, :distance, parse(distance))
+    assigns = assign(assigns, :distance, string_to_float(distance))
     assigns = assign(assigns, :d, to_km(distance))
 
     # to default to the user's email, set assigns.user which contains the user's email
     # assigns = assign(assigns, :user, assigns.user)
-
+    #
     ~H"""
-    <div>
+    <div  >
     <.form :let={f}  for={@changeset} phx-submit="send" phx-change="change"
       phx-target={@myself} id="query_picker"
     >
 
       <%!-- display the distance on screen--%>
-      <p class="text-black font-semibold font-['Roboto'] ml-2">Map radius: <%= @d %> km</p>
+      <div class="flex justify-center">
+        <span class="text-black font-semibold font-['Roboto'] ml-2">Map radius: <%= @d %> km</span>
+      </div>
 
       <%!-- passing the value to the formData with no input --%>
       <input type="hidden" value={@distance} name="query_picker[distance]" />
 
-      <div class="flex items-center justify-around mb-2 ml-3">
-        <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" />
-        <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/>
-      </div>
-      <div class="flex items-center justify-around ml-1 mt-2 mr-1 mb-1">
-        <.date date={@start_date} name="query_picker[start_date]" class="w-15 ml-1 rounded-md" label=""/>
+      <input type="hidden" value={@user} name="query_picker[user]" />
+
+
+      <%!-- <div class="flex items-center justify-around mb-2 ml-3"> --%>
+        <%!-- <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" /> --%>
+        <%!-- <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/> --%>
+        <input type="hidden" value={@status} name="query_picker[status]" />
+
+      <%!-- </div> --%>
+      <div class="flex items-center justify-around content-evenly ml-1 mt-2 mr-1 mb-1">
+        <.date date={@start_date} name="query_picker[start_date]" class="w-15 m-1 rounded-md" label=""/>
           <%= error_tag(f, :start_date) %>
         <button form="query_picker"
           class="px-2 py-2 rounded-md font-['Roboto'] bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
-          >Send
+          >
+          <.search_svg />
         </button>
-        <.date date={@end_date} name="query_picker[end_date]" class="w-15 mr-1 rounded-lg" label=""/>
+        <.date date={@end_date} name="query_picker[end_date]" class="w-15 m-1 rounded-lg" label=""/>
           <%= error_tag(f, :end_date) %>
       </div>
       <div class="text-center">
@@ -123,7 +132,8 @@ defmodule LiveMapWeb.QueryPicker do
     socket =
       socket
       |> assign(:changeset, changeset)
-      |> assign(:status, params["status"])
+      # |> assign(:status, params["status"])
+      |> assign(:status, "")
       |> assign(:start_date, params["start_date"])
       |> assign(:end_date, params["end_date"])
 
@@ -154,17 +164,12 @@ defmodule LiveMapWeb.QueryPicker do
         {:noreply, assign(socket, changeset: changeset)}
 
       true ->
+        # remove all highlighted events
         send(self(), {:down_check_all})
 
         form
         |> to_params(socket.assigns.coords)
         |> process_params(socket)
-
-        # coords = socket.assigns.coords
-        # params = to_params(form, coords)
-        # process_params(params, socket)
-
-        # reset all hilghlighted events since checkbox defaults to false on refresh (no more in sync)
     end
 
     # we uncheck all checkboxes with Javascript listener since not everything is updated
@@ -181,13 +186,13 @@ defmodule LiveMapWeb.QueryPicker do
           Logger.warn("Could not retrieve events")
           {:noreply, socket}
 
+        # send to the LV as flash error message
         {:error, message} ->
-          # send to the LV as flash error message
           send(self(), {:push_flash, :query_picker, message})
           {:noreply, socket}
 
+        # send to the LiveView
         result ->
-          # send to the LiveView
           send(self(), {:selected_events, result})
           {:noreply, socket}
       end
@@ -203,35 +208,41 @@ defmodule LiveMapWeb.QueryPicker do
       "status" => status
     } = form
 
-    {d, _} = Float.parse(d)
-    end_date = parse_date(end_date)
-    start_date = parse_date(start_date)
+    # end_date = parse_date(end_date)
+    # start_date = parse_date(start_date)
     %{"center" => %{"lat" => lat, "lng" => lng}} = coords
 
     _params = %{
       lat: lat,
       lng: lng,
-      distance: d,
-      end_date: end_date,
-      start_date: start_date,
+      distance: string_to_float(d),
+      end_date: parse_date(end_date),
+      start_date: parse_date(start_date),
       user: user,
       status: status
     }
   end
 
-  def parse_date(string_as_date) do
-    string_as_date
-    |> String.split("-")
-    |> Enum.map(&String.to_integer/1)
-    |> then(fn [y, m, d] ->
-      Date.new!(y, m, d)
-    end)
-  end
+  # def parse_date(string_as_date) do
+  #   string_as_date
+  #   |> String.split("-")
+  #   |> Enum.map(&String.to_integer/1)
+  #   |> then(fn [y, m, d] ->
+  #     Date.new!(y, m, d)
+  #   end)
+  # end
 
-  def parse(d), do: d |> String.to_float() |> round()
+  # def parse(d), do: d |> String.to_float()
 
-  def to_km(d) do
-    div1000 = fn x -> x / 1000 end
-    d |> parse() |> div1000.() |> round
-  end
+  # def string_to_float(d) when is_binary(d) do
+  #   {res, _} = Float.parse(d)
+  #   res
+  # end
+
+  # |> round()
+
+  # def to_km(d) do
+  #   div1000 = fn x -> x / 1000 end
+  #   d |> string_to_float() |> div1000.() |> round
+  # end
 end

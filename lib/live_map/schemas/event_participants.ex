@@ -2,7 +2,7 @@ defmodule LiveMap.EventParticipants do
   use Ecto.Schema
   import Ecto.{Changeset, Query}
 
-  alias LiveMap.{Repo, EventParticipants, User}
+  alias LiveMap.{Repo, EventParticipants}
 
   schema "event_participants" do
     belongs_to :user, LiveMap.User

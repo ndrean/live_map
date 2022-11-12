@@ -37,7 +37,6 @@ defmodule Libraries.ElixirAuthFacebook do
   def handle_callback(conn, %{"state" => state, "code" => code}) do
     case check_state(state) do
       false ->
-        # ok
         {:error, {:state, "Error with the state"}}
 
       true ->
@@ -54,7 +53,6 @@ defmodule Libraries.ElixirAuthFacebook do
   end
 
   def get_profile(%{assigns: %{data: %{"error" => %{"message" => message}}}}) do
-    # ok
     {:error, {:get_profile, message}}
   end
 
@@ -67,13 +65,9 @@ defmodule Libraries.ElixirAuthFacebook do
     end)
   end
 
-  def check_profile({:error, message}) do
-    # ok
-    {:error, {:check_profile, message}}
-  end
+  def check_profile({:error, message}), do: {:error, {:check_profile, message}}
 
   def check_profile(%{assigns: %{profile: %{"error" => %{"message" => message}}}}) do
-    # ok
     {:error, {:check_profile2, message}}
   end
 

@@ -29,7 +29,7 @@ defmodule LiveMapWeb.NewEventTable do
 
     ~H"""
     <div>
-      <p class="text-center w-full"><strong>distance: <%=  @distance %> km</strong></p>
+      <p class="text-center text-black w-full"><strong>distance: <%=  @distance %> km</strong></p>
 
       <div class="overflow-x-auto">
         <table class="table table-compact w-full">

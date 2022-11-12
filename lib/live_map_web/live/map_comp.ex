@@ -1,24 +1,25 @@
 defmodule LiveMapWeb.MapComp do
   use LiveMapWeb, :live_component
   alias LiveMap.Repo
-  alias LiveMapWeb.NewEventTable
+  alias LiveMapWeb.{NewEventTable, MapComp, MapLoader}
   require Logger
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, place: nil, date: nil)}
+    {:ok, assign(socket, place: nil, date: nil, spin: true)}
   end
 
   @impl true
   def update(assigns, socket) do
-    IO.puts("update map")
+    Logger.info("update map")
     {:ok, assign(socket, assigns)}
   end
 
   @impl true
   def render(%{place: %{"coords" => coords}} = assigns) when not is_nil(coords) do
     ~H"""
-    <div>
+    <div class="flex flex-col justify-center">
+      <MapLoader.display id="map_loader" class="flex justify-center" spin={@spin}/>
       <div id="map"
         phx-component={2}
         phx-hook="MapHook"
@@ -26,7 +27,7 @@ defmodule LiveMapWeb.MapComp do
         phx-target={@myself}
       >
       </div>
-      <NewEventTable.display  user_id={@user_id} user={@current} place={@place} date={@date}/>
+      <NewEventTable.display  user_id={@user_id} user={@user} place={@place} date={@date}/>
     </div>
     """
   end
@@ -34,7 +35,8 @@ defmodule LiveMapWeb.MapComp do
   # render map init
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="flex flex-col justify-center">
+      <MapLoader.display id="map_loader" class="flex justify-center" spin={@spin}/>
       <div id="map"
         phx-component={2}
         phx-hook="MapHook"
@@ -42,7 +44,7 @@ defmodule LiveMapWeb.MapComp do
         phx-target={@myself}
       >
       </div>
-      <NewEventTable.display  user={@current} place={@place} date={@date}/>
+      <NewEventTable.display  user={@user} place={@place} date={@date}/>
     </div>
     """
   end
@@ -68,5 +70,17 @@ defmodule LiveMapWeb.MapComp do
         send(self(), {:map_coords, moving_map})
         {:noreply, push_event(socket, "update_map", %{data: List.flatten(rows)})}
     end
+  end
+
+  @impl true
+  def handle_event("mapoff", %{"id" => id}, socket) do
+    send_update(MapComp, id: id, spin: true)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("mapon", %{"id" => id}, socket) do
+    send_update(MapComp, id: id, spin: false)
+    {:noreply, socket}
   end
 end
