@@ -1,7 +1,5 @@
 import { proxy, subscribe } from "valtio";
 import { randomColor } from "randomcolor";
-// import icon from "leaflet/dist/images/marker-icon.png";
-// import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
 async function libLoader() {
   return Promise.all([
@@ -23,6 +21,12 @@ const lineStyle = {
   dashArray: "10, 10",
   dashOffset: 50,
   weight: 1,
+};
+
+const customOptions = {
+  maxWidth: "175",
+  width: "175",
+  className: "popupCustom",
 };
 
 async function handleGeolocationPermission(map) {
@@ -48,9 +52,11 @@ function getLocation(map) {
 function addButton(html = "") {
   return `
   <p>${html}</p>
+  <p class="flex justify-center">
   <button type="button"
   class="remove inline-block px-6 py-2.5 bg-red-600 text-white font-medium text-xs leading-tight uppercase rounded-full shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out"
   ">Remove</button>
+  </p>
   `;
 }
 
@@ -140,10 +146,11 @@ export const MapHook = {
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
       start_spinner();
       map.flyTo(center, 11);
+      stop_spinner();
     });
 
     // store of new event. use pushEventTo with phx-target (elements)
-    subscribe(place, () => this.pushEventTo("1", "add_point", { place }));
+    subscribe(place, () => this.pushEventTo("#map", "add_point", { place }));
 
     //  ******** store the events
     let myEvts = [{ type: "featureCollection", features: [] }];
@@ -240,16 +247,17 @@ export const MapHook = {
 
     function setCircleMarker(pos, ad, owner, date, distance, color) {
       L.circleMarker(pos, { radius: 10, color: color })
-        .bindPopup(info(ad, owner, date, distance))
+        .bindPopup(info(ad, owner, date, distance), customOptions)
         .addTo(datagroup);
     }
 
     function info(ad, owner, date, distance) {
       const evtDate = new Date(date).toDateString();
       return `
-            <h4>${evtDate}, ${owner}</h4>
-            <p>${ad}</p>
-            <h1>${distance} km</h1>
+            <h2 class="font-bold bg-sky-500/50" >${evtDate} </h2>
+            <h5>${owner} </h5>
+            <p class="text-xs truncate"> ${ad} </p>
+            <h1 class="font-bold text-center"> ${distance} km</h1>
             `;
     }
 
@@ -312,9 +320,16 @@ export const MapHook = {
       });
     }
 
-    function updateDeleteMarker(marker, id) {
-      marker.on("popupopen", () => maybeDelete(marker, id));
-      marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
+    async function updateDeleteMarker(marker, id) {
+      try {
+        marker.on("popupopen", () => maybeDelete(marker, id));
+        marker.dragging.disable();
+        await takeToken("click", optionLong);
+        marker.dragging.enable();
+        marker.on("dragend", () => draggedMarker(marker, id, lineLayer));
+      } catch (err) {
+        return;
+      }
     }
 
     // we run "drawLine" when the two first markers (= the event) are changed
@@ -343,7 +358,7 @@ export const MapHook = {
     async function create(e) {
       // fetch the address from the endpoint "nominatim"
       // limitation of 1 request per second for Nominatim
-      await takeToken("click", optionLong);
+      await takeToken("click", optionShort);
 
       return geoCoder.reverse(e.latlng, 12, (result) => {
         if (!result[0]) return;

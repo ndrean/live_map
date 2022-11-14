@@ -9,15 +9,26 @@ defmodule LiveMapWeb.SelectedEvents do
   @moduledoc """
   Table to display the results of the query
   """
+
+  @thead ~w(Action Display Date Demand Details Owner Participants)
+
   def mount(_p, _s, socket) do
-    {:ok,
-     socket
-     |> assign(live_action: nil, id: "selected", selected: [])}
+    updated =
+      socket
+      |> assign(
+        live_action: nil,
+        id: "selected",
+        selected: [],
+        thead: @thead
+      )
+
+    {:ok, updated}
   end
 
   @impl true
   def update(assigns, socket) do
     IO.puts("update SelectedEvents")
+
     {:ok, assign(socket, assigns)}
   end
 
@@ -48,11 +59,9 @@ defmodule LiveMapWeb.SelectedEvents do
     """
   end
 
-  @thead ~w(Action Display Date Demand Details Owner Participants)
-
   def render(assigns) do
-    assigns = assign(assigns, :thead, @thead)
     IO.inspect(assigns.selected, label: "selected")
+    assigns = assign(assigns, :thead, @thead)
 
     ~H"""
     <div class="overflow-x-auto overflow-y-auto max-h-60 overflow-hidden">

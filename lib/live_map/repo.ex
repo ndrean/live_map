@@ -37,7 +37,7 @@ defmodule LiveMap.Repo do
   def default_date(d), do: Date.utc_today() |> Date.add(d)
 
   @doc """
-  Fetch all the events centered at [lng,lat] with radius "distance" and time period, defaults to "today + 1 month".
+  Fetch all the events centered at [lng,lat] with radius "distance" and time period, defaults to "today + env variable".
 
   Returns a GeoJSON features object.
 
@@ -50,12 +50,20 @@ defmodule LiveMap.Repo do
 
   # events.coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
 
+  @nb_days System.get_env("DEFAULT_TIME_RANGE") ||
+             Application.compile_env(:live_map, :default_days) ||
+             raise("""
+             Default time range missing in config.
+
+             Please set :live_map, :default_days
+             """)
+
   def features_in_map(
         lng,
         lat,
         distance,
         date_start \\ default_date(0),
-        date_end \\ default_date(30)
+        date_end \\ default_date(@nb_days)
       ) do
     query = [
       "SELECT json_build_object(

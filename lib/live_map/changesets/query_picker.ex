@@ -12,6 +12,9 @@ defmodule LiveMap.QueryPicker do
     status: :string
   }
 
+  @doc """
+  Changeset ensures end-date > start-date
+  """
   def changeset(%QueryPicker{} = query, attrs \\ %{}) do
     {query, @types}
     |> cast(attrs, Map.keys(@types))
@@ -21,6 +24,7 @@ defmodule LiveMap.QueryPicker do
     # |> validate_min()
   end
 
+  def validate_min(changeset), do: changeset
   # def validate_min(%{changes: %{start_date: start_date}} = changeset) do
   #   yesterday = Date.utc_today() |> Date.add(-1)
 
@@ -29,19 +33,15 @@ defmodule LiveMap.QueryPicker do
   #     else: add_error(changeset, :start_date, "Future dates only!")
   # end
 
-  def validate_min(changeset), do: changeset
-
   defp validate_future(%{changes: %{start_date: start_date, end_date: end_date}} = changeset) do
     case Date.compare(end_date, start_date) do
       :lt ->
-        add_error(changeset, :end_date, "Future dates only!")
+        add_error(changeset, :end_date, "End not posterior to Start")
 
       _ ->
         changeset
     end
   end
 
-  defp validate_future(changeset) do
-    changeset
-  end
+  defp validate_future(changeset), do: changeset
 end

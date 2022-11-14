@@ -8,6 +8,9 @@ defmodule LiveMap.NewEvent do
   defstruct [:date]
   @types %{date: :date}
 
+  @doc """
+  Changeset ensures that the date entered is a futur date
+  """
   def changeset(%NewEvent{} = event, params \\ %{}) do
     {event, @types}
     |> cast(params, Map.keys(@types))

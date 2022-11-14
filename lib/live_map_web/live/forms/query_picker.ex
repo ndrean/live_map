@@ -118,7 +118,7 @@ defmodule LiveMapWeb.QueryPicker do
         class={@class}
         />
       <datalist id="datalist">
-          <option :for={user <- @users} value={user}  />
+          <option :for={user <- @users} value={user}><%= user %></option>
       </datalist>
     """
   end

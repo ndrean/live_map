@@ -1,5 +1,8 @@
 # LiveMap
 
+NOTE: check tailwind.config.cjs and and in config tailwind
+NOTE:
+
 This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. An event is a line with two endpoints; each endpoint has a popup that displays some informations about the point. The events are geolocated and displayed on a map.
 The objective of this app is for each user to visualise and create events and interact with other users by asking to participate to an event.
 The map discovers events when it is panned or zoomed.
@@ -47,7 +50,15 @@ One point to mention is when you use variables in a component: the compiler asks
 
 ## Tooling
 
-The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client": it fetches online png files from a server - OpenStreetMap - and stitches this collection of images. The immediate optimisation would be to use **vector tiles** instead and the more powerful library [maplibre](https://maplibre.org/maplibre-gl-js-docs/api/). The Leaflet setup and code is [here](#leaflet-setup)
+The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client".
+
+- raster tiles server: Leaflet fetches online png files from a server - OpenStreetMap - and stitches this collection of images. For production usage, [other suppliers](https://switch2osm.org/providers/) should be considered.
+
+- geolocation and reverse geocoding. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered.
+
+> To overcome this, a rate limiter is set using a "token bucket" technic.
+
+Two other optimisation are possible: caching raster tiles or using **vector tiles**.
 
 The database is a Postgres database with the **Postgis** extension enabled.
 We use the **geography** version. We perform a "[nearest neighbours] (https://postgis.net/workshops/postgis-intro/knn.html)" search to the current location with regards to the dimension of the map. See also Crunchy data [post](https://www.crunchydata.com/blog/a-deep-dive-into-postgis-nearest-neighbor-search).
@@ -67,9 +78,7 @@ You have two kind of markers:
 
 - markers created by clicking on the map, to build a new event.
 
-When you create a marker, a table appears below to set the date and save and broadcast it. You can move/drag, or delete the marker while the event is not saved. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered.
-
-All other servers (Esri/ArcGis, Mapbox or Google) require an API key and pay-per-usage.
+When you create a marker, a table appears below to set the date and save and broadcast it. You can move/drag, or delete the marker while the event is not saved.
 
 > This "geocoding" request is sent by the front-end. There exists an Elixir library [geocoder](https://github.com/DaoDeCyrus/geocoder) that can handle this server-side. This is not used here as the data flow would be much more complicated and less performant in this case. Indeed, on click client-side, we send the coordinates to the geocoder to receive the data, store it in an object, and if ok, send and save the object in the database. If we had to do this server-side, we would need a GenServer to hold a state and handlers to interact with the geocoder and client.
 

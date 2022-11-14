@@ -6,13 +6,14 @@ defmodule LiveMapWeb.MapLive do
   require Logger
   import LiveMap.Utils, only: [safely_use: 1]
 
+  @presence_channel "presence"
   # @menu ~w(a b c) <- test
   @impl true
   def mount(_, %{"email" => email, "user_id" => user_id} = _session, socket) do
     if connected?(socket) do
       :ok = Endpoint.subscribe("event")
-      :ok = Endpoint.subscribe("presence")
-      {:ok, _} = Presence.track(self(), "presence", socket.id, %{user_id: user_id})
+      :ok = Endpoint.subscribe(@presence_channel)
+      {:ok, _} = Presence.track(self(), @presence_channel, socket.id, %{user_id: user_id})
     end
 
     # :ets.insert(:limit_user, {user_id, Time.utc_now()})
@@ -23,7 +24,9 @@ defmodule LiveMapWeb.MapLive do
        current: email,
        user_email: email,
        user_id: user_id,
-       presence: Presence.list("presence") |> map_size,
+       p_users:
+         Presence.list(@presence_channel)
+         |> Enum.map(fn {_, data} -> data[:metas] |> List.first() end),
        coords: %{},
        selected: nil,
        temporary_assigns: [events: []]
@@ -36,11 +39,13 @@ defmodule LiveMapWeb.MapLive do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :presence, assigns.presence)
-
     ~H"""
-    <div id="live">
-      <HeaderSection.display presence={@presence} />
+    <div>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+      <.live_component module={HeaderSection} id="header"
+        user={@user_email} emails={@p_users}
+      />
       <.live_component module={MapComp} id="map"
         user={@current} user_id={@user_id} coords={@coords}
       />
@@ -49,7 +54,6 @@ defmodule LiveMapWeb.MapLive do
       />
       <.live_component module={SelectedEvents} id="selected"
         selected={@selected} user_id={@user_id} user={@current}
-
       />
     </div>
     """
@@ -115,8 +119,16 @@ defmodule LiveMapWeb.MapLive do
   end
 
   def handle_info(%{event: "presence_diff"}, socket) do
-    nb_users = Presence.list("presence") |> map_size
-    {:noreply, assign(socket, presence: nb_users)}
+    nb_users = Presence.list(@presence_channel) |> map_size
+
+    p_users =
+      Presence.list(@presence_channel)
+      |> Enum.map(fn {_, data} ->
+        data[:metas]
+        |> List.first()
+      end)
+
+    {:noreply, assign(socket, presence: nb_users, p_users: p_users)}
   end
 
   defp set_all_keys(users) do

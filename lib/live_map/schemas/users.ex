@@ -35,7 +35,7 @@ defmodule LiveMap.User do
   end
 
   def from(email) do
-    Repo.get_by(User, email: email).id
+    Repo.get_by(User, email: email)
   end
 
   def list do

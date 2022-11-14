@@ -38,7 +38,8 @@ function disableClick(e) {
 }
 
 export default async function takeToken(key, options) {
-  window.addEventListener("click", disableClick, true);
+  const map = document.getElementById("map");
+  map.addEventListener("click", disableClick, true);
   const now = Date.now();
   const oldState = await getRateLimitState(key);
   const newState = take(oldState, options, now);
@@ -48,5 +49,5 @@ export default async function takeToken(key, options) {
     console.log("await end");
     await new Promise((r) => setTimeout(r, newState.timestamp - now));
   }
-  window.removeEventListener("click", disableClick, true);
+  return map.removeEventListener("click", disableClick, true);
 }

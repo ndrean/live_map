@@ -44,6 +44,9 @@ config :live_map, LiveMapWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :live_map, LiveMapMail.Mailer, adapter: Swoosh.Adapters.Local
 
+# sets default time range for query
+config :live_map, default_days: 30
+
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
 
@@ -71,7 +74,7 @@ config :tailwind,
   version: "3.1.8",
   default: [
     args: ~w(
-      --config=tailwind.config.js
+      --config=tailwind.config.cjs
       --input=css/app.css
       --output=../priv/static/assets/app.css
     ),

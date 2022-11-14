@@ -1,103 +1,120 @@
-<section class="text-black font-['Roboto'] text-lg mr-1 ml-1 mt-4">
-  <h2>Welcome to LiveMap</h2>
+<section class="flex flex-col m-4 items-center">
+  <div>
+    <a href={@oauth_google_url}
+      class="bg-[#4285F4] inline-flex content-center font-['Roboto']min-w-full"
+    >
+      <div class="bg-white flex justify-content items-center m-2 p-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3"
+          width="20px" height="20" class="inline-flex items-center">
+          <path d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z" fill="#4285f4"/>
+          <path d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9 26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9 243.2 149.9z" fill="#34a853"/>
+          <path d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6 167.5 0 244.4l90.4-70.1z" fill="#fbbc04"/>
+          <path d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z" fill="#ea4335"/>
+        </svg>
+      </div>
+      <div class="ml-3 mr-3 flex justify-content items-center text-lg text-white">
+        <span>Sign in with Google</span>
+      </div>
+    </a>
+  </div>
 
-  <details><summary>LiveMap is a memory aid to register your trips. Click to see the details!</summary>
-    <p>This app lets you egister your kitesurf downwinds 🏄, bike 🚴 or canyoning trips 🚣 or more!
-    Anything that has a start point and an endpoint that you want
-    to save and share. It works based on maps.</p>
-    <p>You can create "linestring" events, you can also visualize the existing events, and asked to participate to events.
-  This is your map memory aid!</p>
-  <p>You firstly need to be registered to enter this app, but don't worry, no password is required!
-      Just select your favorite social and you are done!</p>
+  <div class="w-60">
+    <a href={@oauth_github_url}
+      class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
+    >
+      <div class="p-1 min-h-40">
+        <svg height="35" viewBox="0 0 16 16" width="52px" class="fill-white flex justify-content items-center">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+          0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
+          1.08.58 1.23.82.72 1.21 1.87.87
+          2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+          0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08
+          2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0
+          .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </div>
+      <div class="m-3">
+        Sign in with GitHub
+      </div>
+    </a>
+  </div>
+  <div>
+    <a  href={@oauth_facebook_url}>
+      <img class="" width="240" alt="fb-ssr" src={Routes.static_path(@conn, "/images/fb_login.webp")} />
+    </a>
+  </div>
+</section>
+<br />
+<section class="text-black p-2 font-['Roboto'] text-lg m-2 bg-yellow-100 border-8 border-sky-100 rounded-lg shadow-md">
+  <h2 class="text-center">Welcome to LiveMap</h2>
+  <br/>
+  <details className="group open:ring" >
+    <summary className="text-blue-500 group-open:text-green-500 list-none">
+      LiveMap is a memory aid to register and share trips: anything that has a start point and an endpoint that you want
+      to save and share. It can be kitesurf downwinds, bike or canyoning trips or more!
+      It works based on maps. Click to see the details!
+    </summary>
+      <p class="text-sm">TLTR; You have three functionalities. Firstly you can create "linestring" events by clicking on a map.</p>
+      <p class="text-sm">You also have a search area below where you can visualize the forthcoming events; there, you
+      can ask to participate to events and the details button shows you the status of your demand and who is on-board.</p>
+      <p class="text-sm"> Lastly, you can also chat with another online user. Test it!</p>
   </details>
+  <br/>
+   <p class="text-sm">Note: you firstly need to be registered to enter this app, but don't worry, no password is required!
+      Just select your favorite social and you are done!</p>
 
   <br/>
-  <details><summary> But.. how does this work? 🤨 Just click, takes 2 minutes! </summary>
+  <details><summary> FAQ: how does this work? 🤨 Just click, takes 2 minutes! </summary>
     <br/>
     <details><summary>What is an event? 🧐 </summary>
-    <p>An event here is made of two points, a start and an endpoint, and a date.</p>
-    <p>You create an event by clicking on the map 🌐 where the event should start 📍 and where it should end, and finally
-      select a date. And that's it!</p>
+      <p class="text-sm">An event here is made of two points - a start point and an endpoint - and a date.
+      You create an event by clicking on the map 🌐 where the event should start 📍 and where it should end, and finally
+        select a date.</p>
     </details>
+    <br />
+
+    <details><summary>What are the lines that appear on the map? 👀 </summary>
+      <p class="text-sm">The lines represent the events that will be held during the next month close to
+      your location. Click on it to see the details.
+      </p>
+    </details>
+    <br />
+
+    <details><summary>When I click on the map, a marker appears with a table below. What can I do with this? 🧐 </summary>
+      <p class="text-sm"> When you click on the map, a marker appears at this location. A popup is attached to
+      the marker with the address. A table appears also below the map where you can see the details of your point.
+      You will notice that you can remove the marker from within the popup or from the table below.
+      You can also drag and drop the marker elsewhere: a new address is found for this new location.</p>
+    </details>
+
+
     <br/>
-    <details><summary>How can I visualize the events? 👀 </summary>
-    <p>You select two dates and click on search, and that's it!</p>
+    <details><summary>Can I find past events? 👀 </summary>
+      <p class="text-sm">You select two dates and click on search, and that's it! Note that
+      the list will not be displayed on the map.
+      </p>
     </details>
+
     <br/>
     <details><summary>How can I participate to an event? 👋 </summary>
-    <p>Once to searched to events, you just click on the green button, and the owner will receive a mail ✉.
-    Once he accepts and replies, you will receive a confirmation mail.</p>
-    <p>You can see the status of your demand ("pending" or "confirmed") by clicking on the "details" button</p>
-    <p>If the event is canceled 💔, you will be informed by mail, and the event will be removed from the list</p>
+      <p class="text-sm">Once you searched for events, you click on the green button, and the owner will receive a mail ✉.
+      Once he accepts and replies, you will receive a confirmation mail.
+      You can see the status of your demand ("pending" or "confirmed") by clicking on the "details" button.
+      If the event is canceled, you will be informed by mail, and the event will be removed from the list</p>
     </details>
     <br/>
 
     <details><summary>Can I reschedule an event? 🗣</summary>
-    <p> Yes you can. Click on reschedule! This will cancel the current event, and everyone who were confirmed or in pending state
-    will receive a new confirmation mail with the new date.</p>
-    <p>Note that you can only reschedule the date, not the start-point nor endpoint.</p>
+      <p class="text-sm"> Yes you can. Click on reschedule! This will cancel the current event, and everyone who were confirmed or in pending state
+      will receive a new confirmation mail with the new date.
+      Note that you can only reschedule the date, not the start-point nor endpoint.</p>
     </details>
+
     <br/>
     <details><summary>Can I chat with the owner of the event? 🗣</summary>
-    <p> They is a chat with the online users. Don't worry, it's an anonymous chat, nothing is saved. Try it!</p>
+      <p class="text-sm"> They is a chat with the online users. Don't worry, it's an anonymous chat, nothing is saved. Try it!</p>
     </details>
+
   </details>
 
 </section>
-
-<section class="min-h-screen flex flex-col justify-center">
-  <div class="grid-rows-1 gap-y-4">
-    <div class= "flex flex-row">
-      <div class="fw-60 ml-2">
-        <a href={@oauth_google_url}
-          class="bg-[#4285F4] inline-flex content-center font-['Roboto']min-w-full"
-        >
-          <div class="bg-white flex justify-content items-center m-2 p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3"
-              width="20px" height="20" class="inline-flex items-center">
-              <path d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z" fill="#4285f4"/>
-              <path d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9 26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9 243.2 149.9z" fill="#34a853"/>
-              <path d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6 167.5 0 244.4l90.4-70.1z" fill="#fbbc04"/>
-              <path d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z" fill="#ea4335"/>
-            </svg>
-          </div>
-          <div class="ml-3 mr-3 flex justify-content items-center text-lg text-white">
-            <span>Sign in with Google</span>
-          </div>
-        </a>
-      </div>
-    </div>
-    <br/>
-    <div class= "grid justify-items-end">
-      <div class="mr-2 fw-60">
-        <a href={@oauth_github_url}
-          class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
-        >
-          <div class="p-1 min-h-40">
-            <svg height="35" viewBox="0 0 16 16" width="52px" class="fill-white flex justify-content items-center">
-              <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
-              1.08.58 1.23.82.72 1.21 1.87.87
-              2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
-              0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08
-              2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0
-              .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-          </div>
-          <div class="m-3">
-            Sign in with GitHub
-          </div>
-        </a>
-      </div>
-    </div>
-  <br/>
-  <div class="flex justify-center">
-      <a class="w-60 " href={@oauth_facebook_url}>
-        <img class="" width="250" alt="fb-ssr" src={Routes.static_path(@conn, "/images/fb_login.png")} />
-      </a>
-  </div>
-  </div>
-</section>
-
-
-<%!-- grid place-items-center h-screen --%>

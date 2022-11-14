@@ -82,9 +82,15 @@ defmodule LiveMapWeb.LiveHelpers do
       <.select name="query_picker[user]" class=“w-40" options={@some_assigns_list} choice={@final_assign} />
 
   """
+
+  # attr(:class, :string)
+  # attr(:options, :list)
+  # attr(:choice, :string)
+  # attr(:name, :string)
+
   def select(assigns) do
     ~H"""
-      <select id={"status-#{@name}"} name={@name} class={@class}>
+      <select id={@name} name={@name} class={@class}>
         <option :for={option <- @options} selected={option == @choice}><%= option%></option>
       </select>
     """
