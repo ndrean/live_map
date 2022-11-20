@@ -5,7 +5,6 @@ defmodule LiveMapWeb.NewEventTable do
   require Logger
 
   attr :place, :map
-  attr :user, :string
   attr :date, :any
   attr :user_id, :integer
 
@@ -55,7 +54,9 @@ defmodule LiveMapWeb.NewEventTable do
       </div>
 
       <.live_component module={NewEvent} id="date_form"
-        user={@user} date={@date} place={@place} user_id={@user_id}
+        date={@date}
+        place={@place}
+        user_id={@user_id}
         class="flex flex-row w-full justify-around space-x-2 px-2"
       />
     </div>

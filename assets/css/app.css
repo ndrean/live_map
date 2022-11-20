@@ -1,18 +1,26 @@
+@import url("https://fonts.cdnfonts.com/css/roboto");
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
-/* @import "leaflet/dist/leaflet.css"; */
-/* @import "leaflet-control-geocoder/dist/Control.Geocoder.css"; */
+@import "leaflet/dist/leaflet.css";
+@import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
-@import url("https://fonts.cdnfonts.com/css/roboto");
+/* @layer base {
+  body {
+    font-family: "Roboto";
+  }
+=> set in "tailwind.config" as theme extension with fallback to default
+} */
 
 /* overwrite this class */
 .leaflet-container {
   overflow: hidden;
-  border-radius: 40px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
+/* border-radius: 40px; */
 
 /*
 details > summary::-webkit-details-marker {

@@ -33,15 +33,20 @@ defmodule LiveMap.QueryPicker do
   #     else: add_error(changeset, :start_date, "Future dates only!")
   # end
 
-  defp validate_future(%{changes: %{start_date: start_date, end_date: end_date}} = changeset) do
-    case Date.compare(end_date, start_date) do
-      :lt ->
-        add_error(changeset, :end_date, "End not posterior to Start")
+  defp validate_future(changeset) do
+    start_date = get_field(changeset, :start_date)
+    end_date = get_field(changeset, :end_date)
 
-      _ ->
-        changeset
+    if is_nil(start_date) and is_nil(end_date) do
+      changeset
+    else
+      case Date.compare(end_date, start_date) do
+        :lt ->
+          add_error(changeset, :end_date, "Check dates")
+
+        _ ->
+          changeset
+      end
     end
   end
-
-  defp validate_future(changeset), do: changeset
 end

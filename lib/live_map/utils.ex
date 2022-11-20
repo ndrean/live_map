@@ -15,6 +15,16 @@ defmodule LiveMap.Utils do
     res
   end
 
+  def perhaps_int(d) when is_binary(d) do
+    d |> string_to_float |> round()
+  end
+
+  def perhaps_int(d) when is_float(d) do
+    round(d)
+  end
+
+  def perhaps_int(d) when is_integer(d), do: d
+
   def safely_use(id), do: if(is_binary(id), do: String.to_integer(id), else: id)
 
   def to_km(d) do

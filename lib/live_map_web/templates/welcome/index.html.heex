@@ -1,6 +1,5 @@
 
-<section id="live_home">
-  <h1 class="text-black"> Welcome <strong><%= @profile.email %></strong>
-  </h1>
-</section>
+<!-- <section id="live_home">
+</section> -->
+  <h2 class="text-black p-2"> Welcome <strong><%= @profile.email %></strong></h2>
 <%= live_render(@conn, LiveMapWeb.MapLive, session: %{"email" => @profile.email})%>

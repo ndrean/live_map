@@ -1,12 +1,47 @@
 // NOTE: The contents of this file will only be executed if
 // you uncomment its entry in "assets/js/app.js".
 
-import { Socket } from "phoenix";
+import { Socket, Presence } from "phoenix";
 
 // And connect to the path in "lib/live_map_web/endpoint.ex". We pass the token for authentication. Read below how it should be used.
 let socket = new Socket("/socket", {
   params: { token: window.userToken, userId: window.userId },
 });
+
+socket.connect();
+
+const channel = socket.channel("chat:lobby", { token: "1_3" });
+channel
+  .join()
+  .receive("ok", (resp) => {
+    console.log("Joined lobby successfully", resp);
+  })
+  .receive("error", (resp) => {
+    console.log("Unable to join", resp);
+  });
+
+channel.on("shout", (payload) => {
+  console.log("shout: ", { payload });
+});
+
+function setChannel(x, y, token) {
+  return socket.channel(`chat:${x}-${y}`, { token });
+}
+
+const ch = setChannel(1, 3, "1-3");
+ch.join()
+  .receive("ok", (res) => console.log("Private room 1-3", res))
+  .receive("error", ({ reason }) => console.log("failed join", reason));
+ch.on("shout", (p) => console.log("shouted", p));
+
+const presenceChannel = socket.channel("presence");
+
+const presence = new Presence(presenceChannel);
+presence.onSync(() => {
+  console.log(presence.list(), "onSync");
+});
+
+export { socket, channel, presenceChannel };
 
 // When you connect, you'll often need to authenticate the client.
 // For example, imagine you have an authentication plug, `MyAuth`,
@@ -51,17 +86,3 @@ let socket = new Socket("/socket", {
 //     end
 //
 // Finally, connect to the socket:
-
-socket.connect();
-
-const channel = socket.channel("event", {});
-channel
-  .join()
-  .receive("ok", (resp) => {
-    console.log("Joined successfully", resp);
-  })
-  .receive("error", (resp) => {
-    console.log("Unable to join", resp);
-  });
-
-export { socket, channel };

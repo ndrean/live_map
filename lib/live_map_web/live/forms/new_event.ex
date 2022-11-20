@@ -14,6 +14,7 @@ defmodule LiveMapWeb.NewEvent do
   end
 
   def update(assigns, socket) do
+    IO.puts("update new event")
     socket = assign(socket, len: assigns.place["coords"] |> length())
 
     {:ok, assign(socket, assigns)}
@@ -22,7 +23,7 @@ defmodule LiveMapWeb.NewEvent do
   attr(:date, :string)
   attr(:errors, :list)
   attr(:class, :string)
-  attr(:class_Err, :string)
+  attr(:class_err, :string)
 
   #  display the form when two markers are displayed
   def render(%{len: len} = assigns) when len > 1 do
@@ -48,8 +49,6 @@ defmodule LiveMapWeb.NewEvent do
         <.date_err name="new_event[date]" class="w-30 px-2" date={@date} label="Date"
           class_err="mt-1"  errors={@changeset.errors}
         />
-        <%# error_tag f, :date, class: "text-red-700 text-sm m-1" %>
-
       </.form>
     </div>
     """

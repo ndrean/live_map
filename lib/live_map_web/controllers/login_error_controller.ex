@@ -1,9 +1,10 @@
 defmodule LiveMapWeb.LoginErrorController do
   use LiveMapWeb, :controller
+  require Logger
   # don't "use Phoenix.Controller" if you want to use "Routes" helpers
 
   def call(conn, {:error, message}) do
-    IO.puts("MyError")
+    Logger.warning("Got error during login #{inspect(message)}")
 
     conn
     |> fetch_session()

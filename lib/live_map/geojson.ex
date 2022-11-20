@@ -31,7 +31,7 @@ defmodule LiveMap.GeoJSON do
       get_and_update_in(
         geojson,
         [Access.key(:properties), Access.key(:email)],
-        &{&1, User.email(id)}
+        &{&1, User.get_by!(:email, id: id)}
       )
 
     geojson

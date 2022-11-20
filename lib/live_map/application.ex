@@ -8,6 +8,7 @@ defmodule LiveMap.Application do
     children = [
       # Start the Ecto repository
       LiveMap.Repo,
+      LiveMap.ChatCache,
       # Start the Telemetry supervisor
       LiveMapWeb.Telemetry,
       # Start the PubSub system

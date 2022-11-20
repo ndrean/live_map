@@ -41,10 +41,10 @@ defmodule LiveMapMail.Email do
 
   @doc """
   Fills a template and sends a mail to the user.
-
   The function receives `user_id`, `event_id`, `subject` and `rendered_body`.
-
   It makes a lookup in the database.
+  ## Example
+    iex> LiveMap.LiveMapEmail.handle_email(%{event_id: 1, user_id: 1, subject: "subject", rendered_body: "demande.html"})
   """
 
   def handle_email(%{

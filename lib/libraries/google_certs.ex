@@ -3,8 +3,9 @@ defmodule Libraries.ElixirGoogleCerts do
   @iss "https://accounts.google.com"
   # @aud System.get_env("GOOGLE_CLIENT_ID")
 
-  def verified_identity(jwt) do
-    with {:ok,
+  def verified_identity(conn, jwt, g_csrf_token) do
+    with :ok <- double_token_check(conn, g_csrf_token),
+         {:ok,
           %{
             "aud" => aud,
             "azp" => azp,
@@ -18,8 +19,11 @@ defmodule Libraries.ElixirGoogleCerts do
          true <- check_iss(iss) do
       {:ok, %{email: email, name: name, google_id: sub, picture: pic}}
     else
-      {:error, message} -> {:error, message}
-      false -> {:error, false}
+      {:error, message} ->
+        {:error, message}
+
+      false ->
+        {:error, false}
     end
   end
 
@@ -38,6 +42,18 @@ defmodule Libraries.ElixirGoogleCerts do
         cert = Enum.find(certs, fn cert -> cert["kid"] == kid end)
         signer = Joken.Signer.create(alg, cert)
         Joken.verify(jwt, signer, [])
+    end
+  end
+
+  def double_token_check(conn, g_csrf_token) do
+    case conn.cookies do
+      %{"g_csrf_token" => g_cookie} ->
+        if g_cookie == g_csrf_token,
+          do: :ok,
+          else: {:error, "Failed to verify double submit cookie."}
+
+      _ ->
+        {:error, "No cookie"}
     end
   end
 

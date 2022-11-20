@@ -4,7 +4,7 @@ defmodule LiveMap.Repo do
     adapter: Ecto.Adapters.Postgres
 
   # import Ecto.Query
-  alias LiveMap.{Repo}
+  alias LiveMap.{Repo, Utils}
   require Logger
 
   @moduledoc """
@@ -34,18 +34,17 @@ defmodule LiveMap.Repo do
     end
   end
 
-  def default_date(d), do: Date.utc_today() |> Date.add(d)
+  def default_date(d) do
+    d = Utils.perhaps_int(d)
+    Date.utc_today() |> Date.add(d)
+  end
 
   @doc """
   Fetch all the events centered at [lng,lat] with radius "distance" and time period, defaults to "today + env variable".
-
   Returns a GeoJSON features object.
-
   We passed a `%Geo.LineString{[x,y],[z,t]}` with type GEOGRAPHY.
-
-    ```
+  ## Ex
     iex> [GeoSJON features] = LiveMap.Repo.features_in_map(lng, lat, distance)
-    ```
   """
 
   # events.coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
@@ -138,8 +137,7 @@ defmodule LiveMap.Repo do
            query,
            [lng, lat, distance, start_date, end_date]
          ) do
-      {:ok, %Postgrex.Result{columns: columns, rows: rows}} ->
-        IO.inspect(columns)
+      {:ok, %Postgrex.Result{columns: _columns, rows: rows}} ->
         rows
 
       {:error, %Postgrex.Error{postgres: %{message: message}}} ->

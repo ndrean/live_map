@@ -13,7 +13,6 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-// const topbar = require("../vendor/topbar.js");
 // import topbar from "../vendor/topbar";
 import { MapHook } from "./maphook";
 
@@ -26,6 +25,11 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: { MapHook },
 });
+
+// liveSocket = new LiveSocket("/chat", Socket, {
+//   params: { _csrf_token: csrfToken },
+//   // hooks: { MapHook },
+// });
 
 // Show progress bar on live navigation and form submits
 // topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });

@@ -1,7 +1,7 @@
 # LiveMap
 
 NOTE: check tailwind.config.cjs and and in config tailwind
-NOTE:
+NOTE: caching raster tiles: <https://github.com/yagajs/leaflet-cached-tile-layer>
 
 This is a little social web app that displays simple "events" on an interactive map with "soft" real-time updates. An event is a line with two endpoints; each endpoint has a popup that displays some informations about the point. The events are geolocated and displayed on a map.
 The objective of this app is for each user to visualise and create events and interact with other users by asking to participate to an event.
@@ -52,9 +52,9 @@ One point to mention is when you use variables in a component: the compiler asks
 
 The [Leaflet.js](https://leafletjs.com/) library is our "raster tile client".
 
-- raster tiles server: Leaflet fetches online png files from a server - OpenStreetMap - and stitches this collection of images. For production usage, [other suppliers](https://switch2osm.org/providers/) should be considered.
+- raster tiles server: Leaflet fetches online png files from OpenStreetMap server and stitches this collection of images. It is recommended to cache and/or have your own tile server. For production usage, [other suppliers](https://switch2osm.org/providers/) should be considered.
 
-- geolocation and reverse geocoding. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to get the address at the marker and populate the popup with it. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). When the marker is dragged to another position, a new query is triggered.
+- geolocation and reverse geocoding. We query the [nominatim](https://nominatim.org/release-docs/latest/api/Overview/) server to "reverse-geocode", meaning get the address at the marker location and populate the popup with it. When the marker is dragged to another position, a new query is triggered. We also query the `nominatim` server to geolocate an address, meaning typing an address, find a match in the database and get the coordinates of this point. The nominatim service is limited to [one query per second](https://operations.osmfoundation.org/policies/nominatim/). No "onChange" search is allowed for the geolocation neither.
 
 > To overcome this, a rate limiter is set using a "token bucket" technic.
 

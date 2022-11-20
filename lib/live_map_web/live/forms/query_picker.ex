@@ -11,33 +11,59 @@ defmodule LiveMapWeb.QueryPicker do
   Form with a date as input and saves the completed event
   """
 
-  @menu ["" | ~w(owner pending confirmed)]
+  @menu ["owner", "pending", "confirmed"]
 
-  def mount(socket) do
-    {:ok,
-     assign(socket,
-       changeset: QueryPicker.changeset(%QueryPicker{}),
-       status: "",
-       users: [],
-       start_date: Date.utc_today(),
-       end_date: Date.utc_today() |> Date.add(1),
-       distance: 0,
-       d: 0,
-       menu: @menu
-     )}
+  # def mount(socket) do
+  #   {:ok,
+  #    assign(socket,
+  #      changeset: QueryPicker.changeset(%QueryPicker{})
+  #      #  status: "",
+  #      #  users: [],
+  #      #  start_date: Date.utc_today(),
+  #      #  end_date: Date.utc_today() |> Date.add(get_default_end_date()),
+  #      #  distance: 0,
+  #      #  d: 0,
+  #      #  menu: @menu
+  #    )}
+  # end
+
+  def update(%{coords: coords, current: current, user_id: user_id} = _assigns, socket) do
+    # received from live_component call
+    IO.puts("update query picker")
+
+    update =
+      assign(socket,
+        current: current,
+        user_id: user_id,
+        coords: coords,
+        start_date: Date.utc_today(),
+        end_date: Date.utc_today() |> Date.add(get_default_end_date()),
+        distance: 0,
+        d: 0,
+        menu: @menu,
+        status: "",
+        users: [],
+        changeset:
+          QueryPicker.changeset(%QueryPicker{}, %{
+            start_date: Date.utc_today(),
+            end_date: Date.utc_today() |> Date.add(get_default_end_date())
+          })
+      )
+
+    {:ok, update}
   end
+
+  attr(:errors, :list)
+  attr(:class_err, :string)
 
   # render query table once map coords are ready
   def render(%{coords: %{"distance" => distance}} = assigns) do
     assigns = assign(assigns, :distance, string_to_float(distance))
     assigns = assign(assigns, :d, to_km(distance))
 
-    # to default to the user's email, set assigns.user which contains the user's email
-    # assigns = assign(assigns, :user, assigns.user)
-    #
     ~H"""
     <div  >
-    <.form :let={f}  for={@changeset} phx-submit="send" phx-change="change"
+    <.form :let={_f}  for={@changeset} phx-submit="send" phx-change="change"
       phx-target={@myself} id="query_picker"
     >
 
@@ -48,8 +74,7 @@ defmodule LiveMapWeb.QueryPicker do
 
       <%!-- passing the value to the formData with no input --%>
       <input type="hidden" value={@distance} name="query_picker[distance]" />
-
-      <input type="hidden" value={@user} name="query_picker[user]" />
+      <input type="hidden" value={@current} name="query_picker[user]" />
 
 
       <%!-- <div class="flex items-center justify-around mb-2 ml-3"> --%>
@@ -60,14 +85,18 @@ defmodule LiveMapWeb.QueryPicker do
       <%!-- </div> --%>
       <div class="flex items-center justify-around content-evenly ml-1 mt-2 mr-1 mb-1">
         <.date date={@start_date} name="query_picker[start_date]" class="w-15 m-1 rounded-md" label=""/>
-          <%= error_tag(f, :start_date) %>
         <button form="query_picker"
-          class="px-2 py-2 rounded-md font-['Roboto'] bg-green-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
+          class="px-2 py-2 rounded-md font-['Roboto'] bg-indigo-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-indigo-600 hover:shadow-lg focus:bg-indigo-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-indigo--700 active:shadow-lg transition duration-150 ease-in-out"
           >
           <.search_svg />
         </button>
-        <.date date={@end_date} name="query_picker[end_date]" class="w-15 m-1 rounded-lg" label=""/>
-          <%= error_tag(f, :end_date) %>
+
+        <.date_err date={@end_date} name="query_picker[end_date]" label=""
+          class="w-15 m-1 rounded-md"
+          class_err="mt-1"
+          errors={@changeset.errors}
+          attribute={:end_date}
+        />
       </div>
       <div class="text-center">
       </div>
@@ -78,12 +107,13 @@ defmodule LiveMapWeb.QueryPicker do
 
   # first render without map coords
   def render(assigns) do
+    IO.puts("render query dates all empty")
+
     ~H"""
       <div></div>
     """
   end
 
-  # slot(:inner_block)
   attr(:class, :string)
   attr(:name, :string)
 
@@ -142,13 +172,13 @@ defmodule LiveMapWeb.QueryPicker do
 
   # fill in a datalist for users when typing
   # !!!!! USER IS CHANGED HERE
-  def handle_event("search-email", %{"query_picker" => %{"user" => string}}, socket) do
-    datalist =
-      LiveMap.User.search(string)
-      |> Enum.map(& &1.email)
+  # def handle_event("search-email", %{"query_picker" => %{"user" => string}}, socket) do
+  #   datalist =
+  #     LiveMap.User.search(string)
+  #     |> Enum.map(& &1.email)
 
-    {:noreply, assign(socket, users: datalist, user: string)}
-  end
+  #   {:noreply, assign(socket, users: datalist, user: string)}
+  # end
 
   # given map coords and mandatory dates, returns events to the liveview (send)
   # the query formats the output as [event_id, map_owner, map_demanders_array || map_confirmed_array ]
@@ -223,26 +253,7 @@ defmodule LiveMapWeb.QueryPicker do
     }
   end
 
-  # def parse_date(string_as_date) do
-  #   string_as_date
-  #   |> String.split("-")
-  #   |> Enum.map(&String.to_integer/1)
-  #   |> then(fn [y, m, d] ->
-  #     Date.new!(y, m, d)
-  #   end)
-  # end
-
-  # def parse(d), do: d |> String.to_float()
-
-  # def string_to_float(d) when is_binary(d) do
-  #   {res, _} = Float.parse(d)
-  #   res
-  # end
-
-  # |> round()
-
-  # def to_km(d) do
-  #   div1000 = fn x -> x / 1000 end
-  #   d |> string_to_float() |> div1000.() |> round
-  # end
+  defp get_default_end_date() do
+    Application.get_env(:live_map, :default_days) || System.get_env("DEFAULT_TIME_RANGE")
+  end
 end

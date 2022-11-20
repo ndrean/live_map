@@ -12,7 +12,7 @@
           <path d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z" fill="#ea4335"/>
         </svg>
       </div>
-      <div class="ml-3 mr-3 flex justify-content items-center text-lg text-white">
+      <div class="ml-3 mr-3 flex justify-content items-center text-lg text-white font-['Roboto']">
         <span>Sign in with Google</span>
       </div>
     </a>
@@ -23,7 +23,7 @@
       class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
     >
       <div class="p-1 min-h-40">
-        <svg height="35" viewBox="0 0 16 16" width="52px" class="fill-white flex justify-content items-center">
+        <svg height="32" viewBox="0 0 16 16" width="52px" class="fill-white flex justify-content items-center">
           <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
           1.08.58 1.23.82.72 1.21 1.87.87
@@ -33,7 +33,7 @@
           .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
         </svg>
       </div>
-      <div class="m-3">
+      <div class="m-1">
         Sign in with GitHub
       </div>
     </a>
@@ -43,6 +43,27 @@
       <img class="" width="240" alt="fb-ssr" src={Routes.static_path(@conn, "/images/fb_login.webp")} />
     </a>
   </div>
+
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <div class="flex items-center">
+      <div id="g_id_onload"
+        data-client_id={System.get_env("GOOGLE_CLIENT_ID")}
+        data-login_uri=""
+        data-auto_prompt="true"
+      >
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-width="240"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+      </div>
+    </div>
+
 </section>
 <br />
 <section class="text-black p-2 font-['Roboto'] text-lg m-2 bg-yellow-100 border-8 border-sky-100 rounded-lg shadow-md">

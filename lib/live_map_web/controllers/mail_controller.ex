@@ -13,7 +13,6 @@ defmodule LiveMapWeb.MailController do
   and sends a mail to the owner of the event.
 
   ### Examples
-    ```
     iex> LiveMapMail.MailController.create_demand(%{event_id: 1, user_id: 2})
     # {:ok, #PID<0.861.0>}
     # navigate to http://localhost:4000/dev/mailbox, check the mail and click the link
@@ -29,13 +28,10 @@ defmodule LiveMapWeb.MailController do
     ```
   """
   def create_demand(%{event_id: event_id, user_id: user_id} = params) do
-    # Task.Supervisor.async(LiveMap.AsyncMailSup, fn ->
     token = EventParticipants.set_pending(%{event_id: event_id, user_id: user_id})
 
     Map.put(params, :mtoken, token)
     |> Email.build_demand()
-
-    # end)
   end
 
   defp check_token(mtoken) do
@@ -45,9 +41,8 @@ defmodule LiveMapWeb.MailController do
     end
   end
 
-  @spec cancel_event(%{:event_id => any, optional(any) => any}) :: :ok
   def cancel_event(%{event_id: id}) do
-    Logger.info("sending cancel mail")
+    Logger.info("sending cancel mail ********")
 
     LiveMap.Event.get_event_participants(id)
     |> Enum.each(fn %{status: status, user_id: user_id} ->
@@ -99,7 +94,6 @@ defmodule LiveMapWeb.MailController do
     end
   end
 
-  @spec handle_token(Plug.Conn.t(), binary, binary) :: Plug.Conn.t()
   def handle_token(conn, event_id, user_id) do
     event_id = String.to_integer(event_id)
     user_id = String.to_integer(user_id)

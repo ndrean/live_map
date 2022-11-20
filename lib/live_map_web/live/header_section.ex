@@ -6,32 +6,28 @@ defmodule LiveMapWeb.HeaderSection do
   def mount(socket) do
     {:ok,
      assign(socket,
-       class: "",
-       emails: [],
-       user: "",
-       nb_users: 1,
-       name: "",
-       changeset: ChatSelect.changeset(%ChatSelect{})
+       changeset: ChatSelect.changeset(%ChatSelect{}),
+       list_emails: [],
+       nb_users: 1
      )}
   end
 
-  def update(assigns, socket) do
-    # IO.inspect(assigns, label: "update")
-
+  def update(%{current: current} = assigns, socket) do
+    IO.puts("update header")
+    # in Update, by default, we have the assigns given in the live_component call
     list_emails =
-      case assigns.emails do
+      case assigns.list_ids do
         [] -> []
-        list -> Enum.map(list, fn %{user_id: id} -> LiveMap.User.email(id) end)
+        list -> Enum.map(list, fn %{user_id: id} -> LiveMap.User.get_by!(:email, id: id) end)
       end
 
     socket =
-      socket
-      |> assign(:emails, list_emails)
-      |> assign(:nb_users, list_emails |> length())
-      |> assign(:user, assigns.user)
-
-    # |> assign(:user_email, assigns.user_email)
-    # |> assign(:nb_users, assigns.nb_users)
+      assign(socket,
+        emails: list_emails,
+        nb_users: list_emails |> length(),
+        current: current,
+        length: assigns.length
+      )
 
     {:ok, socket}
   end
@@ -39,12 +35,13 @@ defmodule LiveMapWeb.HeaderSection do
   attr(:options, :list)
   attr(:choice, :string)
   attr(:name, :string)
+  attr(:entries, :list, default: [])
 
   def render(assigns) do
-    # IO.inspect(assigns, label: "assigns render")
+    IO.puts("render header")
 
     ~H"""
-    <section class="flex mb-4 mt-4 justify-center bg-black" >
+    <section class="flex mb-4 mt-4 justify-center bg-black" id="header">
       <div class="w-1/4 mt-0 flex flex-wrap items-center justify-center" id="geolocation">
         <button class="btn gap-1 font-['Roboto'] bg-black border-0">
           GPS
@@ -54,12 +51,15 @@ defmodule LiveMapWeb.HeaderSection do
         </button>
       </div>
       <div class="w-3/4 mt-0 flex justify-center items-center" id="chat">
-        <.form id="form-chat" for={@changeset} phx-change="change" phx-submit="send-email" phx-target={@myself} class="flex">
-          <button class="btn gap-1 font-['Roboto'] bg-black border-0" form="form-chat">
+        <.form id="form-user" for={@changeset} phx-change="change" phx-submit="receiver-email" phx-target={@myself} class="flex">
+          <button
+            class={["btn gap-1 font-['Roboto'] bg-black border-0", @length  && "pointer-events-none" ]}
+            form="form-user"
+          >
             <.chat_svg/>
             <div class="badge badge-secondary font-['Roboto']"><%= @nb_users %></div>
           </button>
-          <.select options={@emails} choice={@user} name="form-chat[name]"
+          <.select options={@emails} choice={@current} name="form-user[email]"
             class="select bg-black w-22 font-['Roboto'] max-w-xs text-xs truncate"
           />
         </.form>
@@ -68,23 +68,29 @@ defmodule LiveMapWeb.HeaderSection do
     """
   end
 
-  def handle_event("change", %{"form-chat" => params}, socket) do
-    # IO.inspect(params, label: "change")
-
+  def handle_event("change", %{"form-user" => params}, socket) do
     changeset =
       %ChatSelect{}
       |> ChatSelect.changeset(params)
       |> Map.put(:action, :validate)
 
-    socket =
-      socket
-      |> assign(:changeset, changeset)
-      |> assign(:name, params["name"])
+    case changeset.valid? do
+      false ->
+        {:noreply, socket}
 
-    {:noreply, socket}
+      true ->
+        udpate =
+          socket
+          |> assign(:changeset, changeset)
+          |> assign(:email, params["email"])
+
+        {:noreply, udpate}
+    end
   end
 
-  def handle_event("send-email", %{"form-chat" => %{"name" => name}}, socket) do
-    {:noreply, socket |> assign(chat: %{user: socket.assigns.user, with: name})}
+  def handle_event("receiver-email", %{"form-user" => %{"email" => email}}, socket) do
+    receiver_id = LiveMap.User.get_by!(:id, email: email)
+    send(self(), {:receiver_id, receiver_id})
+    {:noreply, socket}
   end
 end

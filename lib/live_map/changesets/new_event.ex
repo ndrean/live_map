@@ -18,7 +18,7 @@ defmodule LiveMap.NewEvent do
     |> validate_future()
   end
 
-  defp validate_future(%{changes: %{date: date}} = changeset) do
+  def validate_future(%{changes: %{date: date}} = changeset) do
     case Date.compare(date, Date.utc_today()) do
       :lt ->
         add_error(changeset, :date, "Future dates only!")
@@ -28,7 +28,5 @@ defmodule LiveMap.NewEvent do
     end
   end
 
-  defp validate_future(changeset) do
-    changeset
-  end
+  def validate_future(changeset), do: changeset
 end

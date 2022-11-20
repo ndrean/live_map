@@ -5,28 +5,32 @@ defmodule LiveMap.ChatSelect do
   import Ecto.Changeset
   alias LiveMap.ChatSelect
 
-  defstruct [:name]
-  @types %{name: :string}
+  defstruct [:email]
+  @types %{email: :string}
 
   @doc """
   Changeset checks if the name exists in the DB
   """
-  def changeset(%ChatSelect{} = name, params \\ %{}) do
-    {name, @types}
+  def changeset(%ChatSelect{} = email, params \\ %{}) do
+    {email, @types}
     |> cast(params, Map.keys(@types))
-    |> validate_required([:name])
+    |> validate_required([:email])
     |> validate_exists()
   end
 
-  def validate_exists(%{changes: %{name: name}} = changeset) do
-    case LiveMap.User.from(name) do
-      nil ->
-        add_error(changeset, :name, "Not a registered user!")
+  def validate_exists(changeset) do
+    email = get_field(changeset, :email)
 
-      _ ->
-        changeset
+    if is_nil(email) do
+      add_error(changeset, :email, "Not registered")
+    else
+      case(LiveMap.User.exists(email)) do
+        false ->
+          add_error(changeset, :name, "Not a registered user!")
+
+        true ->
+          changeset
+      end
     end
   end
-
-  def validate_exists(changeset), do: changeset
 end

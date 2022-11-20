@@ -42,7 +42,8 @@ async function handleGeolocationPermission(map) {
 function getLocation(map) {
   navigator.geolocation.getCurrentPosition(locationFound, locationDenied);
   function locationFound({ coords: { latitude: lat, longitude: lng } }) {
-    map.flyTo([lat, lng], 11);
+    map.setView([lat, lng], 11);
+    // map.flyTo([lat, lng], 11);
   }
   function locationDenied() {
     window.alert("location access denied");
@@ -75,6 +76,9 @@ const place = proxy({
 const movingmap = proxy({ center: [], distance: 10_000 });
 
 export const MapHook = {
+  destroyed() {
+    cancel(this.el);
+  },
   async mounted() {
     // load Leaflet and Geocoder async
     const [
@@ -145,7 +149,8 @@ export const MapHook = {
 
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
       start_spinner();
-      map.flyTo(center, 11);
+      map.setView(center, 11);
+      // map.flyTo(center, 11);
       stop_spinner();
     });
 

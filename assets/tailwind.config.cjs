@@ -2,11 +2,15 @@
 // https://tailwindcss.com/docs/configuration
 
 let plugin = require("tailwindcss/plugin");
+const defaultTheme = require("tailwindcss/defaultTheme");
 
 module.exports = {
   content: ["./js/**/*.js", "../lib/*_web.ex", "../lib/*_web/**/*.*ex"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Roboto sans", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         "beige-1": "#AA803A",
         "beige-2": "#3A64AA",

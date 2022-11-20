@@ -73,12 +73,12 @@ defmodule LiveMap.Event do
       "color" => color
     } = place
 
-    check = fn s -> if is_binary(s), do: String.to_float(s), else: s / 1 end
-    lat1 = check.(lat1)
-    lat2 = check.(lat2)
-    lng1 = check.(lng1)
-    lng2 = check.(lng2)
-    distance = check.(distance)
+    to_float = fn s -> if is_binary(s), do: String.to_float(s), else: s / 1 end
+    lat1 = to_float.(lat1)
+    lat2 = to_float.(lat2)
+    lng1 = to_float.(lng1)
+    lng2 = to_float.(lng2)
+    distance = to_float.(distance)
 
     %{
       user_id: owner_id,

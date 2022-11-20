@@ -11,6 +11,9 @@ defmodule LiveMap.User do
     timestamps()
   end
 
+  @doc """
+  Validations for User.
+  """
   def changeset(user, attrs) do
     user
     |> Ecto.Changeset.cast(attrs, [:email])
@@ -20,6 +23,9 @@ defmodule LiveMap.User do
     |> unique_constraint(:email)
   end
 
+  @doc """
+  Creates a new user
+  """
   def new(email) do
     User.changeset(%User{}, %{email: email})
     |> Repo.insert!(
@@ -30,18 +36,41 @@ defmodule LiveMap.User do
     )
   end
 
-  def email(id) do
-    Repo.get_by(User, id: id).email
+  @doc """
+  Takes a key (eg :email, :id) and opts (eg [id: 1] or [email: "toto@com"]) and returns the value
+  of the result map for this key
+
+  ## Example
+
+      iex> LiveMap.User.get_by!(:id, email: "toto@com")
+      iex> LiveMap.User.get_by!(:email, %{id: 1})
+  """
+  def get_by!(key, opts) do
+    Repo.get_by!(User, opts) |> Map.get(key)
   end
 
-  def from(email) do
-    Repo.get_by(User, email: email)
+  def exists(email) do
+    Repo.get_by(User, email: email) != nil
   end
 
+  @doc """
+  Returns the list of all users
+
+  ## Example
+
+      iex> LiveMap.User.list()
+  """
   def list do
     Repo.all(User)
   end
 
+  @doc """
+  Returns the number of users
+
+  ## Example
+
+      iex> LiveMap.User.count()
+  """
   def count do
     Repo.aggregate(User, :count, :id)
   end
