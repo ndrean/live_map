@@ -39,15 +39,22 @@ defmodule LiveMapWeb.NewEvent do
         phx-change="validate"
         phx-submit="up_date"
         phx-target={@myself}
-
         class="flex flex-row w-full justify-around content-evenly space-x-2 px-2"
       >
-        <button form="new_event"
+        <button
+          form="new_event"
           class="inline-block  px-2 py-2 mr-4 bg-green-500 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-600 hover:shadow-lg focus:bg-green-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-green-700 active:shadow-lg transition duration-150 ease-in-out"
-        > Update
+        >
+          Update
         </button>
-        <.date_err name="new_event[date]" class="w-30 px-2" date={@date} label="Date"
-          class_err="mt-1"  errors={@changeset.errors}
+        <.date_err
+          name="new_event[date]"
+          class="w-30 px-2"
+          date={@date}
+          label="Date"
+          attribute={:date}
+          class_err="mt-1"
+          errors={@changeset.errors}
         />
       </.form>
     </div>

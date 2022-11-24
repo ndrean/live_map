@@ -10,38 +10,38 @@ let socket = new Socket("/socket", {
 
 socket.connect();
 
-const channel = socket.channel("chat:lobby", { token: "1_3" });
-channel
-  .join()
-  .receive("ok", (resp) => {
-    console.log("Joined lobby successfully", resp);
-  })
-  .receive("error", (resp) => {
-    console.log("Unable to join", resp);
-  });
+// const channel = socket.channel("chat:lobby", { token: "1_3" });
+// channel
+//   .join()
+//   .receive("ok", (resp) => {
+//     console.log("Joined lobby successfully", resp);
+//   })
+//   .receive("error", (resp) => {
+//     console.log("Unable to join", resp);
+//   });
 
-channel.on("shout", (payload) => {
-  console.log("shout: ", { payload });
-});
+// channel.on("shout", (payload) => {
+//   console.log("shout: ", { payload });
+// });
 
 function setChannel(x, y, token) {
   return socket.channel(`chat:${x}-${y}`, { token });
 }
 
-const ch = setChannel(1, 3, "1-3");
-ch.join()
-  .receive("ok", (res) => console.log("Private room 1-3", res))
-  .receive("error", ({ reason }) => console.log("failed join", reason));
-ch.on("shout", (p) => console.log("shouted", p));
+// const ch = setChannel(1, 3, "1-3");
+// ch.join()
+//   .receive("ok", (res) => console.log("Private room 1-3", res))
+//   .receive("error", ({ reason }) => console.log("failed join", reason));
+// ch.on("shout", (p) => console.log("shouted", p));
 
-const presenceChannel = socket.channel("presence");
+// const presenceChannel = socket.channel("presence");
 
-const presence = new Presence(presenceChannel);
-presence.onSync(() => {
-  console.log(presence.list(), "onSync");
-});
+// const presence = new Presence(presenceChannel);
+// presence.onSync(() => {
+//   console.log(presence.list(), "onSync");
+// });
 
-export { socket, channel, presenceChannel };
+export { socket };
 
 // When you connect, you'll often need to authenticate the client.
 // For example, imagine you have an authentication plug, `MyAuth`,

@@ -1,31 +1,39 @@
 <!DOCTYPE html >
 <html lang="en">
   <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="description" content="events on maps with Phoenix LiveView">
-    <meta property="og:title" content="LiveMap - online events">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="LiveMap - online events">
-    <%# <meta http-equiv="Content-Security-Policy" content="script-src 'none'"> %>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta name="csrf-token" content={csrf_token_value()}>
-    <link rel="apple-touch-icon" href={Routes.static_path(@conn, "/images/icons8-apple-100.png")}/>
-    <%#<link rel="preload" href="https://fonts.googleapis.com/css?family=Roboto&display=swap" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap"> %>
-    <%= live_title_tag assigns[:page_title] || "LiveMap", suffix: " · Phoenix Framework" %>
-    <link  phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
-    <script nonce="2022utoken">window.userToken = "<%= assigns[:user_token] %>";</script>
-    <script nonce="2022userid">window.userId = "<%= assigns[:user_id] %>";</script>
-    <script  type="module" nonce="2022appjs" defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="events on maps with Phoenix LiveView" />
+    <meta property="og:title" content="LiveMap - online events" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LiveMap - online events" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content={csrf_token_value()} />
+    <%!-- <link rel="manifest" href={Routes.static_path(@conn, "/manifest.json")} /> --%>
+
+    <link rel="apple-touch-icon" href={Routes.static_path(@conn, "/images/icons8-apple-100.png")} />
+    <%= live_title_tag(assigns[:page_title] || "LiveMap", suffix: " · Phoenix Framework") %>
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+    <script nonce="2022utoken">
+      window.userToken = "<%= assigns[:user_token] %>";
+    </script>
+    <script nonce="2022userid">
+      window.userId = "<%= assigns[:user_id] %>";
+    </script>
+    <script
+      type="module"
+      nonce="2022appjs"
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={Routes.static_path(@conn, "/assets/app.js")}
+    >
+    </script>
     <!-- <link nonce="2022geocodercss" rel="preload" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" as="style" onload="this.onload=null;this.rel='stylesheet'"> -->
 
     <!-- <script nonce="2022leafletjs" defer async type="module" src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script> -->
-
   </head>
   <body class="bg-gradient-to-b from-yellow-1-300 to-blue-2-200 antialiased">
-
-
     <%= @inner_content %>
   </body>
 </html>

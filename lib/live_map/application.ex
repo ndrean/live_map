@@ -2,6 +2,7 @@ defmodule LiveMap.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -15,15 +16,28 @@ defmodule LiveMap.Application do
       {Phoenix.PubSub, name: LiveMap.PubSub},
       # Start the Endpoint (http/https)
       LiveMapWeb.Endpoint,
+      # {Task, fn -> shutdown_when_inactive(:timer.minutes(1)) end},
       LiveMapWeb.Presence,
       {Registry, [keys: :unique, name: Registry.SessionRegistry]},
       {Task.Supervisor, name: LiveMap.EventSup},
       {Task.Supervisor, name: LiveMap.AsyncMailSup}
     ]
 
-    # :ets.new(:limit_user, [:set, :named_table, :public])
     opts = [strategy: :one_for_one, name: LiveMap.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # https://fly.io/phoenix-files/shut-down-idle-phoenix-app/
+  defp shutdown_when_inactive(every_ms) do
+    Logger.info("start inactivity watching process ---------------")
+    Process.sleep(every_ms)
+
+    if :ranch.procs(LiveMapWeb.Endpoint.HTTP, :connections) == [] do
+      Logger.info("------------Shut down...")
+      System.stop(0)
+    else
+      shutdown_when_inactive(every_ms)
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration whenever the application is updated.

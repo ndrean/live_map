@@ -15,7 +15,8 @@ defmodule LiveMapWeb.Endpoint do
     websocket: true,
     longpoll: false
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [{:session, @session_options}, :peer_data, :x_headers, :uri]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -26,7 +27,7 @@ defmodule LiveMapWeb.Endpoint do
     from: :live_map,
     gzip: true,
     cache_control_for_etags: "cache-control, public max-age='31436000'",
-    only: ~w(assets fonts images favicon.ico robots.txt)
+    only: ~w(assets fonts images favicon.ico robots.txt apple-touch-icon.png)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

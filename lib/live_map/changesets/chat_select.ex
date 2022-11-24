@@ -24,11 +24,11 @@ defmodule LiveMap.ChatSelect do
     if is_nil(email) do
       add_error(changeset, :email, "Not registered")
     else
-      case(LiveMap.User.exists(email)) do
-        false ->
+      case LiveMap.User.get_by!(:id, email: email) do
+        nil ->
           add_error(changeset, :name, "Not a registered user!")
 
-        true ->
+        _ ->
           changeset
       end
     end

@@ -1,7 +1,7 @@
-defmodule LiveMapWeb.MapComp do
+defmodule LiveMapWeb.Chart do
   use LiveMapWeb, :live_component
   alias LiveMap.Repo
-  alias LiveMapWeb.{NewEventTable, MapComp, MapLoader}
+  alias LiveMapWeb.{NewEventTable, Chart, Loader}
   require Logger
 
   @impl true
@@ -30,21 +30,11 @@ defmodule LiveMapWeb.MapComp do
 
     ~H"""
     <div class="flex flex-col justify-center">
-      <MapLoader.display id="map_loader" class="flex justify-center" spin={@spin}/>
+      <Loader.display id="map_loader" class="flex justify-center" spin={@spin} />
 
-      <div id="map"
-        phx-hook="MapHook"
-        phx-update="ignore"
-        phx-target={@myself}
-      >
-      </div>
+      <div id="map" phx-hook="ChartHook" phx-update="ignore" phx-target={@myself}></div>
 
-      <NewEventTable.display
-        user_id={@user_id}
-        place={@place}
-        date={@date}
-      />
-
+      <NewEventTable.display user_id={@user_id} place={@place} date={@date} />
     </div>
     """
   end
@@ -75,13 +65,13 @@ defmodule LiveMapWeb.MapComp do
 
   @impl true
   def handle_event("mapoff", %{"id" => id}, socket) do
-    send_update(MapComp, id: id, spin: true)
+    send_update(Chart, id: id, spin: true)
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("mapon", %{"id" => id}, socket) do
-    send_update(MapComp, id: id, spin: false)
+    send_update(Chart, id: id, spin: false)
     {:noreply, socket}
   end
 end

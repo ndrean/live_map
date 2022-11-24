@@ -2,12 +2,18 @@
 
 <main class="w-full">
   <section>
-  <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-  <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+    <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+    <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
   </section>
   <header>
     <section class="grid grid-cols-6 w-full items-center" id="home">
-      <div class="col-span-1 mt-0 flex justify-center"><img class="max-w-[70%]" src={Routes.static_path(@conn, "/images/kitesurf.svg")}  alt="logo"  /></div>
+      <div class="col-span-1 mt-0 flex justify-center">
+        <img
+          class="max-w-[70%]"
+          src={Routes.static_path(@conn, "/images/kitesurf.svg")}
+          alt="logo"
+        />
+      </div>
       <div class="col-span-5  mt-0 py-3 text-3xl text-black font-bold text-center w-full bg-slate-400 rounded-l shadow-lg">
         LiveMaps
       </div>

@@ -38,7 +38,9 @@ defmodule LiveMap.User do
 
   @doc """
   Takes a key (eg :email, :id) and opts (eg [id: 1] or [email: "toto@com"]) and returns the value
-  of the result map for this key
+  of the result map for this key.
+
+  Used by ChatSelect changeset.
 
   ## Example
 
@@ -46,11 +48,24 @@ defmodule LiveMap.User do
       iex> LiveMap.User.get_by!(:email, %{id: 1})
   """
   def get_by!(key, opts) do
-    Repo.get_by!(User, opts) |> Map.get(key)
+    # Repo.get_by!(User, opts) |> Map.get(key)
+    case Repo.get_by(User, opts) do
+      nil -> nil
+      user -> Map.get(user, key)
+    end
   end
 
-  def exists(email) do
-    Repo.get_by(User, email: email) != nil
+  @doc """
+  For Presence extraction
+  """
+  def get_emails(ids) do
+    from(u in User,
+      where: u.id in ^ids,
+      select: u.email
+    )
+    |> Repo.all()
+
+    # |> Enum.into(%{})
   end
 
   @doc """

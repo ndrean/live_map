@@ -21,7 +21,8 @@
   "id": "/?source=pwa",
   "start_url": "/?source=pwa",
   "background_color": "#3367D6",
-  "display": "standalone",
+  "display": "browser",
+  "orientation": "portrait",
   "scope": "/",
   "theme_color": "#3367D6",
   "shortcuts": [

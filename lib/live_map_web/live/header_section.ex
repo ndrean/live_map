@@ -1,35 +1,16 @@
 defmodule LiveMapWeb.HeaderSection do
   use LiveMapWeb, :live_component
   import LiveMapWeb.LiveHelpers
+  alias LiveMapWeb.HeaderSection
   alias LiveMap.ChatSelect
+  # alias Phoenix.LiveView.JS
 
   def mount(socket) do
     {:ok,
      assign(socket,
        changeset: ChatSelect.changeset(%ChatSelect{}),
-       list_emails: [],
-       nb_users: 1
+       newclass: ""
      )}
-  end
-
-  def update(%{current: current} = assigns, socket) do
-    IO.puts("update header")
-    # in Update, by default, we have the assigns given in the live_component call
-    list_emails =
-      case assigns.list_ids do
-        [] -> []
-        list -> Enum.map(list, fn %{user_id: id} -> LiveMap.User.get_by!(:email, id: id) end)
-      end
-
-    socket =
-      assign(socket,
-        emails: list_emails,
-        nb_users: list_emails |> length(),
-        current: current,
-        length: assigns.length
-      )
-
-    {:ok, socket}
   end
 
   attr(:options, :list)
@@ -46,20 +27,35 @@ defmodule LiveMapWeb.HeaderSection do
         <button class="btn gap-1 font-['Roboto'] bg-black border-0">
           GPS
           <div class="badge border-0 bg-black">
-            <.gps_svg/>
+            <.gps_svg />
           </div>
         </button>
       </div>
-      <div class="w-3/4 mt-0 flex justify-center items-center" id="chat">
-        <.form id="form-user" for={@changeset} phx-change="change" phx-submit="receiver-email" phx-target={@myself} class="flex">
+      <div class="w-3/4 mt-0 flex justify-center items-center">
+        <.form
+          id="form-user"
+          for={@changeset}
+          phx-change="change"
+          phx-target={@myself}
+          phx-submit="notify"
+          class="flex"
+          phx-hook="Notify"
+        >
           <button
-            class={["btn gap-1 font-['Roboto'] bg-black border-0", @length  && "pointer-events-none" ]}
-            form="form-user"
+            id="header-chat"
+            class={[
+              "btn gap-1 font-['Roboto'] bg-black border-0 cursor-pointer",
+              length(@p_users) == 1 && "pointer-events-none"
+            ]}
           >
-            <.chat_svg/>
-            <div class="badge badge-secondary font-['Roboto']"><%= @nb_users %></div>
+            <%!-- form="form-user" --%>
+            <.bell_svg class={@newclass} />
+            <div class="badge badge-secondary font-['Roboto']"><%= length(@p_users) %></div>
           </button>
-          <.select options={@emails} choice={@current} name="form-user[email]"
+          <.select
+            options={@p_users}
+            choice={@current}
+            name="form-user[email]"
             class="select bg-black w-22 font-['Roboto'] max-w-xs text-xs truncate"
           />
         </.form>
@@ -68,7 +64,7 @@ defmodule LiveMapWeb.HeaderSection do
     """
   end
 
-  def handle_event("change", %{"form-user" => params}, socket) do
+  def handle_event("change", %{"form-user" => %{"email" => email} = params}, socket) do
     changeset =
       %ChatSelect{}
       |> ChatSelect.changeset(params)
@@ -76,21 +72,47 @@ defmodule LiveMapWeb.HeaderSection do
 
     case changeset.valid? do
       false ->
+        IO.puts("msg not valid")
         {:noreply, socket}
 
       true ->
+        send(self(), {:change_receiver_email, email})
+
         udpate =
           socket
           |> assign(:changeset, changeset)
-          |> assign(:email, params["email"])
+          |> assign(:email, email)
 
         {:noreply, udpate}
     end
   end
 
-  def handle_event("receiver-email", %{"form-user" => %{"email" => email}}, socket) do
-    receiver_id = LiveMap.User.get_by!(:id, email: email)
-    send(self(), {:receiver_id, receiver_id})
+  def handle_event("change", _, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("notify", %{"form-user" => %{"email" => email}}, socket) do
+    receiver_id = LiveMap.User.get_by!(:id, email: email)
+    # send_update(pid, HeaderSection,
+    #   id: "header",
+    #   newclass: "text-indigo-500 animate-bounce",
+    #   receiver: email
+    # )
+    LiveMapWeb.Endpoint.broadcast!(
+      socket.assigns.channel,
+      "toggle_bell",
+      {email, socket.assigns.current, receiver_id, "text-indigo-500 animate-bounce"}
+    )
+
+    # {:noreply, socket}
+    IO.inspect("#{email}, #{socket.assigns.current}, #{receiver_id}")
+
+    {:noreply, socket}
+    # {:noreply,
+    #  push_event(socket, "notify", %{
+    #    to: email,
+    #    from: socket.assigns.current,
+    #    receiver: receiver_id
+    #  })}
   end
 end

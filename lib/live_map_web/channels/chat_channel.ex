@@ -51,6 +51,13 @@ defmodule LiveMapWeb.ChatChannel do
 
   def same_room?(_, _), do: false
 
+  def same(ch1, ch2) do
+    [t1, h1] = String.split(ch1, "-")
+    [t2, h2] = String.split(ch2, "-")
+
+    if (t1 == t2 and h1 == h2) or (t1 == h2 and h1 == t2), do: true, else: false
+  end
+
   # def handle_info("ping", p, socket) do
   #   {:noreply, socket}
   # end

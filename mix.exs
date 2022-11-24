@@ -56,12 +56,13 @@ defmodule LiveMap.MixProject do
       {:timex, "~> 3.7"},
       {:httpoison, "~> 1.8"},
       {:jose, "~> 1.11"},
+      {:joken, "~> 2.5"},
+      {:ex2ms, "~> 1.6"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ecto_erd, "~> 0.5.0", only: :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:joken, "~> 2.5"},
       {:sobelow, "~> 0.11.1", only: [:dev]}
     ]
   end

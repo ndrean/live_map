@@ -62,45 +62,56 @@ defmodule LiveMapWeb.QueryPicker do
     assigns = assign(assigns, :d, to_km(distance))
 
     ~H"""
-    <div  >
-    <.form :let={_f}  for={@changeset} phx-submit="send" phx-change="change"
-      phx-target={@myself} id="query_picker"
-    >
+    <div>
+      <.form
+        :let={_f}
+        for={@changeset}
+        phx-submit="send"
+        phx-change="change"
+        phx-target={@myself}
+        id="query_picker"
+      >
+        <%!-- display the distance on screen--%>
+        <div class="flex justify-center">
+          <span class="text-black font-semibold font-['Roboto'] ml-2">Map radius: <%= @d %> km</span>
+        </div>
 
-      <%!-- display the distance on screen--%>
-      <div class="flex justify-center">
-        <span class="text-black font-semibold font-['Roboto'] ml-2">Map radius: <%= @d %> km</span>
-      </div>
+        <%!-- passing the value to the formData with no input --%>
+        <input type="hidden" value={@distance} name="query_picker[distance]" />
+        <input type="hidden" value={@current} name="query_picker[user]" />
 
-      <%!-- passing the value to the formData with no input --%>
-      <input type="hidden" value={@distance} name="query_picker[distance]" />
-      <input type="hidden" value={@current} name="query_picker[user]" />
-
-
-      <%!-- <div class="flex items-center justify-around mb-2 ml-3"> --%>
+        <%!-- <div class="flex items-center justify-around mb-2 ml-3"> --%>
         <%!-- <.datalist users={@users}  user={@user} class="form-select w-40" name="query_picker[user]" /> --%>
         <%!-- <.select options={@menu} choice={@status} class="w-500 ml-2 mr-2" name="query_picker[status]"/> --%>
         <input type="hidden" value={@status} name="query_picker[status]" />
 
-      <%!-- </div> --%>
-      <div class="flex items-center justify-around content-evenly ml-1 mt-2 mr-1 mb-1">
-        <.date date={@start_date} name="query_picker[start_date]" class="w-15 m-1 rounded-md" label=""/>
-        <button form="query_picker"
-          class="px-2 py-2 rounded-md font-['Roboto'] bg-indigo-500 text-white font-medium text-lg leading-tight uppercase rounded shadow-md hover:bg-indigo-600 hover:shadow-lg focus:bg-indigo-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-indigo--700 active:shadow-lg transition duration-150 ease-in-out"
+        <%!-- </div> --%>
+        <div class="flex items-center justify-around content-evenly ml-1 mt-2 mr-1 mb-1">
+          <.date
+            date={@start_date}
+            name="query_picker[start_date]"
+            class="w-15 m-1 rounded-md"
+            label=""
+          />
+          <button
+            form="query_picker"
+            class="px-2 py-2 rounded-md font-['Roboto'] bg-indigo-500 text-white font-medium text-lg leading-tight uppercase  shadow-md hover:bg-indigo-600 hover:shadow-lg focus:bg-indigo-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-indigo--700 active:shadow-lg transition duration-150 ease-in-out"
           >
-          <.search_svg />
-        </button>
+            <.search_svg />
+          </button>
 
-        <.date_err date={@end_date} name="query_picker[end_date]" label=""
-          class="w-15 m-1 rounded-md"
-          class_err="mt-1"
-          errors={@changeset.errors}
-          attribute={:end_date}
-        />
-      </div>
-      <div class="text-center">
-      </div>
-    </.form>
+          <.date_err
+            date={@end_date}
+            name="query_picker[end_date]"
+            label=""
+            class="w-15 m-1 rounded-md"
+            class_err="mt-1"
+            errors={@changeset.errors}
+            attribute={:end_date}
+          />
+        </div>
+        <div class="text-center"></div>
+      </.form>
     </div>
     """
   end
@@ -110,7 +121,7 @@ defmodule LiveMapWeb.QueryPicker do
     IO.puts("render query dates all empty")
 
     ~H"""
-      <div></div>
+    <div></div>
     """
   end
 
@@ -138,18 +149,19 @@ defmodule LiveMapWeb.QueryPicker do
 
   def datalist(assigns) do
     ~H"""
-      <input list="datalist"
-        id="datalist-input"
-        name={@name}
-        phx-change="search-email"
-        phx_debounce="500"
-        placeholder="enter an email"
-        value={@user}
-        class={@class}
-        />
-      <datalist id="datalist">
-          <option :for={user <- @users} value={user}><%= user %></option>
-      </datalist>
+    <input
+      list="datalist"
+      id="datalist-input"
+      name={@name}
+      phx-change="search-email"
+      phx_debounce="500"
+      placeholder="enter an email"
+      value={@user}
+      class={@class}
+    />
+    <datalist id="datalist">
+      <option :for={user <- @users} value={user}><%= user %></option>
+    </datalist>
     """
   end
 

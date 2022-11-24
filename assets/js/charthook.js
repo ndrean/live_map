@@ -75,7 +75,7 @@ const place = proxy({
 // proxied centre and radius of the map
 const movingmap = proxy({ center: [], distance: 10_000 });
 
-export const MapHook = {
+export const ChartHook = {
   destroyed() {
     cancel(this.el);
   },

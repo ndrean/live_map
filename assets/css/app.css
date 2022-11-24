@@ -14,6 +14,9 @@
 => set in "tailwind.config" as theme extension with fallback to default
 } */
 
+/* #chat {
+  display: none;
+} */
 /* overwrite this class */
 .leaflet-container {
   overflow: hidden;
