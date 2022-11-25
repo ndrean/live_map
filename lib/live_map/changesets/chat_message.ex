@@ -5,8 +5,8 @@ defmodule LiveMap.ChatMessage do
   import Ecto.Changeset
   alias LiveMap.{ChatMessage, ChatCache}
 
-  defstruct [:message, :receiver_id, :user_id]
-  @types %{message: :string, receiver_id: :integer, user_id: :integer}
+  defstruct [:message, :receiver_id, :user_id, :current]
+  @types %{message: :string, receiver_id: :integer, user_id: :integer, current: :string}
 
   @doc """
   Changeset checks if the name exists in the DB
@@ -14,7 +14,7 @@ defmodule LiveMap.ChatMessage do
   def changeset(%ChatMessage{} = message, params \\ %{}) do
     {message, @types}
     |> cast(params, Map.keys(@types))
-    |> validate_required([:message, :receiver_id, :user_id])
+    |> validate_required([:message, :receiver_id, :user_id, :current])
     |> validate_length(:message, min: 1)
     |> validate_notnil()
     |> validate_different()
@@ -42,8 +42,14 @@ defmodule LiveMap.ChatMessage do
   def save(params) do
     case changeset(%ChatMessage{}, params).valid? do
       true ->
-        %{"user_id" => user_id, "receiver_id" => receiver_id, "message" => message} = params
-        ChatCache.save_message(user_id, receiver_id, String.trim(message))
+        %{
+          "user_id" => user_id,
+          "receiver_id" => receiver_id,
+          "message" => message,
+          "current" => current
+        } = params
+
+        ChatCache.save_message(current, user_id, receiver_id, String.trim(message))
         :ok
 
       false ->

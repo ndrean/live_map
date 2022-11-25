@@ -43,18 +43,27 @@ defmodule LiveMapWeb.MapLive do
      )}
   end
 
+  # {
+  #   LiveMap.ChatCache.get_messages_by_channel(
+  #     assigns.user_id,
+  #     assigns.receiver_id
+  #   )
+  # }
+
+  def retrieve_messages(e, r) do
+    LiveMap.ChatCache.get_messages_by_channel(e, r)
+    |> Enum.map(fn {t, u, e, r, m} -> [t, u, e, r, m] end)
+  end
+
   @impl true
   def render(assigns) do
-    # messages =
-    #   if assigns.receiver_id != nil do
-    #     LiveMap.ChatCache.get_messages_by_channel(assigns.user_id, assigns.receiver_id)
-    #   else
-    #     []
-    #   end
+    messages =
+      if assigns.messages == [],
+        do: retrieve_messages(assigns.user_id, assigns.receiver_id),
+        else: assigns.messages
 
-    # IO.inspect(messages, label: "-----------")
-
-    # assigns = assign(assigns, :messages, messages)
+    IO.inspect(messages, label: "render msgs live")
+    assigns = assign(assigns, :messages, retrieve_messages(assigns.user_id, assigns.receiver_id))
 
     ~H"""
     <div id="live">
@@ -266,18 +275,8 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, push_event(socket, "new_pub", %{geojson: geojson})}
   end
 
-  # Phoenix.PubSub.unsubscribe(LiveMap.PubSub, socket.assigns.ch)
-
-  #     send_update(HeaderSection, id: "header", newclass: class)
-  #     Process.sleep(5_000)
-
-  #     send_update(HeaderSection, id: "header", newclass: "")
-  #   end
-
-  # {email, socket.assigns.current, receiver_id, "text-indigo-500 animate-bounce"}
-
   def handle_info(
-        %{event: "new_message", payload: [emitter_id, receiver_id, msg]},
+        %{event: "new_message", payload: [current, emitter_id, receiver_id, msg]},
         %{assigns: %{messages: messages, user_id: user_id}} = socket
       ) do
     socket = assign(socket, :message, "")
@@ -289,7 +288,7 @@ defmodule LiveMapWeb.MapLive do
 
         {:noreply,
          assign(socket,
-           messages: [[emitter_id, receiver_id, msg] | messages],
+           messages: [[current, emitter_id, receiver_id, msg] | messages],
            message: ""
          )}
 
@@ -298,7 +297,7 @@ defmodule LiveMapWeb.MapLive do
 
         {:noreply,
          assign(socket,
-           messages: [[emitter_id, receiver_id, msg] | messages],
+           messages: [[current, emitter_id, receiver_id, msg] | messages],
            message: ""
          )}
 

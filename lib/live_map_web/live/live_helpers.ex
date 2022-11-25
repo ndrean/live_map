@@ -162,11 +162,16 @@ defmodule LiveMapWeb.LiveHelpers do
   end
 
   def left_message(assigns) do
+    IO.inspect("#{assigns.from},  #{assigns.time}")
+
     ~H"""
     <div class="col-start-1 col-end-10 p-1 rounded-lg">
       <div class="flex flex-row items-center">
         <div class="relative ml-3 text-sm bg-green-200 py-2 px-4 shadow rounded-xl text-black">
-          <div class="font-['Roboto'] text-black"><%= @message %></div>
+          <div class="font-['Roboto'] text-black">
+            <%!-- <p><%= @from %> : <span><%= Timex.format!(@time, "%H:%M", :strftime) %></span></p> --%>
+            <p><%= @message %></p>
+          </div>
         </div>
       </div>
     </div>
@@ -178,7 +183,12 @@ defmodule LiveMapWeb.LiveHelpers do
     <div class="col-start-4 col-end-13 p-1 rounded-lg">
       <div class="flex items-center justify-start flex-row-reverse">
         <div class="relative mr-3 text-sm bg-indigo-200 py-2 px-4 shadow rounded-xl">
-          <div class="font-['Roboto'] text-black"><%= @message %></div>
+          <div class="font-['Roboto'] text-black">
+            <p class="text-xs text-red-400">
+              <%= @from %> : <span><%= Timex.format!(@time, "%H:%M", :strftime) %></span>
+            </p>
+            <p><%= @message %></p>
+          </div>
         </div>
       </div>
     </div>

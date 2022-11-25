@@ -6,7 +6,9 @@ defmodule LiveMapWeb.ChatLive do
 
   @impl true
   def render(%{messages: messages} = assigns) do
-    assigns = assign(assigns, :messages, :lists.reverse(messages))
+    assigns =
+      assign(assigns, :messages, :lists.reverse(messages))
+      |> IO.inspect(label: "render chat msgs")
 
     ~H"""
     <div id="chat" class="flex flex-col flex-auto h-full p-6">
@@ -14,11 +16,21 @@ defmodule LiveMapWeb.ChatLive do
         <div class="flex flex-col h-full overflow-x-auto mb-4">
           <div class="flex flex-col h-full">
             <div
-              :for={[emitter_id, _receiver_id, message] <- @messages}
+              :for={[t, current, emitter_id, _receiver_id, message] <- @messages}
               class="grid grid-cols-12 gap-y-1"
             >
-              <.left_message :if={to_string(emitter_id) == to_string(@user_id)} message={message} />
-              <.right_message :if={to_string(emitter_id) != to_string(@user_id)} message={message} />
+              <.left_message
+                :if={to_string(emitter_id) == to_string(@user_id)}
+                message={message}
+                time={t}
+                from={current}
+              />
+              <.right_message
+                :if={to_string(emitter_id) != to_string(@user_id)}
+                message={message}
+                time={t}
+                from={current}
+              />
             </div>
           </div>
         </div>
@@ -97,7 +109,9 @@ defmodule LiveMapWeb.ChatLive do
   end
 
   @impl true
-  def handle_event("send", %{"form-chat" => params}, socket) do
+  def handle_event("send", %{"form-chat" => params}, %{assigns: %{current: current}} = socket) do
+    params = Map.put(params, "current", current)
+
     case LiveMap.ChatMessage.save(params) do
       :error ->
         {:noreply, assign(socket, :message, "")}
@@ -105,14 +119,14 @@ defmodule LiveMapWeb.ChatLive do
       :ok ->
         %{"message" => message, "user_id" => user_id, "receiver_id" => receiver_id} = params
         body = String.trim(message)
-        :ok = notify_message(user_id, receiver_id, body)
+        :ok = notify_message(current, user_id, receiver_id, body)
         send_update(LiveMapWeb.HeaderSection, id: "header", newclass: "")
         {:noreply, assign(socket, :message, "")}
     end
   end
 
-  defp notify_message(emitter_id, receiver_id, message) do
+  defp notify_message(current, emitter_id, receiver_id, message) do
     LiveMap.Utils.set_channel(receiver_id, emitter_id)
-    |> Endpoint.broadcast!("new_message", [emitter_id, receiver_id, message])
+    |> Endpoint.broadcast!("new_message", [current, emitter_id, receiver_id, message])
   end
 end

@@ -3,7 +3,7 @@ defmodule LiveMap.ChatCache do
   Cache fo the chat in `:ets`
   """
 
-  import Ex2ms
+  import Ex2ms, only: [fun: 1]
   use GenServer, restart: :transient
   # can be stopped on normal condition
 
@@ -11,9 +11,9 @@ defmodule LiveMap.ChatCache do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def save_message(emitter_id, receiver_id, message) do
-    :ets.insert(:chat, {Time.utc_now(), emitter_id, receiver_id, message})
-    # GenServer.call(__MODULE__, {:save_message, {time, emitter, message}})
+  def save_message(current, emitter_id, receiver_id, message) do
+    IO.inspect(binding(), label: "binding_______")
+    :ets.insert(:chat, {Time.utc_now(), current, emitter_id, receiver_id, message})
   end
 
   @doc """
@@ -53,7 +53,8 @@ defmodule LiveMap.ChatCache do
   def get_channels(id) do
     q =
       Ex2ms.fun do
-        {ch, e, r, _} when e == ^id or r == ^id -> {ch, e, r}
+        {ch, e, r, _} when e == ^id or r == ^id ->
+          {ch, e, r}
       end
 
     :ets.select(:channels, q)
@@ -64,23 +65,36 @@ defmodule LiveMap.ChatCache do
   end
 
   def get_messages_by_emitter(emitter_id) do
-    :ets.match_object(:chat, {:"$1", to_string(emitter_id), :"$2", :"$3"})
-    |> Enum.sort_by(fn {t, _, _, _} -> t end, &time_compare/2)
+    :ets.match_object(:chat, {:"$1", :"$2", to_string(emitter_id), :"$3", :"$4"})
+    |> Enum.sort_by(fn {t, _, _, _, _} -> t end, &time_compare/2)
   end
 
   def get_messages_by_receiver(receiver_id) do
-    :ets.match_object(:chat, {:"$1", :"$2", to_string(receiver_id), :"$3"})
-    |> Enum.sort_by(fn {t, _, _, _} -> t end, &time_compare/2)
+    :ets.match_object(:chat, {:"$1", :"$2", :"$3", to_string(receiver_id), :"$4"})
+    |> Enum.sort_by(fn {t, _, _, _, _} -> t end, &time_compare/2)
   end
 
   def get_messages_by_channel(emitter_id, receiver_id) do
-    [
-      :ets.match_object(:chat, {:"$1", to_string(emitter_id), to_string(receiver_id), :"$2"})
-      | :ets.match_object(:chat, {:"$1", to_string(receiver_id), to_string(emitter_id), :"$2"})
-    ]
-    |> List.flatten()
-    |> Enum.sort_by(fn {t, _, _, _} -> t end, &time_compare/2)
+    ve = to_string(emitter_id)
+    vr = to_string(receiver_id)
+
+    q =
+      Ex2ms.fun do
+        {t, u, e, r, m} when (e == ^ve and r == ^vr) or (e == ^vr and r == ^ve) -> {t, u, e, r, m}
+      end
+
+    :ets.select(:chat, q)
+    |> Enum.sort_by(fn {t, _, _, _, _} -> t end, &time_compare/2)
   end
+
+  # def bis(emitter_id, receiver_id) do
+  #   [
+  #     :ets.match_object(:chat, {:"$1", to_string(emitter_id), to_string(receiver_id), :"$2"})
+  #     | :ets.match_object(:chat, {:"$1", to_string(receiver_id), to_string(emitter_id), :"$2"})
+  #   ]
+  #   |> List.flatten()
+  #   |> Enum.sort_by(fn {t, _, _, _} -> t end, &time_compare/2)
+  # end
 
   def init(_) do
     opts = [:ordered_set, :named_table, :public, read_concurrency: true]
