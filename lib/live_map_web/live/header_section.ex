@@ -101,7 +101,7 @@ defmodule LiveMapWeb.HeaderSection do
     LiveMapWeb.Endpoint.broadcast!(
       socket.assigns.channel,
       "toggle_bell",
-      {email, socket.assigns.current, receiver_id, "text-indigo-500 animate-bounce"}
+      {socket.assigns.current, email, receiver_id, "text-indigo-500 animate-bounce"}
     )
 
     # {:noreply, socket}

@@ -22,14 +22,12 @@ defmodule LiveMap.ChatCache do
   """
   def new_channel(id1, id2) when id1 < id2 do
     key = "#{id1}-#{id2}"
-    # channel = LiveMap.Utils.set_channel2(id1, id2)
     :ets.insert(:channels, {key, id1, id2, Time.utc_now()})
     key
   end
 
   def new_channel(id1, id2) when id1 > id2 do
     key = "#{id2}-#{id1}"
-    # channel = LiveMap.Utils.set_channel2(id1, id2)
     :ets.insert(:channels, {key, id2, id1, Time.utc_now()})
     key
   end
@@ -39,13 +37,11 @@ defmodule LiveMap.ChatCache do
   is ordered with the smaller id first to be unique for (emitter, receiver), (receiver, emitter).
   """
   def check_channel(id1, id2) when id1 < id2 do
-    # channel = LiveMap.Utils.set_channel2(id1, id2)
     :ets.match_object(:channels, {:"$1", id1, id2, :"$2"})
     |> List.first()
   end
 
   def check_channel(id1, id2) when id2 < id1 do
-    # channel = LiveMap.Utils.set_channel2(id1, id2)
     :ets.match_object(:channels, {:"$1", id2, id1, :"$2"})
     |> List.first()
   end

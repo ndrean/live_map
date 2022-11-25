@@ -1,5 +1,4 @@
 function sendNotification(to, from, receiver) {
-  console.log("here", to, from, receiver, window.userId);
   const notification = new Notification("New message:", {
     icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png",
     body: `@${to}: from ${from}`,
@@ -21,33 +20,11 @@ export const Notify = {
 
       (async () => {
         await Notification.requestPermission((permission) => {
-          console.log("notification");
           return permission === "granted"
             ? sendNotification(to, from, receiver)
             : showError();
         });
       })();
-
-      //   (async function askPermission() {
-      //     return new Promise(function (resolve, reject) {
-      //       const permissionResult = Notification.requestPermission(function (
-      //         result
-      //       ) {
-      //         resolve(result);
-      //       });
-
-      //       if (permissionResult) {
-      //         permissionResult.then(resolve, reject);
-      //       }
-      //     }).then(function (permissionResult) {
-      //       console.log(permissionResult);
-      //       if (permissionResult !== "granted") {
-      //         throw new Error("We weren't granted permission.");
-      //       } else {
-      //         sendNotification(to, from);
-      //       }
-      //     });
-      //   })();
     });
   },
 };

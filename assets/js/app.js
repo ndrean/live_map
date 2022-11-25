@@ -63,27 +63,3 @@ if (fbutton) Facebook(fbutton);
 const oneTap = document.querySelector("#g_id_onload");
 if (oneTap)
   oneTap.dataset.login_uri = window.location.href + "auth/google/callback";
-
-function sendNotification(to, from, receiver) {
-  console.log("here", to, from, receiver, window.userId);
-  if (receiver === window.userId) {
-    const notification = new Notification("New message:", {
-      icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png",
-      body: `@${to}: from ${from}`,
-    });
-    setTimeout(() => {
-      notification.close();
-    }, 5_000);
-  }
-}
-
-window.addEventListener("phx:notify", ({ detail: { to, from, receiver } }) => {
-  (async () => {
-    await Notification.requestPermission((permission) => {
-      console.log("notification");
-      return permission === "granted"
-        ? sendNotification(to, from, receiver)
-        : showError();
-    });
-  })();
-});

@@ -106,6 +106,7 @@ defmodule LiveMapWeb.ChatLive do
         %{"message" => message, "user_id" => user_id, "receiver_id" => receiver_id} = params
         body = String.trim(message)
         :ok = notify_message(user_id, receiver_id, body)
+        send_update(LiveMapWeb.HeaderSection, id: "header", newclass: "")
         {:noreply, assign(socket, :message, "")}
     end
   end

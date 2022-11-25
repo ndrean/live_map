@@ -35,8 +35,4 @@ defmodule LiveMap.Utils do
   def set_channel(x, y) do
     if x < y, do: "#{x}-#{y}", else: "#{y}-#{x}"
   end
-
-  def set_channel2(x, y) when x < y, do: {x, y}
-  def set_channel2(x, y) when y < x, do: {y, x}
-  def set_channel2(x, y) when x == y, do: nil
 end
