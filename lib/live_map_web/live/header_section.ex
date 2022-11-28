@@ -3,7 +3,7 @@ defmodule LiveMapWeb.HeaderSection do
   import LiveMapWeb.LiveHelpers
   alias LiveMapWeb.HeaderSection
   alias LiveMap.ChatSelect
-  # alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.JS
 
   def mount(socket) do
     {:ok,
@@ -43,6 +43,7 @@ defmodule LiveMapWeb.HeaderSection do
         >
           <button
             id="header-chat"
+            phx-click={switch()}
             class={[
               "btn gap-1 font-['Roboto'] bg-black border-0 cursor-pointer",
               length(@p_users) == 1 && "pointer-events-none"
@@ -64,6 +65,12 @@ defmodule LiveMapWeb.HeaderSection do
     """
   end
 
+  def switch(js \\ %JS{}) do
+    js
+    # |> JS.toggle(to: "#chart", in: "opacity-0 scale-95", out: "opacity-100 scale-100")
+    |> JS.toggle(to: "#chat", out: "opacity-100 scale-100", in: "opacity-0 scale-95")
+  end
+
   def handle_event("change", %{"form-user" => %{"email" => email} = params}, socket) do
     changeset =
       %ChatSelect{}
@@ -77,13 +84,18 @@ defmodule LiveMapWeb.HeaderSection do
 
       true ->
         send(self(), {:change_receiver_email, email})
+        # receiver_id = LiveMap.User.get_by!(:id, email: email)
 
         udpate =
           socket
           |> assign(:changeset, changeset)
           |> assign(:email, email)
 
-        {:noreply, udpate}
+        {
+          :noreply,
+          udpate
+          #  |> push_event("new_channel", %{from: socket.assigns.user_id, to: receiver_id})
+        }
     end
   end
 
@@ -93,26 +105,13 @@ defmodule LiveMapWeb.HeaderSection do
 
   def handle_event("notify", %{"form-user" => %{"email" => email}}, socket) do
     receiver_id = LiveMap.User.get_by!(:id, email: email)
-    # send_update(pid, HeaderSection,
-    #   id: "header",
-    #   newclass: "text-indigo-500 animate-bounce",
-    #   receiver: email
-    # )
+
     LiveMapWeb.Endpoint.broadcast!(
       socket.assigns.channel,
       "toggle_bell",
       {socket.assigns.current, email, receiver_id, "text-indigo-500 animate-bounce"}
     )
 
-    # {:noreply, socket}
-    IO.inspect("#{email}, #{socket.assigns.current}, #{receiver_id}")
-
     {:noreply, socket}
-    # {:noreply,
-    #  push_event(socket, "notify", %{
-    #    to: email,
-    #    from: socket.assigns.current,
-    #    receiver: receiver_id
-    #  })}
   end
 end

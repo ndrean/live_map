@@ -15,10 +15,10 @@ defmodule LiveMap.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: LiveMap.PubSub},
       # Start the Endpoint (http/https)
+      LiveMapWeb.Presence,
+      # {Registry, [keys: :unique, name: Registry.SessionRegistry]},
       LiveMapWeb.Endpoint,
       {Task, fn -> shutdown_when_inactive(:timer.minutes(5)) end},
-      LiveMapWeb.Presence,
-      {Registry, [keys: :unique, name: Registry.SessionRegistry]},
       {Task.Supervisor, name: LiveMap.EventSup},
       {Task.Supervisor, name: LiveMap.AsyncMailSup}
     ]

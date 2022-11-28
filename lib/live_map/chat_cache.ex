@@ -3,7 +3,9 @@ defmodule LiveMap.ChatCache do
   Cache fo the chat in `:ets`
   """
 
+  @delay 10
   import Ex2ms, only: [fun: 1]
+  require Logger
   use GenServer, restart: :transient
   # can be stopped on normal condition
 
@@ -12,8 +14,8 @@ defmodule LiveMap.ChatCache do
   end
 
   def save_message(current, emitter_id, receiver_id, message) do
-    IO.inspect(binding(), label: "binding_______")
-    :ets.insert(:chat, {Time.utc_now(), current, emitter_id, receiver_id, message})
+    # :ets.insert(:chat, {Time.utc_now(), current, emitter_id, receiver_id, message})
+    :ets.insert(:chat, {System.os_time(:second), current, emitter_id, receiver_id, message})
   end
 
   @doc """
@@ -46,6 +48,8 @@ defmodule LiveMap.ChatCache do
     |> List.first()
   end
 
+  def rm_channel(ch), do: :ets.delete(:channels, ch)
+
   @doc """
   Returns a list of "ordered" tuples where the channel string conttains the id.
   The output is [{channel_string, emitter_id, receiver_id},{...}]
@@ -61,7 +65,8 @@ defmodule LiveMap.ChatCache do
   end
 
   def time_compare(t1, t2) do
-    Time.compare(t1, t2) == :lt
+    # Time.compare(t1, t2) == :lt
+    t1 < t2
   end
 
   def get_messages_by_emitter(emitter_id) do
@@ -100,6 +105,22 @@ defmodule LiveMap.ChatCache do
     opts = [:ordered_set, :named_table, :public, read_concurrency: true]
     :ets.new(:chat, opts)
     :ets.new(:channels, opts)
+    Process.send_after(__MODULE__, :clean_chat, :timer.minutes(@delay))
     {:ok, []}
+  end
+
+  def handle_info(:clean_chat, state) do
+    Logger.info("Cleaning ETS:CHAT")
+
+    some_time_ago = System.os_time(:second) - @delay * 60
+
+    q =
+      Ex2ms.fun do
+        {t, _e, _u, _r, _m} when t < ^some_time_ago -> true
+      end
+
+    :ets.select_delete(:chat, q)
+    Process.send_after(__MODULE__, :clean_chat, :timer.minutes(@delay))
+    {:noreply, state}
   end
 end

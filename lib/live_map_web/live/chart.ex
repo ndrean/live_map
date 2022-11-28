@@ -29,7 +29,7 @@ defmodule LiveMapWeb.Chart do
     IO.puts("map")
 
     ~H"""
-    <div class="flex flex-col justify-center">
+    <div id="chart" class="flex flex-col justify-center">
       <Loader.display id="map_loader" class="flex justify-center" spin={@spin} />
 
       <div id="map" phx-hook="ChartHook" phx-update="ignore" phx-target={@myself}></div>

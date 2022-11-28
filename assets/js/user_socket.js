@@ -10,29 +10,29 @@ let socket = new Socket("/socket", {
 
 socket.connect();
 
-// const channel = socket.channel("chat:lobby", { token: "1_3" });
-// channel
-//   .join()
-//   .receive("ok", (resp) => {
-//     console.log("Joined lobby successfully", resp);
-//   })
-//   .receive("error", (resp) => {
-//     console.log("Unable to join", resp);
-//   });
+window.addEventListener("phx:new_channel", ({ detail: { from, to } }) => {
+  const channel = setChannel(from, to);
+  channel
+    .join()
+    .receive("ok", (resp) => {
+      console.log("Joined channel: ", from, to);
+    })
+    .receive("error", (resp) => {
+      console.log("Unable to join", resp);
+    });
+  channel.on("shout", (p) => console.log("shouted", p));
+});
 
-// channel.on("shout", (payload) => {
-//   console.log("shout: ", { payload });
-// });
-
-function setChannel(x, y, token) {
-  return socket.channel(`chat:${x}-${y}`, { token });
+function setChannel(x, y) {
+  const ch = [x, y].sort().join("-");
+  // const ch = x < y ? `chat:${x}-${y}` : `chat:${y}-${x}`;
+  return socket.channel(ch, { to: x, from: y });
 }
 
 // const ch = setChannel(1, 3, "1-3");
 // ch.join()
 //   .receive("ok", (res) => console.log("Private room 1-3", res))
 //   .receive("error", ({ reason }) => console.log("failed join", reason));
-// ch.on("shout", (p) => console.log("shouted", p));
 
 // const presenceChannel = socket.channel("presence");
 

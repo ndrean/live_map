@@ -6,9 +6,7 @@ defmodule LiveMapWeb.ChatLive do
 
   @impl true
   def render(%{messages: messages} = assigns) do
-    assigns =
-      assign(assigns, :messages, :lists.reverse(messages))
-      |> IO.inspect(label: "render chat msgs")
+    assigns = assign(assigns, :messages, messages)
 
     ~H"""
     <div id="chat" class="flex flex-col flex-auto h-full p-6">
@@ -86,8 +84,6 @@ defmodule LiveMapWeb.ChatLive do
 
   @impl true
   def handle_event("change", %{"form-chat" => params}, socket) do
-    IO.inspect(socket.assigns.receiver_id, label: "change event chat")
-
     changeset =
       %ChatMessage{}
       |> ChatMessage.changeset(params)

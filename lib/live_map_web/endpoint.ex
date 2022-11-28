@@ -54,5 +54,4 @@ defmodule LiveMapWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug LiveMapWeb.Router
-  # plug Corsica, origins: "http://localhost"
 end

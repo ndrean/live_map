@@ -57,12 +57,11 @@ defmodule LiveMapWeb.MapLive do
 
   @impl true
   def render(assigns) do
-    messages =
-      if assigns.messages == [],
-        do: retrieve_messages(assigns.user_id, assigns.receiver_id),
-        else: assigns.messages
+    # messages =
+    #   if assigns.messages == [],
+    #     do: retrieve_messages(assigns.user_id, assigns.receiver_id),
+    #     else: assigns.messages
 
-    IO.inspect(messages, label: "render msgs live")
     assigns = assign(assigns, :messages, retrieve_messages(assigns.user_id, assigns.receiver_id))
 
     ~H"""
@@ -222,14 +221,20 @@ defmodule LiveMapWeb.MapLive do
 
   def handle_info({:undo_subscription, [left_id]}, %{assigns: %{p_users: _p_users}} = socket) do
     LiveMap.ChatCache.get_channels(left_id)
-    |> Enum.each(fn {ch, _, _} -> Phoenix.PubSub.unsubscribe(LiveMap.PubSub, ch) end)
+    |> Enum.each(fn {ch, _, _} ->
+      IO.inspect(ch)
+      :ok = Phoenix.PubSub.unsubscribe(LiveMap.PubSub, ch)
+      true = LiveMap.ChatCache.rm_channel(ch)
+    end)
 
     {:noreply, socket}
   end
 
-  def handle_info(%{event: "toggle_bell", payload: {from, to, receiver_id, class}}, socket) do
+  def handle_info(
+        %{event: "toggle_bell", payload: {from, to, receiver_id, class}},
+        socket
+      ) do
     if receiver_id === socket.assigns.user_id do
-      IO.inspect("#{receiver_id}, #{from}, #{to}")
       send_update(HeaderSection, id: "header", newclass: class)
     end
 
@@ -277,38 +282,38 @@ defmodule LiveMapWeb.MapLive do
 
   def handle_info(
         %{event: "new_message", payload: [current, emitter_id, receiver_id, msg]},
-        %{assigns: %{messages: messages, user_id: user_id}} = socket
+        %{assigns: %{messages: _messages, user_id: user_id}} = socket
       ) do
     socket = assign(socket, :message, "")
     user_id = to_string(user_id)
 
     cond do
       user_id == emitter_id ->
-        IO.inspect("first")
-
         {:noreply,
          assign(socket,
-           messages: [[current, emitter_id, receiver_id, msg] | messages],
+           #  messages: [[current, emitter_id, receiver_id, msg] | messages],
+           # <--- using temp assigns
+           messages: [[current, emitter_id, receiver_id, msg]],
            message: ""
          )}
 
       user_id == receiver_id ->
-        IO.inspect("second")
-
         {:noreply,
          assign(socket,
-           messages: [[current, emitter_id, receiver_id, msg] | messages],
+           #  messages: [[current, emitter_id, receiver_id, msg] | messages],
+           # <--- using temp assigns
+           messages: [[current, emitter_id, receiver_id, msg]],
            message: ""
          )}
 
       true ->
-        IO.inspect("last")
         {:noreply, socket}
     end
   end
 
   def subscribe_to(channel) do
     Endpoint.subscribe(channel)
+    # Phoenix.PubSub.subscribe(LiveMap.PubSub, channel)
   end
 
   def get_ids(list) do

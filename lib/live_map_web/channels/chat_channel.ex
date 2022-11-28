@@ -17,45 +17,23 @@ defmodule LiveMapWeb.ChatChannel do
     # end
   end
 
-  def join("chat:" <> room_id, %{"token" => token} = _params, socket) do
-    l1 = String.split(token, "-")
-    l2 = String.split(room_id, "-")
+  def join("chat:" <> room_id, params, socket) do
+    IO.inspect(params)
+    list_ids = String.split(room_id, "-") |> IO.inspect()
 
-    case same_room?(l1, l2) do
-      true ->
-        send(self(), {:after_join_private, l1})
-        {:ok, socket}
-
-      false ->
-        :error
-    end
-
+    send(self(), {:after_join_private, list_ids})
     {:ok, socket}
   end
 
   def handle_info({:after_join_private, payload}, socket) do
-    broadcast!(socket, "shout", %{b: "#{payload}"})
+    broadcast!(socket, "shout", %{payload: "#{payload}"})
     {:noreply, assign(socket, :room, "#{payload}")}
   end
 
   @impl true
   def handle_info(:after_join, socket) do
-    broadcast!(socket, "shout", %{a: 1})
+    broadcast!(socket, "shout", %{payload: "not yet"})
     {:noreply, socket}
-  end
-
-  def same_room?(l1, l2) when length(l1) == length(l2) do
-    Enum.map(l2, fn e2 -> Enum.filter(l1, fn e1 -> e1 == e2 end) end)
-    |> List.flatten() == l2
-  end
-
-  def same_room?(_, _), do: false
-
-  def same(ch1, ch2) do
-    [t1, h1] = String.split(ch1, "-")
-    [t2, h2] = String.split(ch2, "-")
-
-    if (t1 == t2 and h1 == h2) or (t1 == h2 and h1 == t2), do: true, else: false
   end
 
   # def handle_info("ping", p, socket) do

@@ -1,7 +1,7 @@
 // We import the CSS which is extracted to its own file by esbuild. Remove this line if you add a your own CSS build pipeline (e.g postcss).
 // import "../css/app.css";
 
-// import "./user_socket.js";
+// import "./user_socket.js"; <-- testing channels
 
 // The simplest option is to put them in assets/vendor and import them using relative paths:
 //     import "../vendor/some-package.js"
@@ -13,7 +13,7 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-// import topbar from "../vendor/topbar";
+import topbar from "../vendor/topbar";
 import { ChartHook } from "./charthook";
 import { Notify } from "./notification";
 // import { Facebook } from "./facebook";
@@ -23,7 +23,7 @@ const csrfToken = document
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { ChartHook, Notify },
+  hooks: { ChartHook, Notify, transition },
 });
 
 // liveSocket = new LiveSocket("/chat", Socket, {
@@ -32,9 +32,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
 // });
 
 // Show progress bar on live navigation and form submits
-// topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
-// window.addEventListener("phx:page-loading-start", (info) => topbar.show());
-// window.addEventListener("phx:page-loading-stop", (info) => topbar.hide());
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
+window.addEventListener("phx:page-loading-start", (info) => topbar.show());
+window.addEventListener("phx:page-loading-stop", (info) => topbar.hide());
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
@@ -63,3 +63,20 @@ if (fbutton) Facebook(fbutton);
 const oneTap = document.querySelector("#g_id_onload");
 if (oneTap)
   oneTap.dataset.login_uri = window.location.href + "auth/google/callback";
+
+const transition = {
+  mounted() {
+    this.from = this.el.getAttribute("data-transition-from").split(" ");
+    this.to = this.el.getAttribute("data-transition-to").split(" ");
+    this.el.classList.add(...this.from);
+
+    setTimeout(() => {
+      this.el.classList.remove(...this.from);
+      this.el.classList.add(...this.to);
+    }, 10);
+  },
+  updated() {
+    this.el.classList.remove("transition");
+    this.el.classList.remove(...this.from);
+  },
+};

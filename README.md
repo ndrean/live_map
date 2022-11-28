@@ -1,5 +1,17 @@
 # LiveMap
 
+I have a solution that I would like to be challenged with.
+
+I use Presence and the "presence_diff" handler to subscribe a new user to any other connected user "on mount".
+I set up N(N+1)/2 subscriptions thus topics. The rule to design a topic is simply "1-3" if user_id 3 and user_id 1 are connected (the function is such that "set_topic(1,3) = set_tpoic(3,1)") .
+I also need to save the list of topics in an ETS table to create only one topic between users 1 and 3, and also to unsubscribe the user when he leaves. Indeed, if a subscription is made twice, then we have a double rendering. Furthermore, when user 1 create the "1-3" subscription, then user 3 must also create the same subscrption.
+
+Ok, nice, but this cannot be distributed, and why do I do this on mount? And not subscribe/unsubscribe "on-the-fly" when needed?
+
+Maybe. I can create a special topic "subscriptions" to which any new user will subscribe and broadcast on it any new topic so the concerned user can match with his user-id and subscribe himself to the new topic so that both user will now be able to communicate. For example, any connected user will subscribe to the topic "subscriptions". If user 1 wants to talk to user 3, then user 1 subscribes to the topic "1-3" and boradcast on the topic "subscrptions" the message "1-3". Since user 3 receives this and his id matches the message, then he should also subscribe to the topic "1-3" and receive any message boradcasted on the "private topic "1-3".
+
+You need to store these topics since if a user deconnects, then any private topics between him and other users must be deleted, otherwise you recreate an existing topic and they will receive double or more rendering.
+
 NOTE: check tailwind.config.cjs and and in config tailwind
 NOTE: caching raster tiles: <https://github.com/yagajs/leaflet-cached-tile-layer>
 
@@ -9,33 +21,26 @@ The map discovers events when it is panned or zoomed.
 
 It is inspired by [this talk](https://www.youtube.com/watch?v=xXWyOy9XdA8&t=255s) and some ideas are learned and solutions borrowed from [this book](https://pragprog.com/titles/puphoe/building-table-views-with-phoenix-liveview/), [this author](https://akoutmos.com/) and [this organisation](https://github.com/dwyl).
 
-- [0. Quick presentation](#quick-presentation-of-the-app)
-
-- [1. Tooling](#tooling)
-
-- [2. Events and Markers](#events-and-markers)
-
-- [3. Database Schema](#database-schema)
-
-- [4. Rendering events when moving the map](#rendering-of-events-on-the-map)
-
-- [5. Invitation management process](#manage-the-invitations)
-
-  - [partial index](#partial-index)
-  - [Multi on association](#multi-on-assoc)
-
-- [6. Schemaless changeset example with the date validator and "reat-time"](#schemaless-date-changeset-and-real-time)
-
-  - [Customer error_tag](#custom-error-tag)
-
-- [7. Queries]
-  - [Generate a table from the map](#generate-a-table-from-the-map)
-  - [Custom datalist input and `phx_debounce`](#custom-datalist-input-and-phx_debounce)
-- [8. Postgis setup](#postgis-setup)
-
-  11.[Table and Queries for user data]
-
-- [Leaflet setup and code](#leaflet-setup)
+- [LiveMap](#livemap)
+  - [Quick presentation of the app](#quick-presentation-of-the-app)
+  - [Tooling](#tooling)
+  - [Events and Markers](#events-and-markers)
+  - [Database schema](#database-schema)
+  - [Rendering of events on the map](#rendering-of-events-on-the-map)
+      - [GeoJSON format](#geojson-format)
+      - [Moving the map and query of the local events](#moving-the-map-and-query-of-the-local-events)
+  - [Manage the invitations](#manage-the-invitations)
+      - [Partial index](#partial-index)
+      - [Multi on assoc](#multi-on-assoc)
+  - [Schemaless date changeset and real time](#schemaless-date-changeset-and-real-time)
+      - [Custom error tag](#custom-error-tag)
+  - [General search with View](#general-search-with-view)
+      - [Generate a table from the map](#generate-a-table-from-the-map)
+      - [Custom datalist input and `phx_debounce`](#custom-datalist-input-and-phx_debounce)
+  - [Postgis setup](#postgis-setup)
+  - [Leaflet setup](#leaflet-setup)
+    - [Leaflet MapHook code](#leaflet-maphook-code)
+  - [Misc notes](#misc-notes)
 
 ## Quick presentation of the app
 
