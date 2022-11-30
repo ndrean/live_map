@@ -181,12 +181,19 @@ defmodule LiveMapWeb.MapLive do
         end)
 
       false ->
-        Enum.each(head, fn u ->
-          if u == user_id,
-            do:
-              Utils.set_channel(t, u)
-              |> subscribe_to()
-        end)
+        [u] = Enum.filter(head, fn u -> u == user_id end)
+
+        if u != nil,
+          do:
+            Utils.set_channel(t, u)
+            |> subscribe_to()
+
+        # Enum.each(head, fn u ->
+        #   if u == user_id,
+        #     do:
+        #       Utils.set_channel(t, u)
+        #       |> subscribe_to()
+        # end)
     end
 
     {:noreply, socket}

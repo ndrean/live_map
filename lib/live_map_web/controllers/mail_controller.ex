@@ -46,15 +46,14 @@ defmodule LiveMapWeb.MailController do
       LiveMap.AsyncMailSup,
       fn ->
         LiveMap.Event.get_event_participants(id)
-        |> Enum.each(fn %{status: status, user_id: user_id} ->
-          if status != "owner" do
-            Email.handle_email(%{
-              event_id: id,
-              user_id: user_id,
-              subject: "Cancel the event",
-              rendered_body: "cancel_event.html"
-            })
-          end
+        |> Enum.filter(fn %{status: status} -> status != "owner" end)
+        |> Enum.each(fn %{user_id: user_id} ->
+          Email.handle_email(%{
+            event_id: id,
+            user_id: user_id,
+            subject: "Cancel the event",
+            rendered_body: "cancel_event.html"
+          })
         end)
       end
     )
