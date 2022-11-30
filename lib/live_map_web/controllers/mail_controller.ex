@@ -42,19 +42,22 @@ defmodule LiveMapWeb.MailController do
   end
 
   def cancel_event(%{event_id: id}) do
-    Logger.info("sending cancel mail ********")
-
-    LiveMap.Event.get_event_participants(id)
-    |> Enum.each(fn %{status: status, user_id: user_id} ->
-      if status != "owner" do
-        Email.handle_email(%{
-          event_id: id,
-          user_id: user_id,
-          subject: "Cancel the event",
-          rendered_body: "cancel_event.html"
-        })
+    Task.Supervisor.start_child(
+      LiveMap.AsyncMailSup,
+      fn ->
+        LiveMap.Event.get_event_participants(id)
+        |> Enum.each(fn %{status: status, user_id: user_id} ->
+          if status != "owner" do
+            Email.handle_email(%{
+              event_id: id,
+              user_id: user_id,
+              subject: "Cancel the event",
+              rendered_body: "cancel_event.html"
+            })
+          end
+        end)
       end
-    end)
+    )
   end
 
   @doc """

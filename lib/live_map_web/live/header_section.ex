@@ -1,9 +1,10 @@
 defmodule LiveMapWeb.HeaderSection do
   use LiveMapWeb, :live_component
   import LiveMapWeb.LiveHelpers
-  alias LiveMapWeb.HeaderSection
-  alias LiveMap.ChatSelect
-  alias Phoenix.LiveView.JS
+  alias LiveMapWeb.Endpoint
+  alias LiveMap.{ChatSelect, User}
+  # alias Phoenix.LiveView.JS
+  require Logger
 
   def mount(socket) do
     {:ok,
@@ -43,7 +44,6 @@ defmodule LiveMapWeb.HeaderSection do
         >
           <button
             id="header-chat"
-            phx-click={switch()}
             class={[
               "btn gap-1 font-['Roboto'] bg-black border-0 cursor-pointer",
               length(@p_users) == 1 && "pointer-events-none"
@@ -65,12 +65,6 @@ defmodule LiveMapWeb.HeaderSection do
     """
   end
 
-  def switch(js \\ %JS{}) do
-    js
-    # |> JS.toggle(to: "#chart", in: "opacity-0 scale-95", out: "opacity-100 scale-100")
-    |> JS.toggle(to: "#chat", out: "opacity-100 scale-100", in: "opacity-0 scale-95")
-  end
-
   def handle_event("change", %{"form-user" => %{"email" => email} = params}, socket) do
     changeset =
       %ChatSelect{}
@@ -79,12 +73,11 @@ defmodule LiveMapWeb.HeaderSection do
 
     case changeset.valid? do
       false ->
-        IO.puts("msg not valid")
+        Logger.info("msg not valid")
         {:noreply, socket}
 
       true ->
         send(self(), {:change_receiver_email, email})
-        # receiver_id = LiveMap.User.get_by!(:id, email: email)
 
         udpate =
           socket
@@ -103,13 +96,17 @@ defmodule LiveMapWeb.HeaderSection do
     {:noreply, socket}
   end
 
-  def handle_event("notify", %{"form-user" => %{"email" => email}}, socket) do
-    receiver_id = LiveMap.User.get_by!(:id, email: email)
+  def handle_event(
+        "notify",
+        %{"form-user" => %{"email" => email}},
+        %{assigns: %{channel: channel, current: current}} = socket
+      ) do
+    receiver_id = User.get_by!(:id, email: email)
 
-    LiveMapWeb.Endpoint.broadcast!(
-      socket.assigns.channel,
+    Endpoint.broadcast!(
+      channel,
       "toggle_bell",
-      {socket.assigns.current, email, receiver_id, "text-indigo-500 animate-bounce"}
+      {current, email, receiver_id, "text-indigo-500 animate-bounce"}
     )
 
     {:noreply, socket}

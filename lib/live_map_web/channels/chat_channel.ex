@@ -17,9 +17,8 @@ defmodule LiveMapWeb.ChatChannel do
     # end
   end
 
-  def join("chat:" <> room_id, params, socket) do
-    IO.inspect(params)
-    list_ids = String.split(room_id, "-") |> IO.inspect()
+  def join("chat:" <> room_id, _params, socket) do
+    list_ids = String.split(room_id, "-")
 
     send(self(), {:after_join_private, list_ids})
     {:ok, socket}

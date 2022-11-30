@@ -45,7 +45,10 @@ config :live_map, LiveMapWeb.Endpoint,
 config :live_map, LiveMapMail.Mailer, adapter: Swoosh.Adapters.Local
 
 # sets default time range for query
-config :live_map, default_days: 30
+config :live_map,
+  default_days: 30,
+  reset_time: 10,
+  cookie: :my_secret
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false

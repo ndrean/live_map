@@ -34,6 +34,7 @@ async function handleGeolocationPermission(map) {
   return navigator.permissions
     .query({ name: "geolocation" })
     .then(({ state }) => {
+      console.log(state);
       if (state === "granted" || state === "prompt") return getLocation(map);
     });
 }

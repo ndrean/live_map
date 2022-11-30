@@ -7,11 +7,11 @@ defmodule LiveMap.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      # Start the Telemetry supervisor
+      LiveMapWeb.Telemetry,
       # Start the Ecto repository
       LiveMap.Repo,
       LiveMap.ChatCache,
-      # Start the Telemetry supervisor
-      LiveMapWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: LiveMap.PubSub},
       # Start the Endpoint (http/https)

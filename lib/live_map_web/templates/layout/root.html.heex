@@ -12,7 +12,9 @@
     <%!-- <link rel="manifest" href={Routes.static_path(@conn, "/manifest.json")} /> --%>
 
     <link rel="apple-touch-icon" href={Routes.static_path(@conn, "/images/icons8-apple-100.png")} />
-    <%= live_title_tag(assigns[:page_title] || "LiveMap", suffix: " · Phoenix Framework") %>
+    <.live_title suffix=" · Phoenix Framework">
+      <%= assigns[:page_title] || "LiveMap" %>
+    </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
     <script nonce="2022utoken">
       window.userToken = "<%= assigns[:user_token] %>";

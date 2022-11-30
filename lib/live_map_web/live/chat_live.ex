@@ -1,8 +1,8 @@
 defmodule LiveMapWeb.ChatLive do
   use LiveMapWeb, :live_component
   import LiveMapWeb.LiveHelpers
-  alias LiveMap.ChatMessage
-  alias LiveMapWeb.Endpoint
+  alias LiveMap.{ChatMessage, Utils}
+  alias LiveMapWeb.{Endpoint, HeaderSection}
 
   @impl true
   def render(%{messages: messages} = assigns) do
@@ -108,21 +108,24 @@ defmodule LiveMapWeb.ChatLive do
   def handle_event("send", %{"form-chat" => params}, %{assigns: %{current: current}} = socket) do
     params = Map.put(params, "current", current)
 
-    case LiveMap.ChatMessage.save(params) do
+    case ChatMessage.save(params) do
       :error ->
         {:noreply, assign(socket, :message, "")}
 
       :ok ->
         %{"message" => message, "user_id" => user_id, "receiver_id" => receiver_id} = params
         body = String.trim(message)
-        :ok = notify_message(current, user_id, receiver_id, body)
-        send_update(LiveMapWeb.HeaderSection, id: "header", newclass: "")
+        notify_message(current, user_id, receiver_id, body)
+        send_update(HeaderSection, id: "header", newclass: "")
         {:noreply, assign(socket, :message, "")}
     end
   end
 
   defp notify_message(current, emitter_id, receiver_id, message) do
-    LiveMap.Utils.set_channel(receiver_id, emitter_id)
-    |> Endpoint.broadcast!("new_message", [current, emitter_id, receiver_id, message])
+    Utils.set_channel(receiver_id, emitter_id)
+    |> Endpoint.broadcast!(
+      "new_message",
+      {current, emitter_id, receiver_id, message}
+    )
   end
 end

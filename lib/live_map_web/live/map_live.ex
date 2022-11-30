@@ -3,6 +3,8 @@ defmodule LiveMapWeb.MapLive do
 
   # alias Phoenix.LiveView.JS
 
+  alias LiveMap.{Cache, Utils, User, Event}
+
   alias LiveMapWeb.{
     SelectedEvents,
     Chart,
@@ -21,10 +23,10 @@ defmodule LiveMapWeb.MapLive do
   def mount(_params, %{"email" => email, "user_id" => user_id} = _session, socket) do
     if connected?(socket) && email == LiveMap.User.get_by!(:email, id: user_id) do
       Logger.info("#{email} connected--------------------")
-      ~w(event presence live_chat)s |> Enum.each(&subscribe_to/1)
 
-      {:ok, _} =
-        Presence.track(self(), "presence", System.system_time(:second), %{user_id: user_id})
+      ~w(event presence)s |> Enum.each(&subscribe_to/1)
+
+      {:ok, _} = Presence.track(self(), "presence", System.os_time(:second), %{user_id: user_id})
     end
 
     {:ok,
@@ -43,25 +45,8 @@ defmodule LiveMapWeb.MapLive do
      )}
   end
 
-  # {
-  #   LiveMap.ChatCache.get_messages_by_channel(
-  #     assigns.user_id,
-  #     assigns.receiver_id
-  #   )
-  # }
-
-  def retrieve_messages(e, r) do
-    LiveMap.ChatCache.get_messages_by_channel(e, r)
-    |> Enum.map(fn {t, u, e, r, m} -> [t, u, e, r, m] end)
-  end
-
   @impl true
   def render(assigns) do
-    # messages =
-    #   if assigns.messages == [],
-    #     do: retrieve_messages(assigns.user_id, assigns.receiver_id),
-    #     else: assigns.messages
-
     assigns = assign(assigns, :messages, retrieve_messages(assigns.user_id, assigns.receiver_id))
 
     ~H"""
@@ -76,20 +61,6 @@ defmodule LiveMapWeb.MapLive do
       />
 
       <.live_component module={Chart} id="map" current={@current} user_id={@user_id} coords={@coords} />
-
-      <%!-- <button class="text-black" phx-click="toggle-show-assign">show or hide</button>
-      <div
-            :if={@show}
-            class="hidden text-black"
-            phx-remove={
-              JS.hide(transition: {"ease-out duration-1000", "opacity-100", "opacity-0"}, time: 1000)
-            }
-            phx-mounted={
-              JS.show(transition: {"ease-in duration-1000", "opacity-0", "opacity-100"}, time: 1000)
-            }
-          >
-            I fade in or out when you click the button
-      </div> --%>
 
       <.live_component
         module={ChatLive}
@@ -121,11 +92,6 @@ defmodule LiveMapWeb.MapLive do
     """
   end
 
-  # test JS
-  # def handle_event("toggle-show-assign", %{"value" => _v}, socket) do
-  #   {:noreply, assign(socket, :show, !socket.assigns.show)}
-  # end
-
   #  backend delete of marker: phx-click from row in "new event table"
   @impl true
   def handle_event("delete_marker", %{"id" => id}, socket) do
@@ -133,16 +99,19 @@ defmodule LiveMapWeb.MapLive do
   end
 
   #  remove all highlights in Leaflet since checkboxes defaults to false on refresh (no more sync)
+  @impl true
   def handle_info({:down_check_all}, socket) do
     {:noreply, push_event(socket, "toggle_all_down", %{})}
   end
 
+  @impl true
   def handle_info({:mail_to_cancel_event, %{event_id: id}}, socket) do
     MailController.cancel_event(%{event_id: id})
-    LiveMap.Event.delete_event(id)
+    Event.delete_event(id)
     {:noreply, put_flash(socket, :info, "Cancelation mail is sent")}
   end
 
+  @impl true
   def handle_info({:create_demand, %{event_id: e_id, user_id: user_id}}, socket) do
     MailController.create_demand(%{event_id: e_id, user_id: user_id})
     {:noreply, put_flash(socket, :info, "Participation demand sent by mail")}
@@ -170,6 +139,7 @@ defmodule LiveMapWeb.MapLive do
   # callback from query-picker form: we build the records for the table
   # we need to transform a record from [id, map_owner, map_pending || map_confirmed, date]
   # to [id, map_owner, map_pending, map_confirmed, date]
+  @impl true
   def handle_info({:selected_events, payload}, socket) do
     payload
     |> Enum.map(fn [id, users, date, ad1, ad2, d] = _event ->
@@ -182,35 +152,42 @@ defmodule LiveMapWeb.MapLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info({:change_receiver_email, receiver_email}, socket) do
     user_id = socket.assigns.user_id
-    receiver_id = LiveMap.User.get_by!(:id, email: receiver_email)
-    ch = LiveMap.Utils.set_channel(user_id, receiver_id)
+    receiver_id = User.get_by!(:id, email: receiver_email)
+    channel = Utils.set_channel(user_id, receiver_id)
 
     {:noreply,
      assign(socket,
        receiver_id: receiver_id,
-       channel: ch,
+       channel: channel,
        message: "",
        user_id: user_id,
        messages: []
      )}
   end
 
+  @impl true
   def handle_info({:set_subscriptions, list}, socket) when length(list) > 1 do
     [t | head] = Enum.reverse(list)
+    user_id = socket.assigns.user_id
 
-    Enum.each(head, fn u ->
-      case LiveMap.ChatCache.check_channel(t, u) do
-        nil ->
-          LiveMap.ChatCache.new_channel(t, u)
+    case t == user_id do
+      true ->
+        Enum.each(head, fn u ->
+          Utils.set_channel(t, u)
           |> subscribe_to()
+        end)
 
-        _ ->
-          LiveMap.Utils.set_channel(t, u)
-          |> subscribe_to()
-      end
-    end)
+      false ->
+        Enum.each(head, fn u ->
+          if u == user_id,
+            do:
+              Utils.set_channel(t, u)
+              |> subscribe_to()
+        end)
+    end
 
     {:noreply, socket}
   end
@@ -219,17 +196,15 @@ defmodule LiveMapWeb.MapLive do
 
   def handle_info({:undo_subscription, []}, socket), do: {:noreply, socket}
 
-  def handle_info({:undo_subscription, [left_id]}, %{assigns: %{p_users: _p_users}} = socket) do
-    LiveMap.ChatCache.get_channels(left_id)
-    |> Enum.each(fn {ch, _, _} ->
-      IO.inspect(ch)
-      :ok = Phoenix.PubSub.unsubscribe(LiveMap.PubSub, ch)
-      true = LiveMap.ChatCache.rm_channel(ch)
-    end)
+  @impl true
+  def handle_info({:undo_subscription, [left_id]}, %{assigns: %{user_id: user_id}} = socket) do
+    Utils.set_channel(left_id, user_id)
+    |> unsubscribe_to()
 
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info(
         %{event: "toggle_bell", payload: {from, to, receiver_id, class}},
         socket
@@ -246,28 +221,44 @@ defmodule LiveMapWeb.MapLive do
      })}
   end
 
-  def handle_info(%{event: "presence_diff", payload: %{joins: _joins, leaves: leaves}}, socket) do
-    Logger.info("left")
-    left = get_ids(leaves)
+  @impl true
+  def handle_info(
+        %{event: "presence_diff", payload: %{joins: joins, leaves: leaves}},
+        socket
+      ) do
+    cond do
+      joins == %{} ->
+        list = get_ids(leaves)
+        send(self(), {:undo_subscription, list})
 
-    send(self(), {:undo_subscription, left})
+        list =
+          Presence.list("presence")
+          |> get_ids()
+          |> Enum.uniq()
+          |> User.get_emails()
 
-    list =
-      Presence.list("presence")
-      |> get_ids()
-      |> Enum.uniq()
-      |> tap(fn list ->
-        send(self(), {:set_subscriptions, list})
-      end)
-      |> LiveMap.User.get_emails()
+        {:noreply, assign(socket, p_users: list)}
 
-    {:noreply, assign(socket, p_users: list)}
+      leaves == %{} ->
+        list =
+          Presence.list("presence")
+          |> get_ids()
+          |> Enum.uniq()
+          |> tap(fn list ->
+            send(self(), {:set_subscriptions, list})
+          end)
+          |> User.get_emails()
+
+        {:noreply, assign(socket, p_users: list)}
+
+      true ->
+        {:noreply, socket}
+    end
   end
 
   @impl true
   # update all the maps when an event is deleted
   def handle_info(%{topic: "event", event: "delete_event", payload: %{id: id}}, socket) do
-    IO.puts("event deleted & pushed")
     {:noreply, push_event(socket, "delete_event", %{id: id})}
   end
 
@@ -281,39 +272,41 @@ defmodule LiveMapWeb.MapLive do
   end
 
   def handle_info(
-        %{event: "new_message", payload: [current, emitter_id, receiver_id, msg]},
+        %{topic: _topic, event: "new_message", payload: {current, emitter_id, receiver_id, msg}},
         %{assigns: %{messages: _messages, user_id: user_id}} = socket
       ) do
     socket = assign(socket, :message, "")
     user_id = to_string(user_id)
 
-    cond do
-      user_id == emitter_id ->
-        {:noreply,
-         assign(socket,
-           #  messages: [[current, emitter_id, receiver_id, msg] | messages],
-           # <--- using temp assigns
-           messages: [[current, emitter_id, receiver_id, msg]],
-           message: ""
-         )}
-
-      user_id == receiver_id ->
-        {:noreply,
-         assign(socket,
-           #  messages: [[current, emitter_id, receiver_id, msg] | messages],
-           # <--- using temp assigns
-           messages: [[current, emitter_id, receiver_id, msg]],
-           message: ""
-         )}
-
+    case check_user_concerned(user_id, emitter_id, receiver_id) do
       true ->
+        {:noreply,
+         assign(socket,
+           #  messages: [[current, emitter_id, receiver_id, msg] | messages],
+           # <--- using temp assigns
+           messages: [[current, emitter_id, receiver_id, msg]],
+           message: ""
+         )}
+
+      false ->
         {:noreply, socket}
     end
   end
 
+  def check_user_concerned(u, e, r) do
+    ((u == e or u == r) && true) || false
+  end
+
   def subscribe_to(channel) do
     Endpoint.subscribe(channel)
-    # Phoenix.PubSub.subscribe(LiveMap.PubSub, channel)
+  end
+
+  def unsubscribe_to(channel) do
+    Endpoint.unsubscribe(channel)
+  end
+
+  def broadcast!(channel, event, msg) do
+    Phoenix.PubSub.broadcast!(channel, event, msg)
   end
 
   def get_ids(list) do
@@ -326,5 +319,15 @@ defmodule LiveMapWeb.MapLive do
     |> Map.update("owner", [], & &1)
     |> Map.update("pending", [], & &1)
     |> Map.update("confirmed", [], & &1)
+  end
+
+  def retrieve_messages(e, r) do
+    Cache.get_messages_by_channel(e, r)
+    |> Enum.map(fn {t, u, e, r, m} -> [t, u, e, r, m] end)
+  end
+
+  def list_subscriptions() do
+    Registry.keys(LiveMap.PubSub, self())
+    |> Enum.filter(fn ch -> ch != "event" and ch != "presence" end)
   end
 end
