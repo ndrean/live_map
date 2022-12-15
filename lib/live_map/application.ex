@@ -18,7 +18,8 @@ defmodule LiveMap.Application do
       LiveMapWeb.Presence,
       # {Registry, [keys: :unique, name: Registry.SessionRegistry]},
       LiveMapWeb.Endpoint,
-      {Task, fn -> shutdown_when_inactive(:timer.minutes(5)) end},
+      {ShutdownWhenInactive, :timer.minutes(5)},
+      # {Task, fn -> shutdown_when_inactive(:timer.minutes(5)) end},
       {Task.Supervisor, name: LiveMap.EventSup},
       {Task.Supervisor, name: LiveMap.AsyncMailSup}
     ]
@@ -28,17 +29,17 @@ defmodule LiveMap.Application do
   end
 
   # https://fly.io/phoenix-files/shut-down-idle-phoenix-app/
-  defp shutdown_when_inactive(every_ms) do
-    Logger.info("start inactivity watching process ---------------")
-    Process.sleep(every_ms)
+  # defp shutdown_when_inactive(every_ms) do
+  #   Logger.info("Start inactivity watching process ---------------")
+  #   Process.sleep(every_ms)
 
-    if :ranch.procs(LiveMapWeb.Endpoint.HTTP, :connections) == [] do
-      Logger.info("------------Shut down...")
-      System.stop(0)
-    else
-      shutdown_when_inactive(every_ms)
-    end
-  end
+  #   if :ranch.procs(LiveMapWeb.Endpoint.HTTP, :connections) == [] do
+  #     Logger.info("------------Shut down...")
+  #     System.stop(0)
+  #   else
+  #     shutdown_when_inactive(every_ms)
+  #   end
+  # end
 
   # Tell Phoenix to update the endpoint configuration whenever the application is updated.
   @impl true

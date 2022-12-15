@@ -17,6 +17,11 @@ defmodule LiveMapWeb do
   and import those modules here.
   """
 
+  # new
+  def static_paths do
+    ~w(assets fonts images favicon.ico robots.txt apple-touch-icon.png)
+  end
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: LiveMapWeb
@@ -24,6 +29,7 @@ defmodule LiveMapWeb do
       import Plug.Conn
       import LiveMapWeb.Gettext
       alias LiveMapWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
     end
   end
 
@@ -100,9 +106,22 @@ defmodule LiveMapWeb do
       import LiveMapWeb.Gettext
       alias LiveMapWeb.Router.Helpers, as: Routes
       import LiveMapWeb.InputHelpers
+
+      unquote(verified_routes())
     end
   end
 
+  # new
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: LiveMapWeb.Endpoint,
+        router: LiveMapWeb.Router,
+        statics: LiveMapWeb.static_paths()
+    end
+  end
+
+  @spec __using__(atom) :: any
   @doc """
   When used, dispatch to the appropriate controller/view/etc.
   """

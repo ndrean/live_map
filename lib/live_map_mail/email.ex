@@ -21,6 +21,7 @@ defmodule LiveMapMail.Email do
   The function finds the "owner email" and send him a mail with a `token` or "magic link".
   """
   def build_demand(%{mtoken: mtoken, event_id: event_id, user_id: user_id} = _params) do
+    IO.inspect(binding())
     Logger.info("Sending demand mail------")
     [email] = LiveMap.Event.owner(event_id)
     user_email = LiveMap.Repo.get_by(LiveMap.User, %{id: user_id}).email

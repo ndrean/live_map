@@ -48,7 +48,8 @@ config :live_map, LiveMapMail.Mailer, adapter: Swoosh.Adapters.Local
 config :live_map,
   default_days: 30,
   reset_time: 10,
-  cookie: :my_secret
+  cookie: :my_secret,
+  map_delay: 2_000
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false

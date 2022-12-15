@@ -27,7 +27,8 @@ defmodule LiveMapWeb.Endpoint do
     from: :live_map,
     gzip: true,
     cache_control_for_etags: "cache-control, public max-age='31436000'",
-    only: ~w(assets fonts images favicon.ico robots.txt apple-touch-icon.png)
+    # only: ~w(assets fonts images favicon.ico robots.txt apple-touch-icon.png)
+    only: LiveMapWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

@@ -1,10 +1,13 @@
 defmodule LiveMapWeb.NewEvent do
   use LiveMapWeb, :live_component
   import Phoenix.Component
+  # import LiveMap.Utils
   alias LiveMap.{Event, NewEvent}
   alias LiveMapWeb.Endpoint
   import LiveMapWeb.LiveHelpers
   require Logger
+
+  @moduledoc false
 
   def mount(socket) do
     {:ok,
@@ -20,17 +23,8 @@ defmodule LiveMapWeb.NewEvent do
     {:ok, assign(socket, assigns)}
   end
 
-  attr(:date, :string)
-  attr(:errors, :list)
-  attr(:class, :string)
-  attr(:class_err, :string)
-
   #  display the form when two markers are displayed
   def render(%{len: len} = assigns) when len > 1 do
-    # assigns =
-    #   assigns
-    #   |> assign_new(:date, fn ->  assigns.date)
-
     ~H"""
     <div id="date_form">
       <.form
@@ -52,7 +46,7 @@ defmodule LiveMapWeb.NewEvent do
           class="w-30 px-2"
           date={@date}
           label="Date"
-          attribute={:date}
+          attrib={:date}
           class_err="mt-1"
           errors={@changeset.errors}
         />
@@ -75,12 +69,10 @@ defmodule LiveMapWeb.NewEvent do
       |> NewEvent.changeset(params)
       |> Map.put(:action, :validate)
 
-    socket =
-      socket
-      |> assign(:changeset, changeset)
-      |> assign(:date, date)
-
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:changeset, changeset)
+     |> assign(:date, date)}
   end
 
   def handle_event("up_date", params, %{assigns: %{changeset: %{valid?: false}}} = socket) do

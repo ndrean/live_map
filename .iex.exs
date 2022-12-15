@@ -6,6 +6,10 @@ import_if_available(Ecto.Changeset)
 
 alias LiveMap.{Event, EventParticipants, Repo}
 
+IEx.configure(inspect: [charlists: :as_lists])
+
+# Flie.exists?(Path.expand("~/.iex.exs")) and import_file("~/.iex.exs")
+
 # ex
 defmodule E do
   def all_events() do

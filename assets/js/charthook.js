@@ -1,21 +1,27 @@
 import { proxy, subscribe } from "valtio";
 import { randomColor } from "randomcolor";
 
+// async function styleLoader() {
+//   return Promise.all([
+//     import("leaflet-control-geocoder/dist/Control.Geocoder.css"),
+//     import("leaflet/dist/leaflet.css"),
+//   ]);
+// }
 async function libLoader() {
   return Promise.all([
+    import("./bucketLimiter.js"),
     import("leaflet"),
     import("leaflet-control-geocoder"),
-    import("leaflet/dist/images/marker-shadow.png"),
     import("leaflet/dist/images/marker-icon.png"),
-    import("./bucketLimiter.js"),
+    import("leaflet/dist/images/marker-shadow.png"),
   ]);
 }
 
-// import takeToken from "./bucket";
+// import takeToken from "./bucketLimiter";
 
-const optionLong = { interval: 5_000, bucketCapacity: 1 };
-const optionShort = { internval: 3_000, bucketCapacity: 1 };
-
+const mapDelay = Number(window.mapDelay);
+const optionLong = { interval: mapDelay, bucketCapacity: 1 };
+const optionShort = { internval: mapDelay, bucketCapacity: 1 };
 const lineStyle = {
   color: "black",
   dashArray: "10, 10",
@@ -75,27 +81,28 @@ const place = proxy({
 
 // proxied centre and radius of the map
 const movingmap = proxy({ center: [], distance: 10_000 });
+let origin = [20, 10];
 
 export const ChartHook = {
   destroyed() {
-    cancel(this.el);
+    console.log("destroyed");
   },
   async mounted() {
     // load Leaflet and Geocoder async
     const [
+      { default: takeToken },
       L,
       { geocoder },
       { default: icon },
       { default: iconShadow },
-      { default: takeToken },
     ] = await libLoader();
 
-    const start_spinner = () =>
-      this.pushEventTo("#map", "mapoff", { id: "map" });
+    // const start_spinner = () =>
+    //   this.pushEventTo("#map", "mapoff", { id: "map" });
 
-    const stop_spinner = () => this.pushEventTo("#map", "mapon", { id: "map" });
+    // const stop_spinner = () => this.pushEventTo("#map", "mapon", { id: "map" });
 
-    if (L) stop_spinner();
+    // if (L) stop_spinner();
 
     const DefaultIcon = L.icon({
       iconUrl: icon,
@@ -105,7 +112,7 @@ export const ChartHook = {
 
     L.Marker.prototype.options.icon = DefaultIcon;
 
-    const map = L.map("map", { renderer: L.canvas() }).setView([20, 10], 2);
+    const map = L.map("map", { renderer: L.canvas() }).setView(origin, 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -125,21 +132,22 @@ export const ChartHook = {
     const geoCoder = L.Control.Geocoder.nominatim();
 
     // ***** ask to run the geolcation API.
-    // delay spinner if gelocation is fast
-    let timeoutIDGeoloc = undefined;
-
     async function geolocate(map) {
       document
         .getElementById("geolocation")
         .addEventListener("click", async () => {
-          await handleGeolocationPermission(map);
-          if (!timeoutIDGeoloc)
-            timeoutIDGeoloc = setTimeout(() => {
-              start_spinner();
-            }, 200);
+          map.locate({ setView: true, maxZoom: 11 });
+          // await handleGeolocationPermission(map);
+          // if (!timeoutIDGeoloc)
+          //   timeoutIDGeoloc = setTimeout(() => {
+          //     start_spinner();
+          //   }, 200);
         });
     }
-    geolocate(map);
+    geolocate(map).then(() => console.log("geolocate"));
+
+    // use built-in function
+    // console.log(map.locate({ setView: true, maxZoom: 11 }), "locate");
 
     // *********** form Geocoder alternative
     // provides a form to find a place by its name and fly-to
@@ -149,10 +157,11 @@ export const ChartHook = {
     }).addTo(map);
 
     coder.on("markgeocode", function ({ geocode: { center, html, name } }) {
-      start_spinner();
+      console.log("markgeocode");
+      // start_spinner();
       map.setView(center, 11);
       // map.flyTo(center, 11);
-      stop_spinner();
+      // stop_spinner();
     });
 
     // store of new event. use pushEventTo with phx-target (elements)
@@ -233,9 +242,9 @@ export const ChartHook = {
       datagroup.clearLayers();
       // save geojson to local store
       myEvts = data;
-      clearTimeout(timeoutIDGeoloc);
-      timeoutIDGeoloc = undefined;
-      stop_spinner();
+      // clearTimeout(timeoutIDGeoloc);
+      // timeoutIDGeoloc = undefined;
+      // stop_spinner();
       // process to create line and markers on each feature
       if (data)
         return L.geoJSON(data, {
@@ -408,6 +417,8 @@ export const ChartHook = {
     // ****** capture map moves
     // moveend mutates "movingmap" push to backend
     subscribe(movingmap, () => {
+      console.log("subscribed movingmap");
+      origin = movingmap.center;
       this.pushEventTo("#map", "postgis", { movingmap });
     });
 
@@ -415,6 +426,7 @@ export const ChartHook = {
     map.on("moveend", () => {
       movingmap.center = map.getCenter();
       const { _northEast: ne, _southWest: sw } = map.getBounds();
+      console.log(map.getBounds().toBBoxString(), "located");
       movingmap.distance = Number(
         map.distance(L.latLng(ne), L.latLng(sw)) / 2
       ).toFixed(1);

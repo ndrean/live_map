@@ -2,8 +2,11 @@
 
 <main class="w-full">
   <section>
-    <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-    <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+    <p class="alert alert-info" role="alert"><%= Phoenix.Flash.get(@flash, :info) %></p>
+    <%!-- <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p> --%>
+    <p class="alert alert-danger" role="alert"><%= Phoenix.Flash.get(@flash, :error) %></p>
+
+    <%!-- <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p> --%>
   </section>
   <header>
     <section class="grid grid-cols-6 w-full items-center" id="home">

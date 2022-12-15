@@ -1,5 +1,11 @@
 import Config
 
+config :live_map,
+  default_days: 30,
+  reset_time: 10,
+  cookie: :my_secret,
+  map_delay: 2_000
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

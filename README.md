@@ -1,17 +1,5 @@
 # LiveMap
 
-I have a solution that I would like to be challenged with.
-
-I use Presence and the "presence_diff" handler to subscribe a new user to any other connected user "on mount".
-I set up N(N+1)/2 subscriptions thus topics. The rule to design a topic is simply "1-3" if user_id 3 and user_id 1 are connected (the function is such that "set_topic(1,3) = set_tpoic(3,1)") .
-I also need to save the list of topics in an ETS table to create only one topic between users 1 and 3, and also to unsubscribe the user when he leaves. Indeed, if a subscription is made twice, then we have a double rendering. Furthermore, when user 1 create the "1-3" subscription, then user 3 must also create the same subscrption.
-
-Ok, nice, but this cannot be distributed, and why do I do this on mount? And not subscribe/unsubscribe "on-the-fly" when needed?
-
-Maybe. I can create a special topic "subscriptions" to which any new user will subscribe and broadcast on it any new topic so the concerned user can match with his user-id and subscribe himself to the new topic so that both user will now be able to communicate. For example, any connected user will subscribe to the topic "subscriptions". If user 1 wants to talk to user 3, then user 1 subscribes to the topic "1-3" and boradcast on the topic "subscrptions" the message "1-3". Since user 3 receives this and his id matches the message, then he should also subscribe to the topic "1-3" and receive any message boradcasted on the "private topic "1-3".
-
-You need to store these topics since if a user deconnects, then any private topics between him and other users must be deleted, otherwise you recreate an existing topic and they will receive double or more rendering.
-
 NOTE: check tailwind.config.cjs and and in config tailwind
 NOTE: caching raster tiles: <https://github.com/yagajs/leaflet-cached-tile-layer>
 

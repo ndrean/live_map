@@ -49,13 +49,8 @@ defmodule LiveMap.Repo do
 
   # events.coordinates, coordinates  <-> ST_MakePoint($1,$2) AS sphere_dist
 
-  @nb_days System.get_env("DEFAULT_TIME_RANGE") ||
-             Application.compile_env(:live_map, :default_days) ||
-             raise("""
-             Default time range missing in config.
-
-             Please set :live_map, :default_days
-             """)
+  #  Application.compile_env(:live_map, :default_days) ||
+  @nb_days System.get_env("DEFAULT_TIME_RANGE", "30")
 
   def features_in_map(
         lng,

@@ -8,17 +8,22 @@ defmodule LiveMapWeb.LiveHelpers do
   Function HTML components for LiveView
   """
 
-  def ulist(assigns) do
-    ~H"""
-    <ul :for={item <- @items}>
-      <%!-- <%= if item.a do %> --%>
-      <li class="text-black">
-        <%= render_slot(@litem, item) %>
-      </li>
-      <%!-- <% end %> --%>
-    </ul>
-    """
-  end
+  # slot(:inner_block, required: true)
+  # def ulist(assigns) do
+  #   ~H"""
+  #   <ul :for={item <- @items}>
+  #     <%!-- <%= if item.a do %> --%>
+  #     <li class="text-black">
+  #       <%= render_slot(@litem, item) %>
+  #     </li>
+  #     <%!-- <% end %> --%>
+  #   </ul>
+  #   """
+  # end
+
+  # <.ulist :let={myitem} items={~w(one two three)}>
+  #   This is number <%= myitem %>
+  # </.ulist>
 
   def bell_svg(assigns) do
     ~H"""
@@ -159,9 +164,12 @@ defmodule LiveMapWeb.LiveHelpers do
     """
   end
 
+  attr(:message, :string)
+  attr(:from, :string)
+
   def left_message(assigns) do
     ~H"""
-    <div class="col-start-1 col-end-10 p-1 rounded-lg">
+    <div class="col-start-1 col-end-10 p-1 rounded-lg" id={UUID.uuid4()}>
       <div class="flex flex-row items-center">
         <div class="relative ml-3 text-sm bg-green-200 py-2 px-4 shadow rounded-xl text-black">
           <div class="font-['Roboto'] text-black">
@@ -174,6 +182,10 @@ defmodule LiveMapWeb.LiveHelpers do
     """
   end
 
+  attr(:message, :string)
+  attr(:from, :string)
+  attr(:time, :any)
+
   def right_message(assigns) do
     nice_time =
       assigns.time
@@ -184,7 +196,7 @@ defmodule LiveMapWeb.LiveHelpers do
     assigns = assign(assigns, :nice_time, nice_time)
 
     ~H"""
-    <div class="col-start-4 col-end-13 p-1 rounded-lg">
+    <div class="col-start-4 col-end-13 p-1 rounded-lg" id={UUID.uuid4()}>
       <div class="flex items-center justify-start flex-row-reverse">
         <div class="relative mr-3 text-sm bg-indigo-200 py-2 px-4 shadow rounded-xl">
           <div class="font-['Roboto'] text-black">
@@ -210,6 +222,11 @@ defmodule LiveMapWeb.LiveHelpers do
 
   """
 
+  attr(:name, :string, required: true)
+  attr(:class, :string)
+  attr(:options, :list)
+  attr(:choice, :string, required: true)
+
   def select(assigns) do
     ~H"""
     <select id={@name} name={@name} class={@class}>
@@ -223,12 +240,21 @@ defmodule LiveMapWeb.LiveHelpers do
   Mandatory attributes are: `name`, `class`, `date`:
   """
 
+  attr(:errors, :list)
+  attr(:class_err, :string)
+  attr(:date, :string)
+  attr(:name, :string, required: true)
+  attr(:class, :string)
+  attr(:label, :string)
+  attr(:messages, :list)
+  attr(:attrib, :atom)
+
   def date_err(assigns) do
-    attribute = assigns.attribute
+    attrib = assigns.attrib
 
     messages =
       assigns.errors
-      |> Enum.filter(fn {n, _msg} -> n == attribute end)
+      |> Enum.filter(fn {n, _msg} -> n == attrib end)
       |> Enum.reduce([], fn {_k, {m, _}}, acc -> [m | acc] end)
 
     assigns = assign(assigns, :messages, messages)
@@ -239,6 +265,11 @@ defmodule LiveMapWeb.LiveHelpers do
       <span :for={error <- @messages} class={["text-red-700", @class_err]}><%= error %></span></label>
     """
   end
+
+  attr(:class, :string)
+  attr(:name, :string, required: true)
+  attr(:date, :string, required: true)
+  attr(:label, :string)
 
   def date(assigns) do
     ~H"""

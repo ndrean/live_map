@@ -6,6 +6,10 @@ defmodule LiveMapWeb.HeaderSection do
   # alias Phoenix.LiveView.JS
   require Logger
 
+  @moduledoc """
+  Header, navigate between Map and Chat
+  """
+  @impl true
   def mount(socket) do
     {:ok,
      assign(socket,
@@ -14,18 +18,16 @@ defmodule LiveMapWeb.HeaderSection do
      )}
   end
 
-  attr(:options, :list)
-  attr(:choice, :string)
-  attr(:name, :string)
-  attr(:entries, :list, default: [])
-
+  @impl true
   def render(assigns) do
-    IO.puts("render header")
-
     ~H"""
     <section class="flex mb-4 mt-4 justify-center bg-black" id="header">
       <div class="w-1/4 mt-0 flex flex-wrap items-center justify-center" id="geolocation">
-        <button class="btn gap-1 font-['Roboto'] bg-black border-0">
+        <button
+          class="btn gap-1 font-['Roboto'] bg-black border-0"
+          phx-click="switch_map"
+          phx-target={@myself}
+        >
           GPS
           <div class="badge border-0 bg-black">
             <.gps_svg />
@@ -49,7 +51,6 @@ defmodule LiveMapWeb.HeaderSection do
               length(@p_users) == 1 && "pointer-events-none"
             ]}
           >
-            <%!-- form="form-user" --%>
             <.bell_svg class={@newclass} />
             <div class="badge badge-secondary font-['Roboto']"><%= length(@p_users) %></div>
           </button>
@@ -63,6 +64,12 @@ defmodule LiveMapWeb.HeaderSection do
       </div>
     </section>
     """
+  end
+
+  @impl true
+  def handle_event("switch_map", _, socket) do
+    send(self(), "switch_map")
+    {:noreply, socket}
   end
 
   def handle_event("change", %{"form-user" => %{"email" => email} = params}, socket) do
@@ -79,22 +86,13 @@ defmodule LiveMapWeb.HeaderSection do
       true ->
         send(self(), {:change_receiver_email, email})
 
-        udpate =
-          socket
-          |> assign(:changeset, changeset)
-          |> assign(:email, email)
-
-        {
-          :noreply,
-          udpate
-          #  |> push_event("new_channel", %{from: socket.assigns.user_id, to: receiver_id})
-        }
+        {:noreply,
+         socket
+         |> assign(:changeset, changeset)
+         |> assign(:email, email)}
     end
   end
 
-  def handle_event("change", _, socket) do
-    {:noreply, socket}
-  end
 
   def handle_event(
         "notify",
@@ -109,6 +107,7 @@ defmodule LiveMapWeb.HeaderSection do
       {current, email, receiver_id, "text-indigo-500 animate-bounce"}
     )
 
+    send(self(), "switch_chat")
     {:noreply, socket}
   end
 end

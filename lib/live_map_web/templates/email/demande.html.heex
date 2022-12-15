@@ -14,9 +14,10 @@
     <br />
     <p>Use the link below before <strong>one week</strong></p>
     <p>
-      <%= link("Click to accept the invitation",
+      <.link href={~p"/mail/#{@token}"}>Click to accept the invitation</.link>
+      <%!-- <%= link("Click to accept the invitation",
         to: Routes.mail_path(LiveMapWeb.Endpoint, :confirm_link, @token)
-      ) %>
+      ) %> --%>
     </p>
   </body>
 </html>

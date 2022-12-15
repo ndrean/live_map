@@ -53,8 +53,10 @@ defmodule LiveMapWeb.QueryPicker do
     {:ok, update}
   end
 
-  attr(:errors, :list)
-  attr(:class_err, :string)
+  # attr(:errors, :list)
+  # attr(:class_err, :string)
+  # attr(:date, :string)
+  # attr(:label, :string)
 
   # render query table once map coords are ready
   def render(%{coords: %{"distance" => distance}} = assigns) do
@@ -107,7 +109,7 @@ defmodule LiveMapWeb.QueryPicker do
             class="w-15 m-1 rounded-md"
             class_err="mt-1"
             errors={@changeset.errors}
-            attribute={:end_date}
+            attrib={:end_date}
           />
         </div>
         <div class="text-center"></div>
@@ -125,27 +127,29 @@ defmodule LiveMapWeb.QueryPicker do
     """
   end
 
-  attr(:class, :string)
   attr(:name, :string)
 
-  attr(:users, :list)
-  attr(:user, :string)
+  # attr(:users, :list)
+  # attr(:user, :string)
 
-  attr(:target, :string)
+  # attr(:target, :string)
 
-  attr(:options, :list)
-  attr(:choice, :string)
+  # attr(:options, :list)
+  # attr(:choice, :string)
 
-  attr(:status, :string)
+  # attr(:status, :string)
 
-  attr(:date, :any)
-  attr(:radius, :float, doc: false)
+  # attr(:date, :any)
+  # attr(:radius, :float, doc: false)
 
   def radius(assigns) do
     ~H"""
     <input type="hidden" value={@radius} name={@name} id={@name} />
     """
   end
+
+  attr(:class, :string)
+  attr(:name, :string)
 
   def datalist(assigns) do
     ~H"""

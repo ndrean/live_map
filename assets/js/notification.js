@@ -1,7 +1,7 @@
 function sendNotification(to, from, receiver) {
   const notification = new Notification("New message:", {
     icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png",
-    body: `@${to}: from ${from}`,
+    body: `Hi ${to}: \n from ${from}`,
   });
   notification.onclick = () => window.focus;
   setTimeout(() => {

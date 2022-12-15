@@ -19,8 +19,8 @@ defmodule LiveMap.MixProject do
   def application do
     [
       mod: {LiveMap.Application, []},
-      extra_applications: [:logger, :runtime_tools],
-      included_applications: [:mnesia]
+      extra_applications: [:logger, :runtime_tools]
+      # included_applications: [:mnesia]
     ]
   end
 
@@ -33,7 +33,9 @@ defmodule LiveMap.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.6.15"},
+      # {:phoenix, "~> 1.6.15"},
+      {:phoenix, "~> 1.7.0-rc.0", override: true},
+      {:phoenix_view, "~> 2.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
       {:ecto, "~> 3.8"},
@@ -42,7 +44,7 @@ defmodule LiveMap.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.18.3"},
       {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.6"},
+      {:phoenix_live_dashboard, "~> 0.7.2"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
       {:phoenix_swoosh, "~> 1.0"},
@@ -59,8 +61,10 @@ defmodule LiveMap.MixProject do
       {:jose, "~> 1.11"},
       {:joken, "~> 2.5"},
       {:ex2ms, "~> 1.6"},
+      {:uuid, "~> 1.1"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:faker, "~> 0.17", only: [:dev, :test]},
+      # {:flame_on, "~> 0.5.2", only: :dev},
       {:ecto_erd, "~> 0.5.0", only: :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
@@ -81,8 +85,6 @@ defmodule LiveMap.MixProject do
       # , "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      # "assets.deploy": ["esbuild default --minify", "phx.digest"]
-
       "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
   end

@@ -34,7 +34,7 @@ defmodule LiveMapWeb.Router do
   scope "/", LiveMapWeb do
     pipe_through :browser
 
-    live("/chat", ChatLive)
+    live("/chat", LiveMapWeb.Chat)
     # live("/map", MapLive)
     get "/welcome", WelcomeController, :index
     get "/", PageController, :index
@@ -64,7 +64,12 @@ defmodule LiveMapWeb.Router do
     scope "/" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: LiveMapWeb.Telemetry
+      live_dashboard "/dashboard",
+        metrics: LiveMapWeb.Telemetry
+
+      # additional_pages: [
+      #   flame_on: FlameOn.DashboardPage
+      # ]
     end
   end
 

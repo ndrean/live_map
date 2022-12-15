@@ -1,4 +1,7 @@
 defmodule LiveMap.Utils do
+  @moduledoc """
+  Misc utilities functions
+  """
   def parse_date(string_as_date) do
     string_as_date
     |> String.split("-")

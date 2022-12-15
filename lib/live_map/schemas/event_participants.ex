@@ -113,17 +113,15 @@ defmodule LiveMap.EventParticipants do
     |> Repo.one()
   end
 
-  @doc """
-  Get all the records for this event with email and status
-  ```
-  iex>LiveMap.EventParticipants.email_with_evt_id(1)
-  [
-    %{ep_status: "confirmed", user_email: "toto", user_id: 1},
-    %{ep_status: "confirmed", user_email: "bibi", user_id: 2},
-    %{ep_status: "owner", user_email: "nevendrean@yahoo.fr", user_id: 3}
-  ]
-  ```
-  """
+  # Get all the records for this event with email and status
+  # ```
+  # iex>LiveMap.EventParticipants.email_with_evt_id(1)
+  # [
+  #   %{ep_status: "confirmed", user_email: "toto", user_id: 1},
+  #   %{ep_status: "confirmed", user_email: "bibi", user_id: 2},
+  #   %{ep_status: "owner", user_email: "nevendrean@yahoo.fr", user_id: 3}
+  # ]
+  # ```
 
   #  UNUSED: TBD
   # def email_with_evt_id(event_id) do
@@ -136,16 +134,15 @@ defmodule LiveMap.EventParticipants do
   #   |> Repo.all()
   # end
 
-  @doc """
-  List of users.email and status by event_participant_id
-  ```
-  iex>LiveMap.EventParticipants.list_participants_status_by_evt_id(1)
-  [
-  %{status: "owner", user: "dreanneven@gmail.com"},
-  %{status: "pending", user: "nevendrean@yahoo.fr"},
-  %{status: "confirmed", user: "toto"}
-  ]
-  ```
+  # List of users.email and status by event_participant_id
+  # ```
+  # iex>LiveMap.EventParticipants.list_participants_status_by_evt_id(1)
+  # [
+  # %{status: "owner", user: "dreanneven@gmail.com"},
+  # %{status: "pending", user: "nevendrean@yahoo.fr"},
+  # %{status: "confirmed", user: "toto"}
+  # ]
+  # ```
   """
 
   #  UNUSED: TBD
@@ -159,24 +156,24 @@ defmodule LiveMap.EventParticipants do
   #   |> Repo.all()
   # end
 
-  @doc """
-  List of events to which "user.email" participates with his status
-  ```
-  iex>LiveMap.EventParticipants.list_events_by_user_email("dreanneven@gmail.com")
-  [
-  %{event_id: 1, status: "owner", token: nil, user: "dreanneven@gmail.com"},
-  %{event_id: 2, status: "owner", token: nil, user: "dreanneven@gmail.com"},
-  %{event_id: 3, status: "confirmed", token: nil, user: "dreanneven@gmail.com"},
-  %{event_id: 6, status: "owner", token: nil, user: "dreanneven@gmail.com"},
-  %{
-    event_id: 4,
-    status: "pending",
-    token: "SFMyNTY.g2gDbQAAABR1c2VyX2lkPTEmZXZ0rZw-SDZWDL8Eylk",
-    user: "dreanneven@gmail.com"
-  }
-  ]
-  ```
-  """
+
+  # List of events to which "user.email" participates with his status
+  # ```
+  # iex>LiveMap.EventParticipants.list_events_by_user_email("dreanneven@gmail.com")
+  # [
+  # %{event_id: 1, status: "owner", token: nil, user: "dreanneven@gmail.com"},
+  # %{event_id: 2, status: "owner", token: nil, user: "dreanneven@gmail.com"},
+  # %{event_id: 3, status: "confirmed", token: nil, user: "dreanneven@gmail.com"},
+  # %{event_id: 6, status: "owner", token: nil, user: "dreanneven@gmail.com"},
+  # %{
+  #   event_id: 4,
+  #   status: "pending",
+  #   token: "SFMyNTY.g2gDbQAAABR1c2VyX2lkPTEmZXZ0rZw-SDZWDL8Eylk",
+  #   user: "dreanneven@gmail.com"
+  # }
+  # ]
+  # ```
+
 
   #  UNUSED: TBD
   # def list_events_by_user_email(user_email) do
@@ -189,7 +186,7 @@ defmodule LiveMap.EventParticipants do
   #   |> Repo.all()
   # end
 
-  @doc """
+  @doc \"""
   List of events owner by "user.email"
   """
 

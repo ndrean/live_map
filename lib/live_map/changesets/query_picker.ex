@@ -37,7 +37,9 @@ defmodule LiveMap.QueryPicker do
     start_date = get_field(changeset, :start_date)
     end_date = get_field(changeset, :end_date)
 
-    if is_nil(start_date) and is_nil(end_date) do
+    validate = fn x -> is_nil(x) or x == "" end
+
+    if validate.(start_date) or validate.(end_date) do
       changeset
     else
       case Date.compare(end_date, start_date) do

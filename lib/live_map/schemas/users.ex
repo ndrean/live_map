@@ -4,6 +4,8 @@ defmodule LiveMap.User do
   import Ecto.Query
   alias LiveMap.{Repo, User, Event, EventParticipants}
 
+  @moduledoc false
+
   schema "users" do
     field :email, :string
     has_many(:events, Event)

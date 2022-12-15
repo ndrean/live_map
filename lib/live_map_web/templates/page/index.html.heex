@@ -8,7 +8,7 @@
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 533.5 544.3"
-          width="20px"
+          width="46px"
           height="20"
           class="inline-flex items-center"
         >
@@ -37,7 +37,11 @@
   </div>
 
   <div class="w-60">
-    <a
+    <%!-- <a
+      href={@oauth_github_url}
+      class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
+    > --%>
+    <.link
       href={@oauth_github_url}
       class="bg-[#24292e] font-['Roboto'] flex justify-content items-center min-h-full text-white text-base"
     >
@@ -45,7 +49,7 @@
         <svg
           height="32"
           viewBox="0 0 16 16"
-          width="52px"
+          width="56px"
           class="fill-white flex justify-content items-center"
         >
           <path
@@ -63,13 +67,14 @@
       <div class="m-1">
         Sign in with GitHub
       </div>
-    </a>
+      <%!-- </a> --%>
+    </.link>
   </div>
   <div>
     <a href={@oauth_facebook_url}>
       <img
         class=""
-        width="240"
+        width="260"
         alt="fb-ssr"
         src={Routes.static_path(@conn, "/images/fb_login.webp")}
       />

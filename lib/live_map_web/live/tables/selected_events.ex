@@ -10,21 +10,21 @@ defmodule LiveMapWeb.SelectedEvents do
   Table to display the results of the query
   """
 
-  @thead ~w(Action Display Date Demand Details Owner Participants)s
+  @thead ~w(Del Join Show Details Date)s
 
   def mount(_p, _s, socket) do
     IO.puts("mount SelectedEvents")
 
-    updated =
+    {
+      :ok,
       socket
-      |> assign(
-        live_action: nil,
-        id: "selected",
-        selected: [],
-        thead: @thead
-      )
-
-    {:ok, updated}
+      #  |> assign(
+      #  live_action: nil,
+      #  id: "selected",
+      #  selected: [],
+      #  thead: @thead,
+      #  )
+    }
   end
 
   @doc """
@@ -55,11 +55,12 @@ defmodule LiveMapWeb.SelectedEvents do
   end
 
   def render(assigns) do
-    assigns = assign(assigns, :thead, @thead)
+    assigns = assign_new(assigns, :thead, fn _ -> @thead end)
+    assigns = assign(assigns, :modal, 1)
 
     ~H"""
-    <div class="overflow-x-auto overflow-y-auto max-h-60 overflow-hidden">
-      <table id="selected" class="table table-compact w-full">
+    <div class="overflow-x-auto overflow-y-auto max-h-60 overflow-hidden" id="selected">
+      <table class="table table-compact w-full">
         <thead class="sticky top-0">
           <tr>
             <th :for={th <- @thead}><%= th %></th>
@@ -72,8 +73,8 @@ defmodule LiveMapWeb.SelectedEvents do
                 id,
                 %{"owner" => [owner], "pending" => pending, "confirmed" => confirmed},
                 %{"date" => date},
-                %{"ad1" => _ad1},
-                %{"ad2" => _ad2},
+                %{"ad1" => ad1},
+                %{"ad2" => ad2},
                 %{"d" => d}
               ] <-
                 @selected
@@ -98,26 +99,6 @@ defmodule LiveMapWeb.SelectedEvents do
               </button>
             </td>
             <td>
-              <input
-                type="checkbox"
-                phx-click="checkbox"
-                phx-target={@myself}
-                phx-value-id={id}
-                id={"check_#{id}"}
-                class="checkbox checkbox-lg m-2"
-              />
-            </td>
-            <td>
-              <div class={[
-                "font-['Roboto'] font-bold text-sm m-1",
-                @current in confirmed && "text-lime-500",
-                @current in pending && "text-blue-700",
-                @current == owner && "text-white"
-              ]}>
-                <%= date %>
-              </div>
-            </td>
-            <td>
               <button
                 phx-click="send_demand"
                 phx-target={@myself}
@@ -135,18 +116,44 @@ defmodule LiveMapWeb.SelectedEvents do
               </button>
             </td>
             <td>
-              <pre><%= d %></pre>
+              <input
+                type="checkbox"
+                phx-click="checkbox"
+                phx-target={@myself}
+                phx-value-id={id}
+                id={"check_#{id}"}
+                class="checkbox checkbox-lg m-2"
+              />
+            </td>
+
+            <%!-- phx-click="openmodal"
+                phx-target={@myself} --%>
+            <%!-- phx-hook="ModalHook" --%>
+            <td>
+              <label for={"my-modal-#{id}"} class="btn">Show!</label>
+              <input type="checkbox" id={"my-modal-#{id}"} class="modal-toggle" />
+              <div class="modal z-[9999]" id={"modal-#{id}"}>
+                <LiveMapWeb.Modal.display
+                  date={date}
+                  ad1={ad1}
+                  ad2={ad2}
+                  d={d}
+                  owner={owner}
+                  pending={pending}
+                  confirmed={confirmed}
+                  mid={id}
+                />
+              </div>
             </td>
             <td>
-              <%= owner %>
-            </td>
-            <td>
-              <span :for={user <- pending} class={[pending != [] && "text-orange-700"]}>
-                <%= user %>
-              </span>
-              <span :for={user <- confirmed} class={[confirmed != [] && "text-lime-600"]}>
-                <%= user %>
-              </span>
+              <div class={[
+                "font-['Roboto'] font-bold text-sm m-1",
+                @current in confirmed && "text-lime-500",
+                @current in pending && "text-blue-700",
+                @current == owner && "text-white"
+              ]}>
+                <%= date %>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -168,6 +175,7 @@ defmodule LiveMapWeb.SelectedEvents do
 
   # delete event as owner => evt broadcasted to all users
   def handle_event("delete_event", %{"id" => id, "owner" => _owner}, socket) do
+    IO.puts("del event")
     id = safely_use(id)
     # send async mail & then delete event
     send(self(), {:mail_to_cancel_event, %{event_id: id}})

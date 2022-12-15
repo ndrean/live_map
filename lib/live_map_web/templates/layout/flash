@@ -1,10 +1,10 @@
-<p
+<!-- <p
   class="alert alert-info"
   role="alert"
   phx-click="lv:clear-flash"
   phx-value-key="info"
 >
-  <%= live_flash(@flash, :info) %>
+  <%# live_flash(@flash, :info) %> <%= Phoenix.Fals.get(@flash, :info) %>
 </p>
 
 <p
@@ -13,5 +13,5 @@
   phx-click="lv:clear-flash"
   phx-value-key="error"
 >
-  <%= live_flash(@flash, :error) %>
-</p>
+  <%# live_flash(@flash, :error) %> <%= Phoenix.Fals.get(@flash, :error) %>
+</p> -->

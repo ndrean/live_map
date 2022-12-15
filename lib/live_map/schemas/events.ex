@@ -4,6 +4,8 @@ defmodule LiveMap.Event do
   alias LiveMap.{Repo, User, EventParticipants, Event, GeoJSON}
   require Logger
 
+  @moduledoc false
+
   schema "events" do
     field :distance, :float, default: nil
     field :ad1, :string, default: nil

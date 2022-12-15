@@ -163,26 +163,17 @@ defmodule Libraries.ElixirAuthFacebook do
   # ---------- CREDENTIALS -----------
   def app_id() do
     System.get_env("FACEBOOK_APP_ID") ||
-      Application.get_env(:elixir_auth_facebook, :fb_app_id) ||
-      raise("""
-      App ID missing
-      """)
+      Application.get_env(:elixir_auth_facebook, :fb_app_id)
   end
 
   def app_secret() do
     System.get_env("FACEBOOK_APP_SECRET") ||
-      Application.get_env(:elixir_auth_facebook, :fb_app_secret) ||
-      raise """
-      App secret missing
-      """
+      Application.get_env(:elixir_auth_facebook, :fb_app_secret)
   end
 
   #  anti-CSRF check
   def get_state() do
     System.get_env("FACEBOOK_STATE") ||
-      Application.get_env(:elixir_auth_facebook, :app_state) ||
-      raise """
-      App state missing
-      """
+      Application.get_env(:elixir_auth_facebook, :app_state)
   end
 end

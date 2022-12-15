@@ -14,8 +14,11 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+
 import { ChartHook } from "./charthook";
 import { Notify } from "./notification";
+// import { ModalHook } from "./modalhook";
+// import { TransitionHook } from "./transitionhook";
 // import { Facebook } from "./facebook";
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -23,13 +26,8 @@ const csrfToken = document
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { ChartHook, Notify, transition },
+  hooks: { ChartHook, Notify },
 });
-
-// liveSocket = new LiveSocket("/chat", Socket, {
-//   params: { _csrf_token: csrfToken },
-//   // hooks: { MapHook },
-// });
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
@@ -55,6 +53,9 @@ window.addEventListener("phx:clear_boxes", () => {
   }
 });
 
+const chatDiv = document.getElementById("chat-div");
+if (chatDiv) console.log(chatDiv.scrollHeight);
+
 //  FB-SDK
 const fbutton = document.getElementById("fbhook");
 if (fbutton) Facebook(fbutton);
@@ -63,20 +64,3 @@ if (fbutton) Facebook(fbutton);
 const oneTap = document.querySelector("#g_id_onload");
 if (oneTap)
   oneTap.dataset.login_uri = window.location.href + "auth/google/callback";
-
-const transition = {
-  mounted() {
-    this.from = this.el.getAttribute("data-transition-from").split(" ");
-    this.to = this.el.getAttribute("data-transition-to").split(" ");
-    this.el.classList.add(...this.from);
-
-    setTimeout(() => {
-      this.el.classList.remove(...this.from);
-      this.el.classList.add(...this.to);
-    }, 10);
-  },
-  updated() {
-    this.el.classList.remove("transition");
-    this.el.classList.remove(...this.from);
-  },
-};

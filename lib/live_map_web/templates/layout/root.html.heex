@@ -22,6 +22,9 @@
     <script nonce="2022userid">
       window.userId = "<%= assigns[:user_id] %>";
     </script>
+    <script>
+      window.mapDelay = "<%= Application.fetch_env!(:live_map, :map_delay) %>"
+    </script>
     <script
       type="module"
       nonce="2022appjs"

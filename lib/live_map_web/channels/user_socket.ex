@@ -15,35 +15,7 @@ defmodule LiveMapWeb.UserSocket do
 
   ## Channels
 
-  channel "chat:*", LiveMapWeb.ChatChannel
-
-  @doc """
-  In "user_socket.js", it is set { params: {token: userToken}}  via DOM reading. The `userToken`
-  is a computed value from the `user.id`. This params is added to the WS URI query string.
-  When we pass it in the channel socket, this gives us a user identification in every channels.
-  For example, the "chat_channel" has now "curr_id" in the socket.
-  """
-  @impl true
-  def connect(%{"token" => token, "userId" => userid} = _params, socket, _connect_info) do
-    case LiveMap.Token.user_check(token) do
-      {:error, reason} ->
-        Logger.error("#{__MODULE__}: #{reason}: invalid token")
-        {:error, reason}
-
-      {:ok, user_id} ->
-        if to_string(user_id) == to_string(userid) do
-          {:ok, assign(socket, current_id: user_id)}
-        else
-          Logger.warning("Error")
-          {:error, "#{__MODULE__}: uncoherent IDs detected"}
-        end
-    end
-  end
-
-  def connect(_, _socket, _) do
-    Logger.error("#{__MODULE__}: missing params")
-    :error
-  end
+  # channel "chat:*", LiveMapWeb.ChatChannel
 
   @doc """
   Socket id's are topics that allow you to identify all sockets for a given user:
@@ -52,6 +24,37 @@ defmodule LiveMapWeb.UserSocket do
   `Elixir.LiveMapWeb.Endpoint.broadcast("user_socket:{user.id}", "disconnect", %{})`
   Returning `nil` makes this socket anonymous.
   """
+
   @impl true
-  def id(_socket), do: "user_socket:{socket.assigns.user_id}"
+  def id(socket), do: "user_socket:#{socket.assigns.user_id}"
+
+  @doc """
+  In "user_socket.js", it is set { params: {token: userToken}}  via DOM reading. The `userToken`
+  is a computed value from the `user.id`. This params is added to the WS URI query string.
+  When we pass it in the channel socket, this gives us a user identification in every channels.
+  For example, the "chat_channel" has now "curr_id" in the socket.
+  """
+
+  # @impl true
+  # def connect(%{"token" => token, "userId" => userid} = _params, socket, _connect_info) do
+  #   case LiveMap.Token.user_check(token) do
+  #     {:error, reason} ->
+  #       Logger.error("#{__MODULE__}: #{reason}: invalid token")
+  #       {:error, reason}
+
+  #     {:ok, user_id} ->
+  #       if to_string(user_id) == to_string(userid) do
+  #         Logger.info("Connected________________________________")
+  #         {:ok, assign(socket, current_id: user_id)}
+  #       else
+  #         Logger.warning("Error")
+  #         {:error, "#{__MODULE__}: uncoherent IDs detected"}
+  #       end
+  #   end
+  # end
+
+  # def connect(_, _socket, _) do
+  #   Logger.error("#{__MODULE__}: missing params")
+  #   :error
+  # end
 end

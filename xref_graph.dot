@@ -1,0 +1,318 @@
+digraph "xref graph" {
+  "lib/libraries/elixir_auth_facebook.ex"
+  "lib/libraries/elixir_auth_github.ex"
+  "lib/libraries/elixir_auth_google.ex"
+  "lib/libraries/elixir_sdk_facebook.ex"
+  "lib/libraries/elixir_sdk_facebook.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/libraries/elixir_sdk_facebook.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/libraries/elixir_sdk_facebook.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map/headers.ex"
+  "lib/live_map_web/router.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/fb_auth_controller.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/libraries/elixir_auth_facebook.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map/schemas/users.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map/repo.ex" -> "lib/live_map/utils.ex"
+  "lib/live_map/schemas/users.ex" -> "lib/live_map/schemas/event_participants.ex"
+  "lib/live_map/schemas/event_participants.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map/schemas/event_participants.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map/schemas/events.ex" -> "lib/live_map/geojson.ex"
+  "lib/live_map/geojson.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map/schemas/events.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map/schemas/events.ex" -> "lib/live_map/schemas/event_participants.ex" [label="(export)"]
+  "lib/live_map/schemas/events.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map/schemas/event_participants.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map/schemas/event_participants.ex" -> "lib/live_map/token.ex"
+  "lib/live_map/token.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/endpoint.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/endpoint.ex" -> "lib/live_map_web/channels/user_socket.ex"
+  "lib/live_map_web/channels/user_socket.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/channels/user_socket.ex" -> "lib/live_map_web/channels/chat_channel.ex"
+  "lib/live_map_web/channels/chat_channel.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/channels/chat_channel.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/endpoint.ex" -> "lib/live_map_web/router.ex"
+  "lib/live_map/schemas/users.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/login_error_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/login_error_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/login_error_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/login_error_controller.ex" -> "lib/live_map_web/views/page_view.ex"
+  "lib/live_map_web/views/page_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/page_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/page_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/page_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/page_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/error_helpers.ex" -> "lib/live_map_web/gettext.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/fb_auth_controller.ex" -> "lib/live_map_web/views/welcome_view.ex"
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web/live/map_live.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map/chat_cache.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map/utils.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/channels/presence.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/controllers/mail_controller.ex"
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map/schemas/event_participants.ex"
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map_mail/email.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map/schemas/event_participants.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map_mail/mailer.ex"
+  "lib/live_map_mail/email.ex" -> "lib/live_map_web/views/email_view.ex"
+  "lib/live_map_web/views/email_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/email_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/email_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/email_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/email_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/mail_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/live/components/chart.ex"
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/live/components/loader.ex"
+  "lib/live_map_web/live/components/loader.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/live/tables/new_event_table.ex"
+  "lib/live_map_web/live/tables/new_event_table.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/tables/new_event_table.ex" -> "lib/live_map_web/live/forms/new_event.ex"
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map/changesets/new_event.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map/geojson.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/new_event.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chart.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/live/components/chat.ex"
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map/changesets/chat_message.ex" [label="(export)"]
+  "lib/live_map/changesets/chat_message.ex" -> "lib/live_map/chat_cache.ex"
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map/utils.ex"
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/live/components/header_section.ex"
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map/changesets/chat_select.ex" [label="(export)"]
+  "lib/live_map/changesets/chat_select.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/components/header_section.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/components/chat.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/live/components/header_section.ex"
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/live/forms/query_picker.ex"
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map/changesets/query_picker.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map/utils.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/forms/query_picker.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/live/tables/selected_events.ex"
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map/schemas/events.ex"
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map/utils.ex" [label="(export)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/tables/selected_events.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/live/map_live.ex" -> "lib/live_map_web/views/layout_view.ex"
+  "lib/live_map_web/views/layout_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/layout_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/layout_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/layout_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/layout_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/welcome_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/fb_sdk_auth_controller.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/libraries/elixir_sdk_facebook.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/github_auth_controller.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/libraries/elixir_auth_github.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/github_auth_controller.ex" -> "lib/live_map_web/views/welcome_view.ex"
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/google_auth_controller.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/libraries/elixir_auth_google.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/google_auth_controller.ex" -> "lib/live_map_web/views/welcome_view.ex"
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/mail_controller.ex"
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/one_tap_controller.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/libraries/google_certs.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map/schemas/users.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map/token.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/one_tap_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/page_controller.ex"
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/libraries/elixir_auth_facebook.ex"
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/libraries/elixir_auth_github.ex"
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/libraries/elixir_auth_google.ex"
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/page_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/controllers/welcome_controller.ex"
+  "lib/live_map_web/controllers/welcome_controller.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/controllers/welcome_controller.ex" -> "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/welcome_controller.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/controllers/welcome_controller.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/telemetry.ex"
+  "lib/live_map_web/router.ex" -> "lib/live_map_web/views/layout_view.ex"
+  "lib/libraries/google_certs.ex"
+  "lib/live_map.ex"
+  "lib/live_map/application.ex"
+  "lib/live_map/application.ex" -> "lib/live_map/chat_cache.ex"
+  "lib/live_map/application.ex" -> "lib/live_map/repo.ex"
+  "lib/live_map/application.ex" -> "lib/live_map_web/channels/presence.ex"
+  "lib/live_map/application.ex" -> "lib/live_map_web/endpoint.ex"
+  "lib/live_map/application.ex" -> "lib/live_map_web/telemetry.ex"
+  "lib/live_map/changesets/chat_message.ex"
+  "lib/live_map/changesets/chat_select.ex"
+  "lib/live_map/changesets/new_event.ex"
+  "lib/live_map/changesets/query_picker.ex"
+  "lib/live_map/chat_cache.ex"
+  "lib/live_map/geojson.ex"
+  "lib/live_map/headers.ex"
+  "lib/live_map/postgres_types.ex"
+  "lib/live_map/release.ex"
+  "lib/live_map/repo.ex"
+  "lib/live_map/schemas/event_participants.ex"
+  "lib/live_map/schemas/events.ex"
+  "lib/live_map/schemas/users.ex"
+  "lib/live_map/token.ex"
+  "lib/live_map/utils.ex"
+  "lib/live_map_mail/email.ex"
+  "lib/live_map_mail/mailer.ex"
+  "lib/live_map_web.ex"
+  "lib/live_map_web/channels/chat_channel.ex"
+  "lib/live_map_web/channels/presence.ex"
+  "lib/live_map_web/channels/user_socket.ex"
+  "lib/live_map_web/components/core_components.ex"
+  "lib/live_map_web/controllers/fb_auth_controller.ex"
+  "lib/live_map_web/controllers/fb_sdk_auth_controller.ex"
+  "lib/live_map_web/controllers/github_auth_controller.ex"
+  "lib/live_map_web/controllers/google_auth_controller.ex"
+  "lib/live_map_web/controllers/login_error_controller.ex"
+  "lib/live_map_web/controllers/mail_controller.ex"
+  "lib/live_map_web/controllers/one_tap_controller.ex"
+  "lib/live_map_web/controllers/page_controller.ex"
+  "lib/live_map_web/controllers/welcome_controller.ex"
+  "lib/live_map_web/endpoint.ex"
+  "lib/live_map_web/gettext.ex"
+  "lib/live_map_web/live/components/chart.ex"
+  "lib/live_map_web/live/components/chat.ex"
+  "lib/live_map_web/live/components/header_section.ex"
+  "lib/live_map_web/live/components/live_helpers.ex"
+  "lib/live_map_web/live/components/loader.ex"
+  "lib/live_map_web/live/forms/new_event.ex"
+  "lib/live_map_web/live/forms/query_picker.ex"
+  "lib/live_map_web/live/map_live.ex"
+  "lib/live_map_web/live/menu.ex"
+  "lib/live_map_web/live/tables/new_event_table.ex"
+  "lib/live_map_web/live/tables/selected_events.ex"
+  "lib/live_map_web/router.ex"
+  "lib/live_map_web/telemetry.ex"
+  "lib/live_map_web/views/datalist_input.ex"
+  "lib/live_map_web/views/demande_participate_view.ex"
+  "lib/live_map_web/views/demande_participate_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/demande_participate_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/demande_participate_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/demande_participate_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/demande_participate_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/email_view.ex"
+  "lib/live_map_web/views/error_helpers.ex"
+  "lib/live_map_web/views/error_view.ex"
+  "lib/live_map_web/views/error_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/error_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/error_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/error_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/error_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/facebook_auth_view.ex"
+  "lib/live_map_web/views/facebook_auth_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/facebook_auth_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/facebook_auth_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/facebook_auth_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/facebook_auth_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/fb_sdk_auth_view.ex"
+  "lib/live_map_web/views/fb_sdk_auth_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/fb_sdk_auth_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/fb_sdk_auth_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/fb_sdk_auth_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/fb_sdk_auth_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/github_auth_view.ex"
+  "lib/live_map_web/views/github_auth_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/github_auth_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/github_auth_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/github_auth_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/github_auth_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/google_auth_view.ex"
+  "lib/live_map_web/views/google_auth_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/google_auth_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/google_auth_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/google_auth_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/google_auth_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/layout_view.ex"
+  "lib/live_map_web/views/map_view.ex"
+  "lib/live_map_web/views/map_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/map_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/map_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/map_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/map_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/page_view.ex"
+  "lib/live_map_web/views/selected_events_view.ex"
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web.ex" [label="(compile)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/gettext.ex" [label="(export)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/live/components/live_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/live/tables/selected_events.ex" [label="(export)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/router.ex" [label="(compile)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/views/datalist_input.ex" [label="(export)"]
+  "lib/live_map_web/views/selected_events_view.ex" -> "lib/live_map_web/views/error_helpers.ex" [label="(export)"]
+  "lib/live_map_web/views/welcome_view.ex"
+}

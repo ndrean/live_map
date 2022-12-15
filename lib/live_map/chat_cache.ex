@@ -1,6 +1,6 @@
 defmodule LiveMap.ChatCache do
   @moduledoc """
-  Cache fo the chat in `:ets`
+  Init the ETS "chat" and periodic cleanup of "old" messages
   """
   alias LiveMap.Cache
 
@@ -42,6 +42,9 @@ end
 ##############################################
 
 defmodule LiveMap.Cache do
+  @moduledoc """
+  Interface for ETS functions
+  """
   import Ex2ms, only: [fun: 1]
 
   def save_message(current, emitter_id, receiver_id, message) do
